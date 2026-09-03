@@ -1,0 +1,29 @@
+# --- Secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+build/
+dist/
+
+# --- Loglar ---
+logs/
+*.log
+
+# --- Yerel veri / uretilmis ---
+data/
+*.sqlite
+*.db
+
+# --- IDE / OS ---
+.cursor/
+.idea/
+.vscode/
+.DS_Store

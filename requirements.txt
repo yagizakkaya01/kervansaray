@@ -1,0 +1,27 @@
+# ============================================================
+# Kervansaray - Car Park Entry/Exit Intelligence
+# ============================================================
+# Bu liste sadece CILEKAI'dan tasinan operasyonel iskeleti
+# calistirmaya yeter. Projeye ozel bagimliliklar (Postgres
+# surucusu, pgvector, tool katmani vs.) sema ve ingest API
+# yazildikca eklenecek.
+
+# --- Yapilandirma ---
+pydantic~=2.11
+pydantic-settings~=2.11
+python-dotenv~=1.1
+
+# --- Web / API iskeleti ---
+Flask==3.1.0
+flask-cors~=5.0
+
+# --- Gozlemlenebilirlik ---
+prometheus-client>=0.20.0
+
+# --- LLM saglayicilari (bulut; brief S10: model asla sunucuda calismaz) ---
+groq>=0.5.0
+openai~=1.109
+requests==2.32.3
+
+# --- Metin isleme (Turkce normalizasyon + bounded fuzzy match) ---
+rapidfuzz>=3.0.0

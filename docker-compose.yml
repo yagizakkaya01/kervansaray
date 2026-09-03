@@ -1,0 +1,52 @@
+# ============================================================
+# Kervansaray - Docker Compose iskeleti
+# ------------------------------------------------------------
+# CILEKAI'nin compose iskeletinden tasindi (PROJECT_BRIEF S13).
+# Cikarilanlar (PROJECT_BRIEF S10 / S12):
+#   - ollama        : model asla sunucuda calismaz, LLM bulut API uzerinden
+#   - anythingllm   : ayri RAG platformu gereksiz
+#   - qdrant        : ayri vektor DB yerine ayni Postgres icinde pgvector
+# ============================================================
+version: "3.8"
+
+services:
+  app:
+    container_name: kervansaray_app
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://kervansaray:kervansaray@db:5432/kervansaray
+      - PORT=8000
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Postgres + pgvector: olay deposu, notlar ve gunluk ozet embedding'leri
+  # ayni serviste tutulur (PROJECT_BRIEF S10). Sadece localhost'a acilir.
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: kervansaray_db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=kervansaray
+      - POSTGRES_PASSWORD=kervansaray
+      - POSTGRES_DB=kervansaray
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - kervansaray_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kervansaray"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  kervansaray_db:
