@@ -6,13 +6,20 @@ Sabit kameralarla otopark giris/cikis zekasi: plaka -> yapilandirilmis olay
 > Tam proje baglami, kararlar ve **reddedilmis yaklasimlar** icin:
 > [`docs/PROJECT_BRIEF.md`](docs/PROJECT_BRIEF.md). Reddedilenler bolumu (S12)
 > opsiyonel okuma degil.
+>
+> Sirali plan, cikis kriterleri ve acik karar noktalari icin:
+> [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Durum
 
 Ogrenci/staj projesi, **sadece sentetik veri**. Kamera yok, gercek kisisel
 veri yok. Su an repoda yalnizca CILEKAI'dan tasinan operasyonel iskelet var;
 projeye ozel parcalar (sema, ingest API, sentetik uretici, tool katmani,
-altin set) `docs/PROJECT_BRIEF.md` S15'e gore yazilacak.
+altin set) `docs/ROADMAP.md` sirasina gore yazilacak.
+
+Nihai teslim edilebilir artefakt, sentetik veriyle calisan **public demo**dur
+(ROADMAP Faz 8c): read-only, kuratorlu, her cevapta modelin prose'u + tool
+cagrisi + sonuc tablosu birlikte gosterilir.
 
 ## Dizin yapisi
 
