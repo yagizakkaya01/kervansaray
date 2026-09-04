@@ -26,10 +26,10 @@ SCHEMA_VERSION = "1.0"
 
 Direction = Literal["entry", "exit"]
 
-# Turk plakasi: 2 rakam il kodu + 1-3 harf + 2-4 rakam (bkz. text/plates.py).
-# Sozlesmede ham okuma tutulur; kanoniklestirme/dogrulama ingest sirasinda
-# text.plates ile yapilir - burada sadece kabaca sekil kontrolu.
-_PLATE_SHAPE = r"^[0-9]{2}[A-Za-z]{1,3}[0-9]{2,4}$"
+# Sozlesme ham OCR okumasini tasir; sekil/dilbilgisi dogrulamasi BURADA
+# yapilmaz. Diplomatik/askeri/gecici plakalar da rapor edilebilmeli (S4.1:
+# "flag, don't reject"). Kanoniklestirme + dilbilgisi kontrolu ingest
+# sirasinda text.plates ile; gecersiz-il ret yolu ROADMAP Faz 4.
 
 
 class EventV1(BaseModel):

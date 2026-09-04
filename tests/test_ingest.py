@@ -87,3 +87,43 @@ def test_unmatched_plate_still_forms_session_by_plate(db):
     assert s.vehicle_id is None
     assert s.canonical_plate == "55XYZ42"
     assert s.exit_event_id is not None
+
+
+def test_out_of_order_exit_then_entry_reconciles_to_one_session(db):
+    # S8 "sirasiz gelisler": cikis, girisinden ONCE teslim edilir.
+    seed_vehicle(db, "34ABC123")
+    exit_res = ingest_event(db, make_event(direction="exit", minutes=180, track_id=2))
+    db.commit()
+    s_after_exit = db.get(Session, exit_res.session_id)
+    assert s_after_exit.missing_entry is True
+
+    entry_res = ingest_event(db, make_event(direction="entry", minutes=0, track_id=1))
+    db.commit()
+
+    # Ayni session geriye dolduruldu - yeni session ACILMADI.
+    assert entry_res.session_id == exit_res.session_id
+    assert db.scalar(select(func.count()).select_from(Session)) == 1
+    s = db.get(Session, exit_res.session_id)
+    assert s.entry_event_id is not None and s.exit_event_id is not None
+    assert s.missing_entry is False
+    assert s.duration_seconds == 180 * 60
+
+
+def test_out_of_order_by_plate_when_vehicle_unknown(db):
+    exit_res = ingest_event(db, make_event(plate="80KRV73", direction="exit", minutes=90))
+    entry_res = ingest_event(db, make_event(plate="80 KRV 73", direction="entry", minutes=0))
+    db.commit()
+    assert entry_res.session_id == exit_res.session_id
+    assert db.scalar(select(func.count()).select_from(Session)) == 1
+    s = db.get(Session, exit_res.session_id)
+    assert s.missing_entry is False and s.duration_seconds == 90 * 60
+
+
+def test_stale_orphan_exit_beyond_merge_window_not_backfilled(db):
+    seed_vehicle(db, "34ABC123")
+    # cikis, giristen 30 gun sonra (MERGE_WINDOW = 14 gun)
+    ingest_event(db, make_event(direction="exit", minutes=30 * 24 * 60))
+    ingest_event(db, make_event(direction="entry", minutes=0))
+    db.commit()
+    # Backfill YAPILMAZ - iki ayri session kalir.
+    assert db.scalar(select(func.count()).select_from(Session)) == 2
