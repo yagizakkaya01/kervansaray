@@ -25,3 +25,9 @@ requests==2.32.3
 
 # --- Metin isleme (Turkce normalizasyon + bounded fuzzy match) ---
 rapidfuzz>=3.0.0
+
+# --- Veritabani (ROADMAP Faz 1: sema + ingest API) ---
+SQLAlchemy~=2.0
+alembic~=1.14
+psycopg[binary]~=3.2
+pgvector~=0.3

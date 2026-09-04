@@ -1,0 +1,114 @@
+{
+  "additionalProperties": false,
+  "description": "Track A (vision) -> Track B (store+query) arasindaki tek dikis. Kaynak: docs/PROJECT_BRIEF.md S6. Uretilmis dosya - elle duzenleme; kaynak src/kervansaray/events/schema.py:EventV1.",
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "event_id": {
+      "description": "Idempotency anahtari; edge cihazi uretir",
+      "format": "uuid",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "device_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Device Id",
+      "type": "string"
+    },
+    "camera_id": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Camera Id",
+      "type": "string"
+    },
+    "ts": {
+      "description": "Olay ani; timezone ZORUNLU",
+      "format": "date-time",
+      "title": "Ts",
+      "type": "string"
+    },
+    "plate": {
+      "description": "Ham OCR okumasi; bosluksuz. Kanoniklestirme ingest'te.",
+      "maxLength": 16,
+      "minLength": 4,
+      "title": "Plate",
+      "type": "string"
+    },
+    "plate_confidence": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Plate Confidence",
+      "type": "number"
+    },
+    "char_confidences": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Karakter bazli guven; voting sonrasi (S4.1)",
+      "title": "Char Confidences"
+    },
+    "direction": {
+      "enum": [
+        "entry",
+        "exit"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "track_id": {
+      "description": "ByteTrack iz kimligi; iz basina tek olay",
+      "minimum": 0,
+      "title": "Track Id",
+      "type": "integer"
+    },
+    "crop_ref": {
+      "anyOf": [
+        {
+          "maxLength": 512,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Plaka kirpimina referans (obje deposu URI'si)",
+      "title": "Crop Ref"
+    },
+    "model_version": {
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Model Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_id",
+    "device_id",
+    "camera_id",
+    "ts",
+    "plate",
+    "plate_confidence",
+    "direction",
+    "track_id",
+    "model_version"
+  ],
+  "title": "Kervansaray Event Contract v1.0",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yagizakkaya.com.tr/kervansaray/event-contract.v1.json"
+}

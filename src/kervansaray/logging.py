@@ -18,12 +18,12 @@ Ornek konsol ciktisi:
 """
 from __future__ import annotations
 
+import logging
 import os
 import re
-import logging
 import threading
-from logging.handlers import RotatingFileHandler
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 
 from .config import settings
 
@@ -193,7 +193,9 @@ def setup_logging() -> None:
     root.setLevel(getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO))
 
     sh = logging.StreamHandler()
-    sh.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s", datefmt="%H:%M:%S"))
+    sh.setFormatter(
+        logging.Formatter("[%(asctime)s] %(levelname)s: %(message)s", datefmt="%H:%M:%S")
+    )
     sh.setLevel(logging.WARNING)
     root.addHandler(sh)
 
@@ -202,7 +204,9 @@ def setup_logging() -> None:
 
     if settings.LOG_TO_FILE:
         os.makedirs(os.path.dirname(settings.LOG_FILE) or ".", exist_ok=True)
-        fh = RotatingFileHandler(settings.LOG_FILE, maxBytes=10_000_000, backupCount=5, encoding="utf-8")
+        fh = RotatingFileHandler(
+            settings.LOG_FILE, maxBytes=10_000_000, backupCount=5, encoding="utf-8"
+        )
         fh.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s in %(name)s: %(message)s"))
         fh.setLevel(logging.DEBUG)
         root.addHandler(fh)

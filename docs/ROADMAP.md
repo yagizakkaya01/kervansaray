@@ -49,6 +49,12 @@ Amaç: her şeyin bağlı olduğu sözleşmeyi çivilemek.
 
 **Çıkış:** sözleşme dosyası + model var, `docker compose up db` çalışıyor, CI yeşil.
 
+**Durum (2026-09-04):** ✅ `EventV1` modeli + `docs/event-contract.v1.json`
+(modelden üretilir, `make schema`), 29 test, ruff temiz, CI workflow'u
+(`lint-and-test` + `eval` iskelet job'ı), compose `db` servisi doğrulandı.
+SQLAlchemy/Alembic kararı verildi, bağımlılıklar eklendi; Alembic init'i
+Faz 1'de şema ile birlikte.
+
 ---
 
 ## Faz 1 — Track B çekirdeği: olay deposu · 2 hafta

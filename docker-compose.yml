@@ -7,7 +7,6 @@
 #   - anythingllm   : ayri RAG platformu gereksiz
 #   - qdrant        : ayri vektor DB yerine ayni Postgres icinde pgvector
 # ============================================================
-version: "3.8"
 
 services:
   app:
@@ -17,7 +16,8 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       - DATABASE_URL=postgresql://kervansaray:kervansaray@db:5432/kervansaray
       - PORT=8000
