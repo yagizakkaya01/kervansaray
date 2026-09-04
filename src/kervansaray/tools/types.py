@@ -6,11 +6,32 @@ metni degil.
 """
 from __future__ import annotations
 
+import enum
 from dataclasses import dataclass, field
+from datetime import date, datetime
+from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
 # Modele donen satir tavani (S3.3). Ustunde aggregate cagrisina zorlanir.
 MAX_ROWS = 50
+
+
+def jsonable(value: Any) -> Any:
+    """DB satir degerlerini JSON-guvenli hale getir (LLM'e / API'ye donmeden)."""
+    if isinstance(value, UUID):
+        return str(value)
+    if isinstance(value, datetime | date):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, enum.Enum):
+        return value.value
+    return value
+
+
+def json_row(mapping: Any) -> dict[str, Any]:
+    return {k: jsonable(v) for k, v in dict(mapping).items()}
 
 
 @dataclass

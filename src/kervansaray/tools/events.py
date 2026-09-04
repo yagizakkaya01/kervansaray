@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session as DbSession
 
 from kervansaray.text.plates import canonicalize
 
-from .types import MAX_ROWS, ToolResult
+from .types import MAX_ROWS, ToolResult, json_row
 
 _DIRECTIONS = {"entry", "exit"}
 _GROUP_BY = {"day", "hour", "direction", "match_status", "person_kind"}
@@ -50,7 +50,7 @@ def query_events(
         f"SELECT * FROM v_events WHERE {' AND '.join(where)} "  # noqa: S608 - sabit parcalar
         "ORDER BY ts ASC LIMIT :lim"
     )
-    rows = [dict(r) for r in db.execute(sql, params).mappings()]
+    rows = [json_row(r) for r in db.execute(sql, params).mappings()]
     truncated = len(rows) > capped
     rows = rows[:capped]
     return ToolResult(
@@ -58,7 +58,7 @@ def query_events(
         params=_clean_params(params),
         rows=rows,
         truncated=truncated,
-        event_ids=[str(r["event_id"]) for r in rows],
+        event_ids=[r["event_id"] for r in rows],
         note="Satir tavani asildi - aggregate_events kullanin." if truncated else None,
     )
 
