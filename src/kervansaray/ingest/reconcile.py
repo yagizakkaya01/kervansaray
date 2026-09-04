@@ -20,7 +20,7 @@ from kervansaray.text.fuzzy import best_match
 from kervansaray.text.plates import canonicalize
 
 # Bounded fuzzy esigi. Altinda hicbir aday onerilmez.
-FUZZY_MIN_SCORE = 88.0
+FUZZY_MIN_SCORE = 85.0
 
 
 @dataclass(frozen=True)

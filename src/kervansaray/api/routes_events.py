@@ -31,7 +31,8 @@ def post_event():
     try:
         payload = EventV1.model_validate(raw)
     except ValidationError as exc:
-        return jsonify({"error": "sozlesme dogrulamasi basarisiz", "detail": exc.errors()}), 422
+        detail = exc.errors(include_context=False, include_url=False, include_input=False)
+        return jsonify({"error": "sozlesme dogrulamasi basarisiz", "detail": detail}), 422
 
     with session_scope() as db:
         result = ingest_event(db, payload)
