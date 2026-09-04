@@ -10,7 +10,7 @@ test:
 	pytest -q
 
 eval:
-	python scripts/eval.py
+	python -m eval
 
 # Altin seti sabit senaryodan yeniden uret (soru/senaryo degisince).
 eval-build:

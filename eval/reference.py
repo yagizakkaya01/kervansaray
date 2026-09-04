@@ -202,19 +202,17 @@ def _replay_occupancy(scenario: Scenario, *, as_of: datetime | None) -> int:
     Teslim sirasi degil, ZAMAN sirasinda oynatir - "belli bir anda kac arac"
     icin dogru referans budur. Bir arac icin yalniz en son giris gecerli
     (onceki = eksik cikis)."""
-    events = sorted(_dedupe(scenario), key=lambda g: g.payload.ts)
+    # (ts, exit-once) sirasi: ayni an icin cikis girisin sonrasinda islenir.
+    events = sorted(_dedupe(scenario), key=lambda g: (g.payload.ts, g.payload.direction == "exit"))
     inside: dict[str, datetime] = {}  # plate -> entry_ts
     for g in events:
         e = g.payload
         if as_of is not None and e.ts > as_of:
             break
-        key = e.plate
         if e.direction == "entry":
-            inside[key] = e.ts
+            inside[e.plate] = e.ts
         else:
-            inside.pop(key, None)
-    if as_of is None:
-        return len(inside)
+            inside.pop(e.plate, None)
     return len(inside)
 
 

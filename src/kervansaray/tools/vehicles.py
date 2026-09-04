@@ -1,13 +1,15 @@
 """vehicle_history + occupancy (PROJECT_BRIEF S3.2, S8).
 
-occupancy = "su an sahada kac arac?" - S8'in headline sorusu. Acik session
-(exit_event_id NULL AND missing_exit FALSE) sayilir.
+occupancy = "su an / belli bir anda sahada kac arac?" - S8'in headline sorusu.
+Nokta-zamanli tanim: bir plakanin `as_of`'a kadarki SON olayi `entry` ise
+arac iceridedir. Bu tanim eksik-cikis kirini (S8) oldugu gibi yansitir ve
+sessions tablosunun son-durum bayraklarina bagli kalmaz.
 """
 from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session as DbSession
 
 from kervansaray.db.models import Event, Session, Vehicle
@@ -67,28 +69,23 @@ def vehicle_history(db: DbSession, *, plate: str) -> ToolResult:
 
 
 def occupancy(db: DbSession, *, as_of: datetime | None = None) -> ToolResult:
-    """Belirtilen ana (yoksa simdi) gore sahada oldugu bilinen araclar.
-
-    as_of verilirse: entry_ts <= as_of olan ve (exit_ts NULL veya exit_ts > as_of)
-    olan session'lar. missing_exit olanlar sayilmaz (gercekten acik degil).
-    """
-    stmt = select(Session).where(Session.missing_exit.is_(False))
-    if as_of is None:
-        stmt = stmt.where(Session.exit_event_id.is_(None))
-    else:
-        stmt = stmt.where(
-            Session.entry_ts.isnot(None),
-            Session.entry_ts <= as_of,
-            (Session.exit_ts.is_(None)) | (Session.exit_ts > as_of),
-        )
-    sessions = list(db.scalars(stmt.order_by(Session.entry_ts.asc())))
+    """as_of'a (yoksa: tum kayit) kadar son olayi 'entry' olan plakalar."""
+    where = "WHERE ts <= :as_of" if as_of is not None else ""
+    params = {"as_of": as_of} if as_of is not None else {}
+    sql = text(  # noqa: S608 - where sabit
+        f"""
+        SELECT plate, entry_ts FROM (
+            SELECT DISTINCT ON (plate) plate, direction, ts AS entry_ts
+            FROM v_events {where}
+            ORDER BY plate, ts DESC, (direction = 'exit') DESC
+        ) t
+        WHERE direction = 'entry'
+        ORDER BY entry_ts
+        """
+    )
     rows = [
-        {
-            "plate": s.canonical_plate,
-            "entry_ts": s.entry_ts.isoformat() if s.entry_ts else None,
-            "vehicle_id": s.vehicle_id,
-        }
-        for s in sessions
+        {"plate": r.plate, "entry_ts": r.entry_ts.isoformat()}
+        for r in db.execute(sql, params)
     ]
     return ToolResult(
         tool="occupancy",

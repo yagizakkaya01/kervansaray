@@ -86,7 +86,7 @@ def test_vehicle_history_known_vs_unknown(db):
     assert unknown.scalar["event_count"] == 1
 
 
-def test_occupancy_counts_open_sessions(db):
+def test_occupancy_counts_cars_last_seen_entering(db):
     seed_vehicle(db, "34ABC123")
     seed_vehicle(db, "06XYZ99")
     _ingest(db, plate="34ABC123", direction="entry", minutes=0, track_id=1)
