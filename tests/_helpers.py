@@ -116,3 +116,15 @@ def seed_vehicle(
         )
         db.flush()
     return vehicle
+
+
+def load_scenario(db, scenario) -> None:
+    """Populasyonu yazar ve tum olay akisini teslim sirasinda ingest eder."""
+    from kervansaray.ingest import ingest_event
+    from kervansaray.synth.population import persist
+
+    persist(db, scenario.population)
+    db.flush()
+    for payload in scenario.payloads():
+        ingest_event(db, payload)
+    db.commit()

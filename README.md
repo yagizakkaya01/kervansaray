@@ -41,9 +41,12 @@ kervansaray/
     ingest/                     reconcile (plaka), sessions (turetme), service
     api/                        Flask app factory + POST/GET /events + /healthz
     wsgi.py                     gunicorn girisi
+    synth/                      deterministik sentetik uretici: populasyon +
+                                ritim + kir/anomali enjeksiyonu (S8)
     llm/                        saglayici fallback zinciri (groq/gemini/openai)
     text/                       turkish_lower, plaka kanoniklestirme (S4.1),
                                 bounded fuzzy - edit-distance 1 asla oto-kabul (S3.8)
+  scripts/synth.py              sentetik veri CLI (--seed-db / --post / --out)
 ```
 
 ## CILEKAI'dan tasinanlar (ve neden)
@@ -79,6 +82,11 @@ docker compose up -d db      # Postgres + pgvector
 ```bash
 alembic upgrade head         # semayi kur
 make lint test               # ruff + pytest
+```
+
+```bash
+# Sentetik veri: 90 gunluk olay akisi uret, populasyonu + olaylari yukle
+python scripts/synth.py --reset --seed-db --post http://localhost:8000
 ```
 
 DB testleri icin ayri bir veritabani gerekir (varsayilan `kervansaray_test`);

@@ -161,9 +161,9 @@ class Session(Base, TimestampMixin):
 
     "Su an iceride kac arac?" = exit_event_id IS NULL AND missing_exit IS FALSE.
 
-    Sinirlama (v1): olaylar zamanda ileri islenir. Cok sirasiz gelen
-    (exit < entry) olaylarin tam mutabakati Faz 2 sentetik uretici ile
-    birlikte ele alinacak.
+    Sirasi bozuk teslim edilen (cikis, girisinden once gelen) olaylar
+    ingest/sessions.py icinde MERGE_WINDOW dahilinde geriye doldurularak
+    mutabakat edilir; gun-olcegi gecikmeler disarida kalir.
     """
 
     __tablename__ = "sessions"

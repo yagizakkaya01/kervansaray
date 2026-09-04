@@ -112,6 +112,29 @@ reddediliyor, session'lar oluşuyor.
 
 **Çıkış:** aylarca olay üretilip yüklenebiliyor; ground truth script'le biliniyor.
 
+**Durum (2026-09-04):** ✅ tamamlandı.
+- `src/kervansaray/synth/` — deterministik (`SynthRandom` isimli alt-akışlar,
+  fazladan bir `rng` çağrısı altın seti bozmasın diye). `generate(seed, start,
+  days, size)` → `Scenario{population, stream, manifest}`.
+- `population.py` — ~200 araç (misafir %55 / personel %20 / tedarikçi %10 /
+  bilinmeyen). `known=False` araçlar (kayıtsız anomali) ve `synthetic` araçlar
+  (il kodu 82–99) DB'ye **yazılmaz** — mutabakatta `unmatched` kalır, ileride
+  geçersiz-il ret yolunun fikstürü.
+- `rhythm.py` — öğleden sonra check-in piki, sabah checkout, 3 vardiya deseni,
+  hafta içi/sonu farkı.
+- `anomalies.py` — 4 adlı anomali, her biri kirden muaf (temiz test edilebilir),
+  manifest'e plaka + zaman yazılır.
+- `dirt.py` — 5 kir türü ayarlanabilir oranlarla (`DirtConfig`): eksik çıkış,
+  store-and-forward tekrarı (aynı `event_id`), tek karakter OCR hatası, sırasız
+  teslim, saat kayması (bir pencerede cihaz saati N dk ileri).
+- `loader.py` + `scripts/synth.py` — `--seed-db` (populasyon → DB), `--post URL`
+  (olaylar → ingest API), `--out` (JSONL), `--manifest`. `make synth`.
+- Session mutabakatı: **sırasız teslim** artık çözülüyor (`apply_event` →
+  `_find_orphan_exit` geriye doldurma, `MERGE_WINDOW=14g`). Faz 1'den taşınan
+  açık madde kapandı.
+- Testler: `test_synth` (8, saf/deterministik) + `test_synth_ingest` (8, DB —
+  duplicate dedup, sırasız→tek session, anomaliler manifest ile).
+
 ---
 
 ## Faz 3 — Altın set + eval harness · 1 hafta
