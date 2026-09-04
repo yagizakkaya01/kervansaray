@@ -76,6 +76,23 @@ Faz 1'de şema ile birlikte.
 **Çıkış:** elle atılan bir JSON olay akışı DB'ye doğru düşüyor, tekrarlar
 reddediliyor, session'lar oluşuyor.
 
+**Durum (2026-09-04):** ✅ ana iş bitti.
+- `src/kervansaray/db/models.py` — 7 tablo (§7). `sessions` üç biçim:
+  normal / `missing_exit` / `missing_entry` (§8). `events.candidate_vehicle_id`
+  §7'ye ek (pending review kuyruğu için).
+- `alembic/` + `0001_initial_schema` — pgvector extension + `create_all` +
+  `v_events` view. `test_migrations` upgrade→downgrade→upgrade doğruluyor.
+- `src/kervansaray/ingest/` — `reconcile_plate` (exact → bounded fuzzy, edit
+  distance 1 **pending**, il-kodu ile aday havuzu daraltma), `apply_event`
+  (session türetme), `ingest_event` (idempotency + tek transaction).
+- `src/kervansaray/api/` — `POST /events` (422 sözleşme hatası, 200 duplicate,
+  201 yeni), `GET /events` (yalnız `v_events`, satır tavanı 200), `/healthz`.
+  `wsgi.py` gunicorn girişi.
+- Testler: `test_reconcile`, `test_ingest` (Faz 1 çıkış kriterleri),
+  `test_api`, `test_migrations` — CI'da `services.postgres` (pgvector) ile.
+- **Kalan (Faz 2'ye taşındı):** çok sırasız (`exit < entry`) olayların tam
+  mutabakatı; sentetik üretici o senaryoyu üretince ele alınacak.
+
 ---
 
 ## Faz 2 — Sentetik olay üreticisi · 1.5 hafta

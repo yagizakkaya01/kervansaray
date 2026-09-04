@@ -25,24 +25,25 @@ cagrisi + sonuc tablosu birlikte gosterilir.
 
 ```
 kervansaray/
-  docs/PROJECT_BRIEF.md         proje sozlesmesi / handoff dokumani
+  docs/
+    PROJECT_BRIEF.md            proje sozlesmesi / handoff dokumani
+    ROADMAP.md                  sirali plan + faz durumlari
+    event-contract.v1.json      olay sozlesmesi JSON Schema (modelden uretilir)
+  alembic/                      sema migration'lari (0001_initial_schema)
   docker-compose.yml            iskelet: app + Postgres(pgvector)
-  Dockerfile
-  requirements.txt
-  .env.example                  -> kopyala .env yap, doldur
+  Dockerfile / Makefile / .env.example
   src/kervansaray/
     config.py                   pydantic-settings (CILEKAI deseni)
     logging.py                  yapilandirilmis konsol + dosya logu
     observability.py            Prometheus metrikleri + Flask entegrasyonu
-    llm/
-      __init__.py               saglayici fallback zinciri
-      groq_client.py
-      gemini_client.py
-      openai_client.py
-    text/
-      turkish.py                turkish_lower + normalizasyon
-      plates.py                 Turk plakasi kanoniklestirme/dogrulama (S4.1)
-      fuzzy.py                  bounded fuzzy match; edit-distance 1 asla oto-kabul (S3.8)
+    events/schema.py            EventV1 - olay sozlesmesi (S6)
+    db/                         SQLAlchemy: engine, Base, models (S7)
+    ingest/                     reconcile (plaka), sessions (turetme), service
+    api/                        Flask app factory + POST/GET /events + /healthz
+    wsgi.py                     gunicorn girisi
+    llm/                        saglayici fallback zinciri (groq/gemini/openai)
+    text/                       turkish_lower, plaka kanoniklestirme (S4.1),
+                                bounded fuzzy - edit-distance 1 asla oto-kabul (S3.8)
 ```
 
 ## CILEKAI'dan tasinanlar (ve neden)
@@ -67,10 +68,18 @@ Dosya dosya, bilincli sekilde kopyalandi:
 
 ```bash
 python -m venv .venv && . .venv/Scripts/activate   # Windows
-pip install -e .
+pip install -e ".[dev]"
 cp .env.example .env    # degerleri doldur
 ```
 
 ```bash
 docker compose up -d db      # Postgres + pgvector
 ```
+
+```bash
+alembic upgrade head         # semayi kur
+make lint test               # ruff + pytest
+```
+
+DB testleri icin ayri bir veritabani gerekir (varsayilan `kervansaray_test`);
+`TEST_DATABASE_URL` ile degistirilebilir. Postgres yoksa DB testleri skip olur.
