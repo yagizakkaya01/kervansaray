@@ -152,6 +152,32 @@ teslim edilebilir değil (brief §9).
 
 **Çıkış:** `make eval` bir sayı basıyor. Bu sayı artık ilerlemenin tek ölçüsü.
 
+**Durum (2026-09-04):** ✅ harness kuruldu.
+- `src/kervansaray/tools/` — 5 tipli tool: `query_events`, `aggregate_events`,
+  `vehicle_history`, `find_anomalies`, `occupancy`. Hepsi `v_events` /
+  türetilmiş tablolar üzerinde okur, sonucu DB hesaplar, provenance döner
+  (`ToolResult`). Satır tavanı `MAX_ROWS=50` (S3.3). `search_notes` Faz 6'ya
+  ertelendi (not verisi yok). Faz 4 = bunların üzerine LLM bağlama şeması +
+  few-shot + kapsam guardrail'i.
+- `eval/gold.py` — 47 soru (count/distinct/saatlik/kişi-türü/liste/geçmiş/4
+  anomali/doluluk/**5 kapsam-dışı**). Sabit senaryo: seed=777, 2026-04-01,
+  60 gün, 180 araç.
+- `eval/reference.py` — **bağımsız oracle**: beklenen cevapları sentetik
+  AKIŞTAN (ingest'ten önce, saf Python) hesaplar. Böylece hem ingest hattını
+  hem tool katmanını bağımsız doğrular. Doluluk için akış üzerinde bağımsız
+  session replay'i.
+- `eval/build.py` → `eval/gold_set.jsonl` (commit'li; CI drift guard'ı yeniden
+  üretip karşılaştırır).
+- `eval/runner.py` + `scripts/eval.py` — her sorunun beklenen tool çağrısını
+  çalıştırır, orakla karşılaştırır, **tek doğruluk sayısı** basar. `decline`
+  soruları LLM olmadan puanlanamaz → "Faz 5 bekliyor" olarak ayrılır.
+- CI: ayrı `eval` job'ı kendi Postgres'iyle. `make eval` / `make eval-build`.
+- Ek temizlik: `v_events` SQL'i artık tek yerde (`src/kervansaray/db/views.py`);
+  migration, test fikstürleri ve eval aynı `rebuild_schema` / `V_EVENTS_SQL`'i
+  kullanır (denetimde işaret edilen 3'lü kopya kapandı).
+- **Faz 5'e kalan:** LLM yolu — modeli çalıştır, seçtiği tool + parametreleri
+  altınla karşılaştır (tool-seçim doğruluğu), sonra `decline` sorularını puanla.
+
 ---
 
 ## Faz 4 — Tool katmanı · 2 hafta

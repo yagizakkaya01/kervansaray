@@ -6,34 +6,14 @@ from uuid import uuid4
 
 from sqlalchemy import Engine, text
 
-from kervansaray.db import Base
 from kervansaray.db import models as _models  # noqa: F401
 from kervansaray.db.models import Person, PersonKind, Registration, Vehicle
+from kervansaray.db.views import rebuild_schema
 from kervansaray.events import EventV1
 
 TR = timezone(timedelta(hours=3))
 BASE_TS = datetime(2026, 9, 3, 8, 0, 0, tzinfo=TR)
 
-# v_events tanimi alembic/versions/0001_initial_schema.py ile ayni tutulmali.
-V_EVENTS_SQL = """
-CREATE VIEW v_events AS
-SELECT
-    e.id AS event_row_id, e.event_id AS event_id, e.ts AS ts, e.direction AS direction,
-    e.canonical_plate AS plate, e.raw_plate AS raw_plate, e.plate_confidence AS plate_confidence,
-    e.match_status AS match_status, e.match_score AS match_score, e.vehicle_id AS vehicle_id,
-    v.label AS vehicle_label, COALESCE(v.is_blacklisted, FALSE) AS is_blacklisted,
-    p.id AS person_id, p.name AS person_name, p.kind AS person_kind, p.room_no AS room_no,
-    EXISTS (
-        SELECT 1 FROM registrations r
-        WHERE r.vehicle_id = e.vehicle_id AND r.valid_from <= e.ts
-          AND (r.valid_to IS NULL OR r.valid_to >= e.ts)
-    ) AS registered,
-    e.device_id AS device_id, e.camera_id AS camera_id, e.track_id AS track_id,
-    e.crop_ref AS crop_ref, e.model_version AS model_version, e.created_at AS ingested_at
-FROM events e
-LEFT JOIN vehicles v ON v.id = e.vehicle_id
-LEFT JOIN persons  p ON p.id = v.person_id;
-"""
 
 _TABLES = (
     "sessions", "events", "registrations", "vehicles", "persons", "notes", "daily_summaries",
@@ -42,14 +22,7 @@ _TABLES = (
 
 def build_schema(engine: Engine) -> None:
     """Modelden tertemiz sema (create_all + v_events). Testlerin bekledigi durum."""
-    with engine.begin() as conn:
-        conn.execute(text("DROP VIEW IF EXISTS v_events"))
-    Base.metadata.drop_all(engine, checkfirst=True)
-    with engine.begin() as conn:
-        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-    Base.metadata.create_all(engine)
-    with engine.begin() as conn:
-        conn.execute(text(V_EVENTS_SQL))
+    rebuild_schema(engine)
 
 
 def truncate_all(engine: Engine) -> None:

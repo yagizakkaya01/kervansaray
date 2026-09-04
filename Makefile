@@ -1,4 +1,4 @@
-.PHONY: install lint test eval schema synth
+.PHONY: install lint test eval eval-build schema synth
 
 install:
 	pip install -e ".[dev]"
@@ -11,6 +11,10 @@ test:
 
 eval:
 	python scripts/eval.py
+
+# Altin seti sabit senaryodan yeniden uret (soru/senaryo degisince).
+eval-build:
+	python -m eval.build
 
 # Olay sozlesmesi JSON Schema'sini modelden yeniden uret (ROADMAP Faz 0).
 schema:
