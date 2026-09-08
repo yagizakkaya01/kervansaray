@@ -52,6 +52,24 @@ def test_broker_publish_and_subscribe():
     b.unsubscribe(q)
 
 
+def test_broker_max_subscribers_ceiling():
+    b = NotificationBroker(max_subscribers=2)
+    q1 = b.subscribe()
+    q2 = b.subscribe()
+    assert q1 is not None
+    assert q2 is not None
+
+    # Limit aşıldığında None dönmeli
+    q3 = b.subscribe()
+    assert q3 is None
+
+    # Biri ayrıldığında tekrar yer açılmalı
+    b.unsubscribe(q1)
+    q4 = b.subscribe()
+    assert q4 is not None
+
+
+
 def test_evaluate_event_blacklist():
     db = MagicMock()
     v = Vehicle(id=10, plate="34VIP99", is_blacklisted=True)
@@ -258,6 +276,13 @@ def test_routes_notifications():
     r_stream = c.get("/api/notifications/stream", buffered=False)
     assert r_stream.status_code == 200
     assert "text/event-stream" in r_stream.content_type
+
+    # Abone tavani asildiginda 503 Service Unavailable donmeli (thread starvation onleme)
+    with patch.object(broker, "subscribe", return_value=None):
+        r_full = c.get("/api/notifications/stream")
+        assert r_full.status_code == 503
+        assert "limitine ulasildi" in r_full.get_json()["error"]
+
 
 
 def test_routes_events_post_commit_and_notify_bypass():

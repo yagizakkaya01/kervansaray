@@ -363,8 +363,9 @@ Demo'nun üstünde duracağı zemin.
 - **Açık Takip Notu (Migration Disiplini)**: İlk şema VPS'e kurulduktan sonra `0001_initial_schema`'nın yerinde düzenlenmesi yolu kesin olarak kapanır; sonraki her şema adımı için sıralı `0002_*` Alembic migration disiplinine geçilecektir.
 - **Açık Takip Notu (SSE & Gunicorn Concurrency - Faz 7'den gelen kısıt)**:
   - Senkron gunicorn worker'ları (`sync`) kullanıldığında açık kalan her `/api/notifications/stream` SSE bağlantısı bir worker'ı süresiz kilitler. N eşzamanlı izleyici = N kilitli worker (tüm API durur).
-  - Bu sebeple WSGI katmanında threaded (`gunicorn -w 1 --threads 16`) veya asenkron (`gevent`) worker zorunludur.
-  - Ayrıca `NotificationBroker` tek işlem-içi in-memory singleton olduğundan (`QueryCache` ile aynı sınıf), tek process çoklu thread (`-w 1 --threads N`) tercihi hem Ponytail sadeliğini (sıfır Redis/RabbitMQ) korur hem de farklı worker'lar arası alarm kaçırma (Worker A ingest etti, Worker B'deki SSE görmedi) sorununu engeller.
+  - Bu sebeple WSGI katmanında threaded (`gunicorn -w 1 --threads 32`) veya asenkron worker zorunludur. SSE thread'leri CPU değil I/O beklediğinden 32 thread düşük maliyetle yüksek eşzamanlılık sağlar.
+  - Eşzamanlı SSE akışlarına tavan konularak (`NotificationBroker(max_subscribers=24)`), 24'ten fazla SSE bağlantısı 503 ile reddedilir; böylece en az 8 thread daima `/api/query` (LLM çağrısı) ve diğer API istekleri için garantiye alınır (thread starvation önleme).
+  - Ayrıca `NotificationBroker` tek işlem-içi in-memory singleton olduğundan (`QueryCache` ile aynı sınıf), tek process çoklu thread (`-w 1 --threads 32`) tercihi hem Ponytail sadeliğini (sıfır Redis/RabbitMQ) korur hem de farklı worker'lar arası alarm kaçırma (Worker A ingest etti, Worker B'deki SSE görmedi) sorununu engeller.
 - **Toplu İçe Aktarım (Bulk Ingest) Bypası**:
   - Sentetik veya toplu veri yüklemelerinde (`scripts/synth.py --post`), `POST /events?notify=false` (`--no-notify`) ile kural motoru değerlendirmesi ve lazy sorgular atlanarak yüksek ingest hızı sağlanır.
 

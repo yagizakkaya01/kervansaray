@@ -26,8 +26,11 @@ def list_notifications():
 @bp.get("/stream")
 def stream_notifications():
     """Server-Sent Events (SSE) ile canlı bildirim akışı."""
+    q = broker.subscribe()
+    if q is None:
+        return jsonify({"error": "Maksimum eszamanli bildirim akisi limitine ulasildi"}), 503
+
     def event_stream():
-        q = broker.subscribe()
         try:
             # İstemciye ilk bağlantı onayını gönder
             yield "event: connected\ndata: {\"status\": \"ok\"}\n\n"

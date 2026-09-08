@@ -58,9 +58,10 @@ class Notification:
 class NotificationBroker:
     """Tek işlem içi, thread-safe bildirim broker'ı (Ponytail: zero-broker)."""
 
-    def __init__(self, history_limit: int = 100) -> None:
+    def __init__(self, history_limit: int = 100, max_subscribers: int = 24) -> None:
         self._history: collections.deque[Notification] = collections.deque(maxlen=history_limit)
         self._subscribers: set[queue.Queue[Notification]] = set()
+        self._max_subscribers = max_subscribers
         self._lock = threading.Lock()
 
     def publish(self, notification: Notification) -> None:
@@ -79,11 +80,17 @@ class NotificationBroker:
             notification.rule, notification.severity, notification.plate,
         )
 
-    def subscribe(self, maxsize: int = 50) -> queue.Queue[Notification]:
-        q: queue.Queue[Notification] = queue.Queue(maxsize=maxsize)
+    def subscribe(self, maxsize: int = 50) -> queue.Queue[Notification] | None:
         with self._lock:
+            if len(self._subscribers) >= self._max_subscribers:
+                log.warning(
+                    "Max SSE subscribers reached (%d), rejecting subscription",
+                    self._max_subscribers,
+                )
+                return None
+            q: queue.Queue[Notification] = queue.Queue(maxsize=maxsize)
             self._subscribers.add(q)
-        return q
+            return q
 
     def unsubscribe(self, q: queue.Queue[Notification]) -> None:
         with self._lock:

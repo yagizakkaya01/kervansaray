@@ -20,5 +20,5 @@ RUN mkdir -p logs
 # WSGI giris noktasi (Faz 7/Faz 8b: gunicorn threaded calisma modu)
 # Tek process + coklu thread: SSE stream baglantilarinin worker kilitlemesini onler
 # ve bellek-ici tekil NotificationBroker ile EventSource abonelerini tek havuzda bulusturur.
-CMD ["gunicorn", "-w", "1", "--threads", "8", "-b", "0.0.0.0:8000", "kervansaray.wsgi:app"]
+CMD ["gunicorn", "-w", "1", "--threads", "32", "-b", "0.0.0.0:8000", "kervansaray.wsgi:app"]
 
