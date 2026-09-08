@@ -111,10 +111,21 @@
         </a>
       </nav>
 
-      <!-- Sağ Durum Rozeti -->
-      <div class="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-500">
-        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-        <span class="text-zinc-700 font-medium">Sistem Devrede</span>
+      <!-- Sağ Durum & Onay Kuyruğu Butonu -->
+      <div class="flex items-center gap-2.5">
+        <!-- Onay Kuyruğu Butonu -->
+        <button id="review-btn" onclick="openReviewModal()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200/80 transition-all shadow-sm">
+          <svg class="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <span>Onay Kuyruğu</span>
+          <span id="review-badge" class="hidden px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white animate-pulse">0</span>
+        </button>
+
+        <div class="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-500">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+          <span class="text-zinc-700 font-medium">Sistem Devrede</span>
+        </div>
       </div>
 
     </div>
@@ -679,6 +690,15 @@
                 Kayıt bulunamadı.
               </div>
             </div>
+
+            <!-- Provenance Detay Kutusu (Tıklanan satırın köken künyesi) -->
+            <div id="provenance-bar" class="hidden p-3 rounded-xl bg-zinc-900 text-zinc-200 text-xs font-mono border border-zinc-800 flex items-center justify-between transition-all">
+              <div class="flex items-center gap-2.5 overflow-x-auto">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">PROVENANCE</span>
+                <span id="provenance-text" class="text-zinc-300"></span>
+              </div>
+              <button onclick="document.getElementById('provenance-bar').classList.add('hidden')" class="text-zinc-500 hover:text-zinc-300 ml-2 font-bold">✕</button>
+            </div>
           </div>
 
         </div>
@@ -702,6 +722,40 @@
     </div>
 
   </main>
+
+  <!-- İnceleme Kuyruğu Modalı (Human-in-the-Loop Review Queue) -->
+  <div id="review-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-zinc-200 shadow-2xl max-w-lg w-full flex flex-col overflow-hidden">
+      <!-- Modal Başlığı -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100 bg-zinc-50/80">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-zinc-900">Bulanık Plaka Onay Kuyruğu</h3>
+            <p class="text-[11px] text-zinc-500 font-mono">Edit distance 1 operatör teyidi (§3.8)</p>
+          </div>
+        </div>
+        <button onclick="closeReviewModal()" class="w-7 h-7 rounded-lg hover:bg-zinc-200 text-zinc-400 hover:text-zinc-700 flex items-center justify-center transition-colors">
+          ✕
+        </button>
+      </div>
+
+      <!-- Kart Listesi -->
+      <div id="review-list" class="p-5 flex flex-col gap-3 max-h-[60vh] overflow-y-auto">
+        <div class="py-8 text-center text-xs text-zinc-400 font-mono">Yükleniyor...</div>
+      </div>
+
+      <!-- Modal Alt Çubuğu -->
+      <div class="px-5 py-3 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500 font-mono">
+        <span>Otomatik onaylanmaz, insan teyidi zorunludur.</span>
+        <button onclick="fetchReviewQueue()" class="text-zinc-800 hover:underline font-semibold">Yenile</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Altbilgi (Footer - urettiklerim.html birebir) -->
   <footer class="border-t border-zinc-200/80 bg-white/70 py-8 text-xs text-zinc-500 font-mono">
@@ -1182,16 +1236,30 @@
 
         rows.slice(0, 50).forEach(r => {
           const trElem = document.createElement('tr');
-          trElem.className = 'hover:bg-zinc-50/80 transition-colors';
+          trElem.className = 'hover:bg-zinc-100/70 cursor-pointer transition-colors group';
+          trElem.title = 'Köken (Provenance) kaydını görmek için tıklayın';
           cols.forEach(col => {
             const td = document.createElement('td');
             td.className = 'py-1.5 px-3 whitespace-nowrap text-zinc-700';
             td.innerText = (r[col] === null || r[col] === undefined) ? '—' : r[col];
             trElem.appendChild(td);
           });
+          trElem.onclick = () => showProvenance(r);
           tableBody.appendChild(trElem);
         });
       }
+    }
+
+    function showProvenance(r) {
+      const bar = document.getElementById('provenance-bar');
+      const text = document.getElementById('provenance-text');
+      if (!bar || !text) return;
+      const evId = r.event_id || r.event_row_id || r.id || 'N/A';
+      const cam = r.camera_id || 'N/A';
+      const ts = r.ts || r.entry_ts || r.exit_ts || 'N/A';
+      const dir = r.direction ? r.direction.toUpperCase() : 'N/A';
+      text.innerText = `Olay ID: ${evId} • Kamera: ${cam} • Yön: ${dir} • Zaman: ${ts}`;
+      bar.classList.remove('hidden');
     }
 
     // --- 6. Canlı Server-Sent Events (SSE) Dinleyicisi ---
@@ -1203,6 +1271,12 @@
           const data = JSON.parse(e.data);
           if (data && data.rule) {
             showToast(data.message, data.severity, data.title);
+            if (data.rule === 'pending_review') {
+              updateReviewBadge(pendingReviewsCount + 1);
+              if (!document.getElementById('review-modal')?.classList.contains('hidden')) {
+                fetchReviewQueue();
+              }
+            }
             const curPlate = (document.getElementById('plate-input-val')?.value || '').replace(/\s+/g, '');
             if (curPlate && data.plate && curPlate === data.plate.replace(/\s+/g, '')) {
               updateStatusBadge(
@@ -1216,7 +1290,136 @@
       };
     }
 
-    window.addEventListener('DOMContentLoaded', initSSE);
+    // --- 7. Plaka Onay Kuyruğu (Review Queue) İşlemleri ---
+    let pendingReviewsCount = 0;
+
+    function openReviewModal() {
+      document.getElementById('review-modal')?.classList.remove('hidden');
+      fetchReviewQueue();
+    }
+
+    function closeReviewModal() {
+      document.getElementById('review-modal')?.classList.add('hidden');
+    }
+
+    function updateReviewBadge(count) {
+      pendingReviewsCount = Math.max(0, count);
+      const badge = document.getElementById('review-badge');
+      if (!badge) return;
+      if (pendingReviewsCount > 0) {
+        badge.innerText = pendingReviewsCount;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    async function initReviewQueueCount() {
+      try {
+        const resp = await fetch('/api/review');
+        if (resp.ok) {
+          const data = await resp.json();
+          updateReviewBadge(data.count || 0);
+        }
+      } catch (_) {}
+    }
+
+    async function fetchReviewQueue() {
+      const listEl = document.getElementById('review-list');
+      if (!listEl) return;
+      try {
+        const resp = await fetch('/api/review');
+        if (!resp.ok) throw new Error('Sunucu hatası: ' + resp.status);
+        const data = await resp.json();
+        const items = data.pending || [];
+        updateReviewBadge(items.length);
+
+        if (items.length === 0) {
+          listEl.innerHTML = `
+            <div class="py-10 flex flex-col items-center justify-center gap-2 text-center text-zinc-400">
+              <svg class="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="text-xs font-mono font-semibold text-zinc-700">Onay bekleyen plaka bulunmuyor.</span>
+              <span class="text-[11px] text-zinc-400 font-mono">Bulanık okunan tüm plakalar operatör tarafından karara bağlandı.</span>
+            </div>
+          `;
+          return;
+        }
+
+        listEl.innerHTML = '';
+        items.forEach(item => {
+          const card = document.createElement('div');
+          card.id = `review-card-${item.event_id}`;
+          card.className = 'p-3.5 rounded-xl border border-zinc-200/80 bg-zinc-50/60 flex flex-col gap-2.5 transition-all';
+          const scorePercent = Math.round(item.match_score || 0);
+          const ownerText = item.candidate_owner ? `${item.candidate_owner} (${item.candidate_kind || 'Kayıtlı'})` : 'Bilinmeyen Araç';
+          const dirLabel = item.direction === 'entry' ? 'GİRİŞ' : 'ÇIKIŞ';
+
+          card.innerHTML = `
+            <div class="flex items-center justify-between text-[11px] font-mono text-zinc-500">
+              <span>Kamera: <strong class="text-zinc-800">${item.camera_id}</strong> (${dirLabel})</span>
+              <span>${item.ts.substring(11, 16)}</span>
+            </div>
+            <div class="flex items-center justify-between gap-3 p-2.5 bg-white rounded-lg border border-zinc-200 shadow-sm">
+              <div class="flex flex-col">
+                <span class="text-[10px] text-zinc-400 font-mono">Kamera Okuması:</span>
+                <span class="font-mono font-bold text-sm text-zinc-900 tracking-wider">${item.raw_plate}</span>
+              </div>
+              <span class="text-xs text-zinc-400 font-mono font-bold">➔</span>
+              <div class="flex flex-col text-right">
+                <span class="text-[10px] text-zinc-400 font-mono">Önerilen Aday (%${scorePercent}):</span>
+                <span class="font-mono font-bold text-sm text-emerald-600 tracking-wider">${item.candidate_plate || '—'}</span>
+              </div>
+            </div>
+            <div class="text-[11px] text-zinc-600 flex items-center justify-between">
+              <span>Tescil: <strong class="text-zinc-800">${ownerText}</strong></span>
+              ${item.candidate_is_blacklisted ? '<span class="text-red-600 font-bold text-[10px] bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">KARA LİSTE</span>' : ''}
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <button onclick="handleReviewAction('${item.event_id}', 'reject')" class="flex-1 py-1.5 px-3 rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-700 text-xs font-semibold transition-colors">
+                ✕ Reddet (Yabancı)
+              </button>
+              <button onclick="handleReviewAction('${item.event_id}', 'approve')" class="flex-1 py-1.5 px-3 rounded-lg bg-zinc-900 hover:bg-black text-white text-xs font-semibold transition-colors shadow-sm">
+                ✓ Adayı Onayla
+              </button>
+            </div>
+          `;
+          listEl.appendChild(card);
+        });
+      } catch (e) {
+        listEl.innerHTML = `<div class="py-6 text-center text-xs text-red-500 font-mono">Kuyruk yüklenemedi: ${e.message}</div>`;
+      }
+    }
+
+    async function handleReviewAction(eventId, action) {
+      try {
+        const resp = await fetch(`/api/review/${eventId}/${action}`, { method: 'POST' });
+        if (!resp.ok) throw new Error('İşlem başarısız (' + resp.status + ')');
+        const res = await resp.json();
+        showToast(
+          action === 'approve' ? `Plaka başarıyla onaylandı: ${res.plate}` : 'Aday reddedildi, yabancı araç olarak işaretlendi.',
+          'info',
+          'Operatör Kararı'
+        );
+
+        const card = document.getElementById(`review-card-${eventId}`);
+        if (card) card.remove();
+        updateReviewBadge(pendingReviewsCount - 1);
+
+        const listEl = document.getElementById('review-list');
+        if (listEl && listEl.children.length === 0) {
+          fetchReviewQueue();
+        }
+      } catch (e) {
+        showToast(`Hata: ${e.message}`, 'critical', 'İşlem Başarısız');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initSSE();
+      initReviewQueueCount();
+    });
   </script>
 </body>
 </html>

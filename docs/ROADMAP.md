@@ -342,9 +342,19 @@ Panelin geri kalanı:
 - Provenance görünümü (event ID'lerine kadar).
 - `pending` plaka eşleşmeleri için onay kuyruğu — sistemin birincil güven
   mekanizması; düzeltmeler aynı zamanda eğitim verisi olur.
-- Bildirim akışı.
-
 **Çıkış:** sentetik veriyle çalışan, üç görünümlü panel.
+
+**Durum (2026-09-08):** ✅ tamamlandı.
+- **Üçlü Şeffaf Görünüm**: Her doğal dil cevabında yan yana (1) Modelin prose anlatısı, (2) Çalıştırılan SQL Tool çağrısı + JSON parametreleri, (3) Veritabanı gerçek sonuç tablosu (`v_events` denormalize görünümünden).
+- **Human-in-the-Loop Onay Kuyruğu (`routes_review.py`)**:
+  - `GET /api/review`: Bulanık eşleşen (`MatchStatus.pending`, edit distance 1) olayları aday araç ve kişi künyesiyle listeler.
+  - `POST /api/review/<event_id>/approve`: Adayı onaylar (`MatchStatus.fuzzy`), `vehicle_id` ve ilişkili `Session`'ı bağlar.
+  - `POST /api/review/<event_id>/reject`: Adayı reddeder (`MatchStatus.unmatched`).
+- **Frontend & Provenance (`index.html`)**:
+  - Header'da canlı "Onay Kuyruğu" butonu ve SSE ile senkronize dinamik sayaç badge'i (`#review-badge`).
+  - Operatör teyit modalı (okunan ham plaka vs önerilen aday, benzerlik skoru, tek tıkla Onayla / Reddet).
+  - Panel 4 sonuç tablosundaki satırlara tıklandığında kaynak `event_id`, kamera ID, yön ve zaman damgasını gösteren provenance künyesi (`#provenance-bar`).
+- **Testler**: `tests/test_review.py` ile 4 yeni entegrasyon testi eklendi (toplam 92 test yeşil, ruff sıfır hata).
 
 ---
 
