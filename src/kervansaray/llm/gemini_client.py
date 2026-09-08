@@ -50,22 +50,18 @@ def generate(
 
     url = f"{_BASE}/{settings.GEMINI_MODEL}:generateContent?key={settings.GEMINI_API_KEY}"
 
-    contents: list[dict[str, Any]] = []
-    if few_shots:
+    full_instruction = system_instruction or ""
+    if few_shots and "ÖRNEKLER:" not in full_instruction:
+        lines = []
         for ex in few_shots:
-            contents.append({"role": "user", "parts": [{"text": ex["question"]}]})
             if "tool_call" in ex:
-                contents.append({
-                    "role": "model",
-                    "parts": [{"functionCall": ex["tool_call"]}],
-                })
-            elif "response" in ex:
-                contents.append({
-                    "role": "model",
-                    "parts": [{"text": ex["response"]}],
-                })
+                tc = ex["tool_call"]
+                lines.append(f'- Soru: "{ex["question"]}" -> Araç: {tc["name"]}({tc["args"]})')
+            else:
+                lines.append(f'- Soru: "{ex["question"]}" -> Yanıt: {ex.get("response")}')
+        full_instruction += "\n\nÖRNEKLER:\n" + "\n".join(lines)
 
-    contents.append({"role": "user", "parts": [{"text": text}]})
+    contents: list[dict[str, Any]] = [{"role": "user", "parts": [{"text": text}]}]
 
     body: dict[str, Any] = {
         "contents": contents,
@@ -75,8 +71,8 @@ def generate(
         },
     }
 
-    if system_instruction:
-        body["systemInstruction"] = {"parts": [{"text": system_instruction}]}
+    if full_instruction:
+        body["systemInstruction"] = {"parts": [{"text": full_instruction}]}
 
     if tools:
         if "function_declarations" not in tools[0]:

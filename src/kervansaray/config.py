@@ -19,21 +19,14 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # --- Veritabani ---
-    # Postgres + pgvector; sadece localhost'a bagli (PROJECT_BRIEF S10).
+    # Postgres; sadece localhost'a bagli (PROJECT_BRIEF S10).
     DATABASE_URL: str = "postgresql://kervansaray:kervansaray@localhost:5432/kervansaray"
 
     # --- LLM saglayicilari (bulut API) ---
-    # Fallback sirasi: ilk basarili saglayici kazanir (bkz. llm/__init__.py).
-    LLM_PROVIDER_ORDER: str = "groq,gemini,openai"
-
-    GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    LLM_PROVIDER_ORDER: str = "gemini"
 
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.0-flash"
-
-    OPENAI_API_KEY: str = ""
-    OPENAI_MODEL: str = "gpt-4o"
+    GEMINI_MODEL: str = "gemini-3.8-flash"
 
     LLM_TEMPERATURE: float = 0.2
     LLM_MAX_TOKENS: int = 1024

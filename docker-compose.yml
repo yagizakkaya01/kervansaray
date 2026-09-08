@@ -5,7 +5,7 @@
 # Cikarilanlar (PROJECT_BRIEF S10 / S12):
 #   - ollama        : model asla sunucuda calismaz, LLM bulut API uzerinden
 #   - anythingllm   : ayri RAG platformu gereksiz
-#   - qdrant        : ayri vektor DB yerine ayni Postgres icinde pgvector
+#   - qdrant/pgvector: vektor DB gereksiz, Postgres yerel FTS ve SQL
 # ============================================================
 
 services:
@@ -28,10 +28,9 @@ services:
       db:
         condition: service_healthy
 
-  # Postgres + pgvector: olay deposu, notlar ve gunluk ozet embedding'leri
-  # ayni serviste tutulur (PROJECT_BRIEF S10). Sadece localhost'a acilir.
+  # Postgres: olay deposu ve notlar (PROJECT_BRIEF S10). Sadece localhost'a acilir.
   db:
-    image: pgvector/pgvector:pg16
+    image: postgres:16-alpine
     container_name: kervansaray_db
     restart: unless-stopped
     environment:

@@ -1,6 +1,6 @@
 """Veritabani katmani: engine, session factory, ORM modelleri.
 
-Postgres + pgvector (docker-compose `db` servisi). Sema Alembic ile
+Postgres (docker-compose `db` servisi). Sema Alembic ile
 yonetilir (alembic/versions/). Bkz. docs/PROJECT_BRIEF.md S7,
 docs/ROADMAP.md Faz 1.
 """

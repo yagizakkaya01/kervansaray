@@ -13,7 +13,7 @@ from tests._helpers import build_schema
 
 _EXPECTED_TABLES = {
     "persons", "vehicles", "registrations", "events",
-    "sessions", "notes", "daily_summaries", "alembic_version",
+    "sessions", "notes", "alembic_version",
 }
 
 

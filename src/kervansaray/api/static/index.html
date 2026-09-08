@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kervansaray — Otopark & Araç İstihbaratı</title>
+  <title>Kervansaray — Yağız Akkaya</title>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -39,93 +40,109 @@
 </head>
 <body class="bg-[#faf8fb] text-[#111318] font-sans antialiased min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
 
-  <!-- Üst Navigasyon Çubuğu -->
+  <!-- Üst Navigasyon Çubuğu (Global Header) -->
   <header class="sticky top-0 z-50 bg-[#faf8fb]/85 backdrop-blur-md border-b border-zinc-200/80 transition-all">
-    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
       
-      <!-- Logo / Kimlik -->
+      <!-- Profil / Logo -->
       <a href="/" class="flex items-center gap-3 group">
         <div class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-white text-xs font-mono font-semibold ring-2 ring-zinc-900/10 group-hover:ring-red-500 transition-all">
-          KS
+          YA
         </div>
         <div class="flex flex-col">
-          <span class="font-bold text-sm tracking-tight text-zinc-900 group-hover:text-red-600 transition-colors">
-            Kervansaray
-          </span>
-          <span class="text-[11px] text-zinc-400 font-mono tracking-tight">
-            Otopark Giriş-Çıkış & Güvenlik Zekâsı
-          </span>
+          <span class="font-bold text-sm tracking-tight text-zinc-900 group-hover:text-red-600 transition-colors">Yağız Akkaya</span>
+          <span class="text-[11px] text-zinc-400 font-mono tracking-tight">Eskişehir • ODTÜ</span>
         </div>
       </a>
 
-      <!-- Sağ Durum Rozetleri -->
-      <div class="flex items-center gap-3 text-xs font-mono">
-        <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          Canlı • Gemini 2.0 Flash
-        </span>
-        <a href="https://yagizakkaya.com.tr/urettiklerim.html" target="_blank" class="px-3 py-1 bg-zinc-900 text-white rounded-full font-medium hover:bg-zinc-800 transition-colors">
-          ← Portfolyo
+      <!-- Sayfa Sekmeleri -->
+      <nav class="flex items-center gap-1.5 p-1 bg-zinc-100 rounded-full border border-zinc-200/70 text-xs font-medium">
+        <a href="https://yagizakkaya.com.tr/index.html" target="_blank" class="px-4 py-1.5 text-zinc-600 hover:text-zinc-900 rounded-full transition-colors">
+          Alanım
         </a>
+        <a href="https://yagizakkaya.com.tr/urettiklerim.html" target="_blank" class="px-4 py-1.5 bg-zinc-900 text-white rounded-full shadow-sm font-semibold flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+          Ürettiklerim
+        </a>
+      </nav>
+
+      <!-- Sağ Durum Rozeti -->
+      <div class="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-500">
+        <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
+        <span class="hover:text-zinc-800 transition-colors">@yagizakkaya</span>
       </div>
 
     </div>
   </header>
 
-  <!-- Ana İçerik -->
-  <main class="flex-1 max-w-6xl w-full mx-auto px-6 py-8 sm:py-12 flex flex-col gap-8">
+  <!-- Ana İçerik Alanı -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-6 py-10 sm:py-14 flex flex-col gap-10">
     
-    <!-- Başlık & Kısa Açıklama -->
+    <!-- Başlık & Açıklama Bölümü -->
     <div class="max-w-3xl">
-      <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-red-50 border border-red-100 text-red-600 text-xs font-mono font-medium mb-3">
+      <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-red-50 border border-red-100 text-red-600 text-xs font-mono font-medium mb-4">
         <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
-        // FAZ 5 • DOĞAL DİL SQL ORKESTRASYONU & ŞEFFAF PANEL
+        // 02 • ÇALIŞMALAR // KERVANSARAY ENGINE
       </div>
-      <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-zinc-900 leading-tight">
-        Soru Sorun, Gerçeği Tabloda Görün.
+      <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-zinc-900 leading-[1.15]">
+        Kervansaray
       </h1>
-      <p class="mt-2 text-sm sm:text-base text-zinc-500 leading-relaxed">
-        Doğal dil sorguları LLM tarafından doğrudan tipli SQL araçlarına dönüştürülür. Yanıtta model anlatısı, çağrılan araç ve arkasındaki ham veri satırları yan yana doğrulanır.
+      <p class="mt-3 text-base sm:text-lg text-zinc-500 font-normal leading-relaxed">
+        Otopark giriş/çıkış zekâsı, doğal dil SQL orkestrasyonu ve üçlü şeffaf doğrulama motoru. Soruyu sorun; model anlatısını, çağrılan SQL aracını ve veritabanı gerçeğini yan yana görün.
       </p>
-    </div>
 
-    <!-- Önerilen Soru Çipleri -->
-    <div class="flex flex-col gap-2">
-      <span class="text-xs font-mono text-zinc-400 font-medium uppercase tracking-wider">
-        Önerilen Hazır Sorular (Tek Tıkla Sor)
-      </span>
-      <div class="flex flex-wrap gap-2" id="chips-container">
-        <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
-          15 Nisan 2026'da toplam kaç araç hareketi oldu?
-        </button>
-        <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
-          Şu an sahada kaç araç var?
-        </button>
-        <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
-          Tüm dönem boyunca gece 03:00 civarı giriş yapan araç oldu mu?
-        </button>
-        <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
-          Bu dönemde kara listedeki bir plaka görüldü mü?
-        </button>
-        <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
-          Bu dönemde 48 saatten uzun sahada kalan araç var mı?
-        </button>
-        <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
-          Bugün hava nasıl olacak? (Guardrail ret testi)
-        </button>
+      <!-- Etiketler & Model Durumu -->
+      <div class="flex flex-wrap items-center gap-2 mt-4">
+        <span class="px-3 py-1 bg-zinc-100 text-zinc-700 rounded-lg text-xs font-mono">#gemini-3.8-flash</span>
+        <span class="px-3 py-1 bg-zinc-100 text-zinc-700 rounded-lg text-xs font-mono">#postgresql</span>
+        <span class="px-3 py-1 bg-zinc-100 text-zinc-700 rounded-lg text-xs font-mono">#function-calling</span>
+        <span class="px-3 py-1 bg-zinc-100 text-zinc-700 rounded-lg text-xs font-mono">#provenance</span>
+        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-mono font-medium flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Canlı API Aktif
+        </span>
       </div>
     </div>
 
-    <!-- Soru Giriş Çubuğu -->
-    <div class="relative bg-white border border-zinc-200 rounded-2xl shadow-sm hover:border-zinc-300 focus-within:border-zinc-900 focus-within:ring-2 focus-within:ring-zinc-900/10 transition-all p-2 flex items-center gap-2">
-      <input
-        type="text"
-        id="query-input"
-        placeholder="Otopark olayları, araç geçmişi veya doluluk hakkında soru yazın..."
-        class="flex-1 bg-transparent px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none"
-        onkeydown="if(event.key==='Enter') submitQuery()"
-      />
-      <div class="flex items-center gap-2">
+    <!-- KERVANSARAY İNTERAKTİF SORGULAMA KAPSAYICISI -->
+    <div class="flex flex-col gap-6">
+      
+      <!-- Önerilen Soru Çipleri -->
+      <div class="flex flex-col gap-2">
+        <span class="text-xs font-mono text-zinc-400 font-medium uppercase tracking-wider">
+          Önerilen Hazır Sorular (Tek Tıkla Sor)
+        </span>
+        <div class="flex flex-wrap gap-2" id="chips-container">
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+            15 Nisan 2026'da toplam kaç araç hareketi oldu?
+          </button>
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+            Şu an sahada kaç araç var?
+          </button>
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+            Tüm dönem boyunca gece 03:00 civarı giriş yapan araç oldu mu?
+          </button>
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+            Bu dönemde kara listedeki bir plaka görüldü mü?
+          </button>
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+            Bu dönemde 48 saatten uzun sahada kalan araç var mı?
+          </button>
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+            Bugün hava nasıl olacak? (Guardrail ret testi)
+          </button>
+        </div>
+      </div>
+
+      <!-- Soru Giriş Çubuğu -->
+      <div class="relative bg-white border border-zinc-200 rounded-2xl shadow-sm hover:border-zinc-300 focus-within:border-zinc-900 focus-within:ring-2 focus-within:ring-zinc-900/10 transition-all p-2 flex items-center gap-2">
+        <input
+          type="text"
+          id="query-input"
+          placeholder="Otopark hareketleri, araç geçmişi veya anomali sorgusu yazın..."
+          class="flex-1 bg-transparent px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none"
+          onkeydown="if(event.key==='Enter') submitQuery()"
+        />
         <button
           id="btn-submit"
           onclick="submitQuery()"
@@ -137,108 +154,129 @@
           </svg>
         </button>
       </div>
-    </div>
 
-    <!-- Yükleniyor Durumu -->
-    <div id="loading-state" class="hidden py-12 flex flex-col items-center justify-center gap-3 text-center">
-      <div class="w-8 h-8 border-2 border-zinc-300 border-t-red-600 rounded-full animate-spin"></div>
-      <p class="text-xs font-mono text-zinc-500">Doğal dil çözümleniyor & SQL aracı sorgulanıyor...</p>
-    </div>
-
-    <!-- ÜÇLÜ GÖRÜNÜM SONUÇ PANELİ -->
-    <div id="result-panel" class="hidden flex flex-col gap-6">
-      
-      <!-- Üst Durum Şeridi (Meta Bilgiler) -->
-      <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-zinc-100 rounded-xl border border-zinc-200 text-xs font-mono">
-        <div class="flex items-center gap-3">
-          <span id="badge-status" class="px-2 py-0.5 rounded font-semibold bg-emerald-100 text-emerald-800">SUCCESS</span>
-          <span class="text-zinc-500">Sağlayıcı: <strong id="val-provider" class="text-zinc-800">gemini</strong></span>
-          <span class="text-zinc-500">Süre: <strong id="val-time" class="text-zinc-800">0.00s</strong></span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span id="val-cached" class="text-zinc-500">⚡ Önbellek: Hayır</span>
-        </div>
+      <!-- Yükleniyor Durumu -->
+      <div id="loading-state" class="hidden py-12 flex flex-col items-center justify-center gap-3 text-center">
+        <div class="w-8 h-8 border-2 border-zinc-300 border-t-red-600 rounded-full animate-spin"></div>
+        <p class="text-xs font-mono text-zinc-500">Gemini 3.8 Flash çözümlüyor & SQL aracı çalıştırılıyor...</p>
       </div>
 
-      <!-- 1. GÖRÜNÜM: MODEL PROSE (ANLATI) -->
-      <div class="bg-white p-5 rounded-2xl border border-zinc-200 shadow-sm flex flex-col gap-2">
-        <div class="flex items-center gap-2 text-xs font-mono text-zinc-400 uppercase tracking-wider font-semibold">
-          <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-          1. Model Anlatısı (Doğal Dil Özeti)
-        </div>
-        <p id="narrative-text" class="text-base text-zinc-800 leading-relaxed font-medium">
-          —
-        </p>
-      </div>
-
-      <!-- 2 & 3. GÖRÜNÜMLER: TOOL ÇAĞRISI VE SONUÇ TABLOSU YAN YANA / ALT ALTA -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- ÜÇLÜ GÖRÜNÜM SONUÇ PANELİ -->
+      <div id="result-panel" class="hidden flex flex-col gap-5">
         
-        <!-- 2. GÖRÜNÜM: TOOL ÇAĞRISI + PARAMETRELER -->
-        <div class="lg:col-span-1 bg-zinc-900 text-zinc-200 p-5 rounded-2xl border border-zinc-800 flex flex-col gap-3 font-mono text-xs">
-          <div class="flex items-center justify-between text-zinc-400 font-semibold uppercase tracking-wider pb-2 border-b border-zinc-800">
-            <span class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-              2. SQL Tool Çağrısı
-            </span>
+        <!-- Üst Durum Şeridi -->
+        <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-zinc-100 rounded-xl border border-zinc-200 text-xs font-mono">
+          <div class="flex items-center gap-3">
+            <span id="badge-status" class="px-2 py-0.5 rounded font-semibold bg-emerald-100 text-emerald-800">SUCCESS</span>
+            <span class="text-zinc-500">Model: <strong id="val-provider" class="text-zinc-800">gemini-3.8-flash</strong></span>
+            <span class="text-zinc-500">Süre: <strong id="val-time" class="text-zinc-800">0.00s</strong></span>
           </div>
-          <div>
-            <span class="text-zinc-500">Fonksiyon:</span>
-            <div id="tool-name" class="text-red-400 font-bold text-sm mt-0.5">None</div>
-          </div>
-          <div>
-            <span class="text-zinc-500">Parametreler:</span>
-            <pre id="tool-args" class="mt-1 p-2.5 bg-black/40 rounded-lg text-emerald-400 overflow-x-auto text-[11px] leading-relaxed">{}</pre>
+          <div class="flex items-center gap-2">
+            <span id="val-cached" class="text-zinc-500">⚡ Önbellek: Hayır</span>
           </div>
         </div>
 
-        <!-- 3. GÖRÜNÜM: SONUÇ TABLOSU (GERÇEK) -->
-        <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-zinc-200 shadow-sm flex flex-col gap-3">
-          <div class="flex items-center justify-between text-xs font-mono text-zinc-400 uppercase tracking-wider pb-2 border-b border-zinc-100">
-            <span class="flex items-center gap-2 font-semibold">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-              3. Sonuç Tablosu (Veritabanı Gerçeği)
-            </span>
-            <span id="row-count-badge" class="text-zinc-500 text-[11px]">0 Satır</span>
+        <!-- 1. GÖRÜNÜM: MODEL PROSE (ANLATI) -->
+        <div class="bg-white p-5 rounded-2xl border border-zinc-200 shadow-sm flex flex-col gap-2">
+          <div class="flex items-center gap-2 text-xs font-mono text-zinc-400 uppercase tracking-wider font-semibold">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+            1. Model Anlatısı (Doğal Dil Özeti)
           </div>
+          <p id="narrative-text" class="text-base text-zinc-800 leading-relaxed font-medium">
+            —
+          </p>
+        </div>
 
-          <!-- Skalar Değer Vurgusu (Eğer Sayım İse) -->
-          <div id="scalar-container" class="hidden p-4 bg-red-50 border border-red-100 rounded-xl flex items-center justify-between">
-            <span class="text-xs font-mono text-red-700 font-medium">Hesaplanan Değer:</span>
-            <span id="scalar-value" class="text-2xl font-bold font-mono text-red-600">—</span>
-          </div>
-
-          <!-- Tablo Alanı -->
-          <div class="overflow-x-auto max-h-80 overflow-y-auto">
-            <table id="result-table" class="w-full text-left text-xs border-collapse font-mono">
-              <thead class="bg-zinc-50 sticky top-0 border-b border-zinc-200 text-zinc-600">
-                <tr id="table-head"></tr>
-              </thead>
-              <tbody id="table-body" class="divide-y divide-zinc-100 text-zinc-800"></tbody>
-            </table>
-            <div id="empty-table-msg" class="hidden text-center py-8 text-zinc-400 text-xs font-mono">
-              Gösterilecek satır kaydı bulunamadı.
+        <!-- 2 & 3. GÖRÜNÜMLER: TOOL ÇAĞRISI VE SONUÇ TABLOSU -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          
+          <!-- 2. GÖRÜNÜM: TOOL ÇAĞRISI + PARAMETRELER -->
+          <div class="lg:col-span-1 bg-zinc-900 text-zinc-200 p-5 rounded-2xl border border-zinc-800 flex flex-col gap-3 font-mono text-xs">
+            <div class="flex items-center justify-between text-zinc-400 font-semibold uppercase tracking-wider pb-2 border-b border-zinc-800">
+              <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                2. SQL Tool Çağrısı
+              </span>
+            </div>
+            <div>
+              <span class="text-zinc-500">Fonksiyon:</span>
+              <div id="tool-name" class="text-red-400 font-bold text-sm mt-0.5">None</div>
+            </div>
+            <div>
+              <span class="text-zinc-500">Parametreler:</span>
+              <pre id="tool-args" class="mt-1 p-2.5 bg-black/40 rounded-lg text-emerald-400 overflow-x-auto text-[11px] leading-relaxed">{}</pre>
             </div>
           </div>
+
+          <!-- 3. GÖRÜNÜM: SONUÇ TABLOSU (GERÇEK) -->
+          <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-zinc-200 shadow-sm flex flex-col gap-3">
+            <div class="flex items-center justify-between text-xs font-mono text-zinc-400 uppercase tracking-wider pb-2 border-b border-zinc-100">
+              <span class="flex items-center gap-2 font-semibold">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                3. Sonuç Tablosu (Veritabanı Gerçeği)
+              </span>
+              <span id="row-count-badge" class="text-zinc-500 text-[11px]">0 Satır</span>
+            </div>
+
+            <!-- Skalar Değer (Sayım Vurgusu) -->
+            <div id="scalar-container" class="hidden p-4 bg-red-50 border border-red-100 rounded-xl flex items-center justify-between">
+              <span class="text-xs font-mono text-red-700 font-medium">Hesaplanan Sayı:</span>
+              <span id="scalar-value" class="text-2xl font-bold font-mono text-red-600">—</span>
+            </div>
+
+            <!-- Tablo Alanı -->
+            <div class="overflow-x-auto max-h-80 overflow-y-auto">
+              <table id="result-table" class="w-full text-left text-xs border-collapse font-mono">
+                <thead class="bg-zinc-50 sticky top-0 border-b border-zinc-200 text-zinc-600">
+                  <tr id="table-head"></tr>
+                </thead>
+                <tbody id="table-body" class="divide-y divide-zinc-100 text-zinc-800"></tbody>
+              </table>
+              <div id="empty-table-msg" class="hidden text-center py-8 text-zinc-400 text-xs font-mono">
+                Kayıt bulunamadı.
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>
 
+    </div>
+
+    <!-- Hızlı Geri Dönüş Linki -->
+    <div class="flex items-center justify-between pt-6 border-t border-zinc-200/70">
+      <a href="https://yagizakkaya.com.tr/index.html" target="_blank" class="inline-flex items-center gap-2 text-sm font-semibold text-zinc-800 hover:text-red-600 transition-colors group">
+        <svg class="w-4 h-4 text-zinc-400 group-hover:-translate-x-0.5 group-hover:text-red-600 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        <span>Alanım'a (Ana Sayfa) Geri Dön</span>
+      </a>
+
+      <span class="text-xs font-mono text-zinc-400">
+        kervansaray engine v1.0
+      </span>
     </div>
 
   </main>
 
-  <!-- Alt Bilgi (Footer) -->
-  <footer class="mt-auto border-t border-zinc-200/80 bg-white/60 py-6 text-center text-xs font-mono text-zinc-400">
-    <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-      <span>Kervansaray Engine v1.0 • Otopark Giriş/Çıkış İstihbaratı</span>
-      <span>Tasarım: Yağız Akkaya • ODTÜ</span>
+  <!-- Altbilgi (Footer) -->
+  <footer class="border-t border-zinc-200/80 bg-white/70 py-8 text-xs text-zinc-500 font-mono">
+    <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-red-600 font-bold">&gt; terminal_ready:</span>
+        <span>Yağız Akkaya • Kervansaray</span>
+      </div>
+      <div class="flex items-center gap-5">
+        <a href="https://github.com/yagizakkaya01" target="_blank" class="hover:text-zinc-900 transition-colors">GitHub</a>
+        <a href="https://www.linkedin.com/in/yagizakkaya" target="_blank" class="hover:text-zinc-900 transition-colors">LinkedIn</a>
+        <a href="https://www.instagram.com/yagizakkaya/" target="_blank" class="hover:text-zinc-900 transition-colors">Instagram</a>
+      </div>
     </div>
   </footer>
 
   <script>
     function askChip(text) {
-      // Ret testi ibaresini temizle
       const clean = text.replace(/\(Guardrail.*\)/, '').trim();
       document.getElementById('query-input').value = clean;
       submitQuery();
@@ -276,7 +314,6 @@
     }
 
     function renderResult(data) {
-      // 1. Meta
       const statusBadge = document.getElementById('badge-status');
       statusBadge.innerText = (data.status || 'UNKNOWN').toUpperCase();
       if (data.status === 'success') {
@@ -287,24 +324,21 @@
         statusBadge.className = 'px-2 py-0.5 rounded font-semibold bg-red-100 text-red-800';
       }
 
-      document.getElementById('val-provider').innerText = data.provider || 'bilinmiyor';
+      document.getElementById('val-provider').innerText = data.provider || 'gemini-3.8-flash';
       document.getElementById('val-time').innerText = (data.elapsed_seconds || 0) + 's';
-      document.getElementById('val-cached').innerText = data.cached ? '⚡ Önbellek: Evet (0 LLM maliyeti)' : '🔄 Canlı Çağrı';
+      document.getElementById('val-cached').innerText = data.cached ? '⚡ Önbellek: Evet (0ms - $0 Maliyet)' : '🔄 Canlı Model Çağrısı';
 
-      // 2. Prose
       document.getElementById('narrative-text').innerText = data.narrative || 'Açıklama üretilmedi.';
 
-      // 3. Tool Call
       const tc = data.tool_call;
       if (tc && tc.name) {
         document.getElementById('tool-name').innerText = tc.name;
         document.getElementById('tool-args').innerText = JSON.stringify(tc.args, null, 2);
       } else {
-        document.getElementById('tool-name').innerText = 'Çağrı Yapılmadı (Doğrudan Ret / Yanıt)';
+        document.getElementById('tool-name').innerText = 'Çağrı Yapılmadı (Doğrudan Ret / Cevap)';
         document.getElementById('tool-args').innerText = '—';
       }
 
-      // 4. Tablo & Skalar
       const tr = data.tool_result;
       const scalarContainer = document.getElementById('scalar-container');
       const scalarValue = document.getElementById('scalar-value');
@@ -330,7 +364,6 @@
         emptyMsg.classList.remove('hidden');
       } else {
         emptyMsg.classList.add('hidden');
-        // Başlıklar
         const cols = Object.keys(rows[0]);
         cols.forEach(col => {
           const th = document.createElement('th');
@@ -339,7 +372,6 @@
           tableHead.appendChild(th);
         });
 
-        // Satırlar
         rows.slice(0, 50).forEach(r => {
           const trElem = document.createElement('tr');
           trElem.className = 'hover:bg-zinc-50/80 transition-colors';

@@ -355,6 +355,12 @@ aksiyonu yok.
   `yagizakkaya.com.tr` içine hafif bir bileşen/iframe olarak gömülebilir.
 - **8–10 önerilen soru, tıklanabilir chip olarak** = birincil etkileşim.
   Ziyaretçi ne soracağını bilmek zorunda kalmamalı.
+- **Canlı Geçiş / ALPR Simülatörü (6 Hedefli Senaryo Kartı)**:
+  Klasik otopark güvenlik kamerası deneyimini sunan 6 arketip kartı
+  (Personel, Misafir, Kayıtsız, Kara Liste alarmı, Gece girişi şüphesi, 48h Overstay).
+  Ziyaretçi karttaki araca tıkladığında plaka otomatik algılanır, `vehicle_history`
+  veya anomali sorgusu tetiklenerek üçlü şeffaf panel anında doldurulur.
+  (30 kopya görsel yerine 6 kilit arketip ile repo şişkinliği önlenir - Ponytail).
 - Serbest metin kutusu vardır ama ikincildir.
 - Her cevap Faz 8'deki üç görünümü aynen taşır: prose + tool çağrısı + tablo.
 

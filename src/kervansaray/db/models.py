@@ -12,13 +12,11 @@ Tasarim kurallari (S7):
 from __future__ import annotations
 
 import enum
-from datetime import date, datetime
+from datetime import datetime
 
-from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
-    Date,
     DateTime,
     Enum,
     Float,
@@ -27,17 +25,12 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
-    UniqueConstraint,
     text,
 )
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, TimestampMixin
-
-# notes / daily_summaries embedding boyutu. Faz 6'da embedding modeli
-# secilince degisebilir (tek ALTER COLUMN migration'i). all-MiniLM-L6-v2 = 384.
-EMBED_DIM = 384
 
 
 class PersonKind(enum.StrEnum):
@@ -217,18 +210,4 @@ class Note(Base, TimestampMixin):
     ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     author: Mapped[str] = mapped_column(String(120), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
-    # Faz 6'da doldurulur (gece CPU batch). Simdilik NULL.
-    embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBED_DIM))
 
-
-class DailySummary(Base, TimestampMixin):
-    """Gece uretilen prose gun ozeti (S3.6). Faz 6."""
-
-    __tablename__ = "daily_summaries"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    day: Mapped[date] = mapped_column(Date, nullable=False)
-    body: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBED_DIM))
-
-    __table_args__ = (UniqueConstraint("day", name="uq_daily_summaries_day"),)

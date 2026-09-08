@@ -3,7 +3,7 @@
 # ============================================================
 # Bu liste sadece CILEKAI'dan tasinan operasyonel iskeleti
 # calistirmaya yeter. Projeye ozel bagimliliklar (Postgres
-# surucusu, pgvector, tool katmani vs.) sema ve ingest API
+# surucusu, tool katmani vs.) sema ve ingest API
 # yazildikca eklenecek.
 
 # --- Yapilandirma ---
@@ -27,4 +27,3 @@ rapidfuzz>=3.0.0
 SQLAlchemy~=2.0
 alembic~=1.14
 psycopg[binary]~=3.2
-pgvector~=0.3

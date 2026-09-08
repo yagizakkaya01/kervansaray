@@ -50,8 +50,6 @@ def rebuild_schema(engine: Engine) -> None:
     with engine.begin() as conn:
         drop_views(conn)
     Base.metadata.drop_all(engine, checkfirst=True)
-    with engine.begin() as conn:
-        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
     Base.metadata.create_all(engine)
     with engine.begin() as conn:
         create_views(conn)
