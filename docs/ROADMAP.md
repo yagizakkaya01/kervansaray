@@ -215,13 +215,15 @@ alanı doğrulanabiliyor; kapsam dışı sorular testte reddediliyor.
 - `src/kervansaray/tools/schemas.py`: 5 SQL tool için standart JSON şemaları (`query_events`, `aggregate_events`, `vehicle_history`, `find_anomalies`, `occupancy`). `aggregate_events` için `direction` ve `registered` filtreleri eklendi. Hem Gemini (`GEMINI_FUNCTION_DECLARATIONS`) hem OpenAI/Groq (`OPENAI_TOOLS`) formatları tanımlandı.
 - `src/kervansaray/tools/dispatcher.py`: Tip doğrulamalı güvenli dağıtıcı (`dispatch_tool`). ISO tarih aralıkları (`_parse_range`), plaka kanonikleştirme ve hata yakalama tek noktada toplandı.
 - `src/kervansaray/text/dates.py`: Deterministik Türkçe tarih/zaman çözümleyici (`resolve_time_range`, `extract_time_hint`). ISO tarihler, Türkçe aylar, saat aralıkları, "dün", "dün gece", "hafta sonu", "bu ay" kalıplarını regex ile çözer; modele tarih aritmetiği yaptırılmaz.
-- `src/kervansaray/llm/prompts.py`: Sistem prompt'u şablonu, `v_events` enum sözlükleri, 9 adet few-shot örneği ve katı guardrail'ler (ham veri üzerinde gözle sayı saymama, otopark dışı soruları doğrudan reddetme).
+- `src/kervansaray/llm/prompts.py`: Sistem prompt'u şablonu, `v_events` enum sözlükleri, 9 adet few-shot örneği ve katı guardrail'ler (ham veri üzerinde gözle sayı saymama, otopark dışı soruları doğrudan `[DECLINED]` ile reddetme).
 - `src/kervansaray/llm/gemini_client.py`: Gemini 2.0 Flash Function Calling REST istemcisi (`requests` oturumu, retry adaptörü, model `functionCall` / `text` ayrıştırıcısı).
 - `src/kervansaray/query_pipeline.py`: Doğal dil sorgu koşucusu (`run_query`). Soru -> zaman ipucu -> sistem prompt'u -> LLM -> `dispatch_tool` -> `format_narrative` (deterministik Türkçe özet; `value`, `sessions` içeride/dışarıda kontrolü).
 - **Hibrit In-Memory Cache (`QueryCache`)**: Standart kütüphane (`dict` + `time.monotonic`), 500 kayıt FIFO sınırı. Canlı/anlık sorgular için 20s TTL, geçmiş tarihler ve ret yanıtları için 24 saat TTL ile API kota koruması.
 - `eval/runner.py`: Ham fonksiyon çağrısı yerine `dispatch_tool` üzerinden çalışacak şekilde bağlandı; altın setteki 42 sorunun tamamı artık dispatcher üzerinden doğrulanıyor.
 - **Ponytail Kararları ve Ertelemeleri:**
   - *Groq / OpenAI Tool Client'ları:* Kullanıcının elinde henüz API anahtarı olmadığı için test edilemeyen hayalet kod yazılmadı (YAGNI). Şema (`OPENAI_TOOLS`) hazır tutuldu, istemci kodları anahtar gelince Faz 5'te eklenecek.
+  - *50 Satır Tavanı & Self-Correction:* `MAX_ROWS=50` aşımında `truncated` bayrağı ve `note` ile uyarı dönülüyor; modelin bunu görüp otomatik `aggregate_events`'e yöneldiği self-correcting retry loop Faz 5'e bırakıldı.
+  - *Kapsam Dışı Ret Altın Testi:* Mock ve `[DECLINED]` / `is_dec` birim testleri tamamlandı (`test_out_of_scope_declined`); altın setteki 5 `decline` sorusunun canlı LLM ile eval harness'e bağlanması Faz 5'te koşulacak.
   - *Read-only DB kullanıcısı:* Uygulama içinde sahte rol değiştirme kodu yerine Faz 8b VPS kurulumunda tek satırlık `GRANT SELECT ON v_events` SQL'i olarak ertelendi.
   - *CORS ve Gunicorn Cache:* Ortada henüz browser UI ve gunicorn worker olmadığı için Faz 5 ve Faz 8b'ye bırakıldı.
 - Testler: `test_dates` (8), `test_tool_schemas` (5), `test_gemini_client` (3), `test_query_pipeline` (9) — toplam 64 test yeşil.
@@ -234,8 +236,9 @@ alanı doğrulanabiliyor; kapsam dışı sorular testte reddediliyor.
   4 SQL aracından (`query_events`, `aggregate_events`, `vehicle_history`, `find_anomalies`)
   seçim yapar. Sistem prompt'unda açık enum sözlüğü + 10–15 few-shot örneği.
 - **Sınırlı kendini düzelten döngü** (brief §3.4): parametre veya doğrulama hatasında
-  model en fazla 1 kez hatayla uyarılır (sonsuz/aşırı retry yok).
-- Kapsam dışı sorular (hava durumu vb.) doğrudan `decline` yanıtıyla karşılanır.
+  model en fazla 1 kez hatayla uyarılır (sonsuz/aşırı retry yok). 50 satır tavanı aşımında
+  model `aggregate_events`'e yönlendirilir.
+- Kapsam dışı sorular (hava durumu vb.) doğrudan `decline` yanıtıyla karşılanır ve altın sette puanlanır.
 - Şema + few-shot için prompt caching (tekrarlayan maliyetin çoğunu siler).
 - Altın seti çalıştır, hedef doğruluğa iterasyon.
 
@@ -246,9 +249,11 @@ Birincil sağlayıcı **baştan sabitlenmez**. Faz 3 altın seti her aday sağla
 tool-calling doğruluğuna** göre yapılır. `LLM_PROVIDER_ORDER` bu ölçümün
 çıktısıdır, itibarın veya varsayımın değil. Ölçüm sonucu ve tarihi bu dosyaya
 not düşülür.
+*Fırsat:* `OPENAI_TOOLS` hazır olduğundan, `llmtr.com/models/inception/mercury-2-free`
+gibi ücretsiz OpenAI-uyumlu uçlar da `OPENAI_BASE_URL` ile ek bir aday olarak ölçüme dahil edilebilir.
 
 **Çıkış:** altın set doğruluğu hedefte; sağlayıcı sırası ölçüme dayanarak
-sabitlenmiş.
+belirlendi; `eval/gold_set.jsonl`'deki tüm sorular (kapsam dışı ret dahil) yeşil.
 
 ---
 
@@ -264,6 +269,9 @@ yerine Postgres yerel yetenekleri:
   doğrudan ve kesin hesaplanır.
 - **Gece anomali raporu**: Deterministik Python kural tarayıcısı (`find_anomalies`)
   gece çalışır, yakaladığı olayları tek bir LLM çağrısıyla sabah bültenine dönüştürür.
+- **Teknik Borç Temizliği (Brief §3.6):** `pgvector` bağımlılığı (`requirements.txt`),
+  `Vector(384)` kolonları (`vehicles`, `notes`), view/migration tanımları ve
+  Docker imajı (`pgvector/pgvector:pg16` → standart `postgres:16-alpine`) tamamen temizlenecek.
 
 **Çıkış:** not arama ve anomali soruları altın sette eksiksiz doğrulanıyor.
 

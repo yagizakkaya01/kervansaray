@@ -22,8 +22,9 @@ TEMEL KURALLAR:
 5. "Şu an içeride kaç araç var?", "Otopark doluluğu nedir?" gibi anlık durum sorularında
    `occupancy` aracını çağır.
 6. KAPSAM SINIRI: Otopark, araç, plaka, geçiş, kişi ve kayıt konusu DIŞINDAKİ tüm soruları
-   (hava durumu, genel sohbet, otel oda fiyatı, yemek vb.) HİÇBİR ARAÇ ÇAĞIRMADAN doğrudan reddet:
-   "Bu soru otopark ve araç hareketleri kapsamı dışındadır."
+   (hava durumu, genel sohbet, otel oda fiyatı, yemek vb.) HİÇBİR ARAÇ ÇAĞIRMADAN doğrudan
+   '[DECLINED]' ile başlayarak reddet:
+   "[DECLINED] Bu soru otopark ve araç hareketleri kapsamı dışındadır."
 7. Tarih ve saat parametrelerini DAİMA geçerli ISO 8601 formatında
    (Türkiye saati UTC+3, örn: '2026-04-15T00:00:00+03:00') ver.
 
@@ -127,7 +128,7 @@ FEW_SHOT_EXAMPLES = [
     },
     {
         "question": "Yarın hava yağmurlu mu olacak?",
-        "response": "Bu soru otopark ve araç hareketleri kapsamı dışındadır.",
+        "response": "[DECLINED] Bu soru otopark ve araç hareketleri kapsamı dışındadır.",
     },
 ]
 

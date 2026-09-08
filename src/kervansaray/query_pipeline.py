@@ -217,7 +217,13 @@ def run_query(
     fc = llm_out.get("function_call")
     if not fc:
         resp_text = llm_out.get("response") or ""
-        status = "declined" if "kapsamı dışındadır" in resp_text else "direct_response"
+        clean_resp = to_ascii(resp_text.lower())
+        is_dec = (
+            "[declined]" in clean_resp
+            or "kapsam" in clean_resp
+            or "ilgili degil" in clean_resp
+        )
+        status = "declined" if is_dec else "direct_response"
         out = {
             "query": user_text,
             "status": status,
