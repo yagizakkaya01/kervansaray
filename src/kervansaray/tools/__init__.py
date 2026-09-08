@@ -17,6 +17,7 @@ from .events import aggregate_events, query_events
 from .schemas import (
     FUNCTION_DECLARATIONS,
     GEMINI_FUNCTION_DECLARATIONS,
+    OPENAI_TOOLS,
 )
 from .types import MAX_ROWS, ToolResult
 from .vehicles import occupancy, vehicle_history
@@ -34,4 +35,5 @@ __all__ = [
     "dispatch_tool",
     "FUNCTION_DECLARATIONS",
     "GEMINI_FUNCTION_DECLARATIONS",
+    "OPENAI_TOOLS",
 ]

@@ -6,6 +6,7 @@ from kervansaray.llm.prompts import FEW_SHOT_EXAMPLES, build_system_prompt
 from kervansaray.tools import (
     FUNCTION_DECLARATIONS,
     GEMINI_FUNCTION_DECLARATIONS,
+    OPENAI_TOOLS,
     dispatch_tool,
 )
 
@@ -17,6 +18,42 @@ def test_function_declarations_complete():
     }
     assert names == expected
     assert len(GEMINI_FUNCTION_DECLARATIONS) == 5
+    assert len(OPENAI_TOOLS) == 5
+    assert OPENAI_TOOLS[0]["type"] == "function"
+
+    # aggregate_events schema direction ve registered icermeli
+    agg_schema = next(f for f in FUNCTION_DECLARATIONS if f["name"] == "aggregate_events")
+    props = agg_schema["parameters"]["properties"]
+    assert "direction" in props
+    assert "registered" in props
+
+
+def test_dispatch_aggregate_events_with_filters(monkeypatch):
+    db = MagicMock()
+    mock_fn = MagicMock()
+    monkeypatch.setitem(
+        __import__("kervansaray.tools.dispatcher", fromlist=["TOOLS"]).TOOLS,
+        "aggregate_events",
+        mock_fn,
+    )
+
+    dispatch_tool(
+        db,
+        "aggregate_events",
+        {
+            "start": "2026-04-15T00:00:00+03:00",
+            "end": "2026-04-16T00:00:00+03:00",
+            "direction": "entry",
+            "registered": True,
+            "metric": "count",
+        },
+    )
+    mock_fn.assert_called_once()
+    _, kwargs = mock_fn.call_args
+    assert kwargs["direction"] == "entry"
+    assert kwargs["registered"] is True
+    assert kwargs["metric"] == "count"
+
 
 
 def test_dispatch_unknown_tool():

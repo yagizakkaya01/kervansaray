@@ -86,6 +86,8 @@ def dispatch_tool(
                 end=rng[1],
                 group_by=args.get("group_by"),
                 metric=args.get("metric", "count"),
+                direction=args.get("direction"),
+                registered=args.get("registered"),
             )
 
         if name == "vehicle_history":

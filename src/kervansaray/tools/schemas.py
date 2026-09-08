@@ -99,6 +99,17 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
                         "'count': toplam geçiş adedi, 'unique_plates': tekil araç sayısı."
                     ),
                 },
+                "direction": {
+                    "type": "string",
+                    "enum": ["entry", "exit"],
+                    "description": "Geçiş yönü filtresi: 'entry' (giriş) veya 'exit' (çıkış).",
+                },
+                "registered": {
+                    "type": "boolean",
+                    "description": (
+                        "True: yalnızca kayıtlı araçlar. False: kayıtsız/bilinmeyen araçlar."
+                    ),
+                },
             },
             "required": ["start", "end"],
         },
@@ -187,3 +198,6 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
 
 # Gemini formatı: {"function_declarations": [...]}
 GEMINI_FUNCTION_DECLARATIONS = FUNCTION_DECLARATIONS
+
+# OpenAI / Groq formatı: [{"type": "function", "function": {...}}, ...]
+OPENAI_TOOLS = [{"type": "function", "function": f} for f in FUNCTION_DECLARATIONS]

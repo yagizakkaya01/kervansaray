@@ -13,16 +13,13 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy.orm import Session as DbSession
 
-from kervansaray.tools import TOOLS
+from kervansaray.tools import dispatch_tool
 
 GOLD_SET = Path(__file__).resolve().parent / "gold_set.jsonl"
-
-_TS_KEYS = ("start", "end", "as_of")
 
 
 @dataclass
@@ -31,7 +28,7 @@ class EvalResult:
     scored: int = 0
     correct: int = 0
     deferred: int = 0  # decline -> Faz 5
-    by_category: dict[str, list[int]] = field(default_factory=dict)  # cat -> [correct, scored]
+    by_category: dict[str, list[int]] = field(default_factory=dict)
     failures: list[dict] = field(default_factory=list)
 
     @property
@@ -51,22 +48,16 @@ class EvalResult:
         if self.failures:
             lines += ["", "hatalar:"]
             for f in self.failures:
-                lines.append(f"  {f['id']} ({f['category']}): beklenen={f['expected']} "
-                             f"gelen={f['actual']}")
+                lines.append(
+                    f"  {f['id']} ({f['category']}): beklenen={f['expected']} "
+                    f"gelen={f['actual']}"
+                )
         return "\n".join(lines)
 
 
 def load_gold() -> list[dict]:
     with GOLD_SET.open(encoding="utf-8") as fh:
         return [json.loads(line) for line in fh if line.strip()]
-
-
-def _parse_params(params: dict) -> dict:
-    out = dict(params)
-    for k in _TS_KEYS:
-        if isinstance(out.get(k), str):
-            out[k] = datetime.fromisoformat(out[k])
-    return out
 
 
 def _normalise(category: str, expected: dict, result) -> tuple:
@@ -115,9 +106,8 @@ def run(db: DbSession) -> EvalResult:
             res.deferred += 1
             continue
 
-        params = _parse_params(row["params"])
         try:
-            result = TOOLS[tool](db, **params)
+            result = dispatch_tool(db, tool, row["params"])
             exp_norm, act_norm = _normalise(cat, row["expected"], result)
             ok = exp_norm == act_norm
         except Exception as exc:  # noqa: BLE001

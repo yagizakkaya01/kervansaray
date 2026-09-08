@@ -75,7 +75,7 @@ def resolve_time_range(
         return start, end
 
     # 4. Dun gece (onceki gun 20:00 -> bugun 06:00 arasi)
-    if "dun gece" in clean or "gece" in clean and "dun" in clean:
+    if ("dun gece" in clean) or ("gece" in clean and "dun" in clean):
         yesterday = ref_day - timedelta(days=1)
         start = yesterday.replace(hour=20, minute=0, second=0)
         end = ref_day.replace(hour=6, minute=0, second=0)

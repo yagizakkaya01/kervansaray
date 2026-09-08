@@ -85,7 +85,7 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
         metric = args.get("metric", "count")
         group_by = args.get("group_by")
         if group_by:
-            total = sum(int(r.get("count", 0)) for r in result.rows)
+            total = sum(int(r.get("value", 0)) for r in result.rows)
             return (
                 f"Belirtilen aralıkta '{group_by}' bazında {len(result.rows)} "
                 f"grup listelendi (Toplam: {total})."
@@ -93,7 +93,7 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
         cnt = (
             result.scalar
             if result.scalar is not None
-            else (result.rows[0].get("count", 0) if result.rows else 0)
+            else (result.rows[0].get("value", 0) if result.rows else 0)
         )
         if metric == "unique_plates":
             return f"Belirtilen aralıkta toplam {cnt} farklı (tekil) araç tespit edildi."
@@ -109,10 +109,15 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
         cnt = len(result.rows)
         if cnt == 0:
             return f"{plate} plakasına ait sistemde herhangi bir geçiş kaydı bulunamadı."
-        is_inside = (
-            result.scalar.get("is_inside", False)
+        sessions = (
+            result.scalar.get("sessions", [])
             if isinstance(result.scalar, dict)
-            else False
+            else []
+        )
+        is_inside = (
+            bool(result.scalar.get("is_inside"))
+            if isinstance(result.scalar, dict) and "is_inside" in result.scalar
+            else any(s.get("currently_inside") for s in sessions)
         )
         inside_str = "Araç şu anda otoparkta." if is_inside else "Araç şu anda dışarıda."
         return f"{plate} plakalı araca ait {cnt} hareket kaydı bulundu. {inside_str}"
@@ -126,6 +131,9 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
 
     if tool_name == "occupancy":
         cnt = result.scalar if result.scalar is not None else len(result.rows)
+        as_of_val = args.get("as_of") or result.params.get("as_of")
+        if as_of_val:
+            return f"Belirtilen an itibarıyla otoparkta {cnt} araç bulunuyordu."
         return f"Otoparkta şu anda {cnt} araç bulunuyor."
 
     return f"{tool_name} başarıyla çalıştırıldı ({len(result.rows)} kayıt)."
