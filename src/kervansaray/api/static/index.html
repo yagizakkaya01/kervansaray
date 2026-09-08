@@ -78,6 +78,53 @@
       justify-content: center;
       line-height: 1;
     }
+    /* Plaka karakterleri — senaryoya gore JS ile guncellenir */
+    .tr-plate-chars {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #111318;
+      white-space: nowrap;
+      font-weight: 800;
+      letter-spacing: 0.10em;
+    }
+    /* ALPR kirpma onizlemesi: sentetik ama "kameradan kirpilmis" hissi */
+    #plate-crop-display {
+      width: 100%;
+      max-width: 340px;
+      height: 100%;
+      align-items: stretch;
+      background:
+        linear-gradient(105deg, rgba(0,0,0,0.06), rgba(0,0,0,0) 40%, rgba(0,0,0,0.05)),
+        #fbfbf9;
+      filter: contrast(1.08) saturate(0.96);
+    }
+    #plate-crop-display .tr-plate-chars { font-size: clamp(20px, 6vw, 34px); }
+    /* Kamera vizorundeki plaka: gercek fotografin plaka bolgesine bindirilir */
+    #cam-plate-overlay {
+      position: absolute;
+      left: 34.3%;
+      top: 79%;
+      width: 27.6%;
+      height: 7.6%;
+      transform: rotate(-2deg);
+      transform-origin: center;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
+      border-radius: 3px;
+    }
+    #cam-plate-overlay .tr-plate {
+      width: 100%; height: 100%;
+      align-items: stretch;
+      border-width: 1.5px;
+      border-radius: 3px;
+      box-shadow: none;
+    }
+    #cam-plate-overlay .tr-plate-blue { padding: 0 2px; font-size: 5px; }
+    #cam-plate-overlay .tr-plate-chars {
+      font-size: clamp(8px, 3vw, 16px);
+      letter-spacing: 0.04em;
+    }
   </style>
 </head>
 <body class="bg-[#faf8fb] text-[#111318] font-sans antialiased min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
@@ -183,13 +230,21 @@
         <!-- Kamera Ekranı / Görsel Vizör Alanı -->
         <div class="relative w-full aspect-[4/3] bg-zinc-950 rounded-xl overflow-hidden border border-zinc-800 flex items-center justify-center group shadow-inner">
           
-          <!-- Araç Görseli -->
+          <!-- Araç Görseli (tek gercek fotograf; plaka senaryoya gore bindirilir) -->
           <img
             id="car-view-img"
             src="/static/assets/sample_car_14ev669.webp"
             alt="Araç Geçiş Görseli"
             class="w-full h-full object-cover select-none transition-transform duration-300"
           />
+
+          <!-- Senaryo plakasi: fotograftaki plakanin uzerine oturur -->
+          <div id="cam-plate-overlay" class="pointer-events-none select-none">
+            <div class="tr-plate">
+              <div class="tr-plate-blue"><span>TR</span></div>
+              <div class="tr-plate-chars" id="cam-plate-chars">14 EV 669</div>
+            </div>
+          </div>
 
           <!-- Kamera HUD & Nişangah Katmanı -->
           <div class="absolute inset-0 pointer-events-none p-3 flex flex-col justify-between text-white/80 font-mono text-[11px]">
@@ -203,19 +258,19 @@
               </span>
             </div>
 
-            <!-- Plaka Hedefleme Kutusu (Bounding Box) -->
-            <div id="plate-bounding-box" class="relative mx-auto w-44 h-14 border-2 border-emerald-400 bg-emerald-400/10 rounded flex items-center justify-center transition-all">
-              <span class="absolute -top-4 left-1 text-[9px] bg-emerald-500 text-black px-1 font-bold rounded">
-                ALPR OCR: 98.4%
-              </span>
-              <!-- Dinamik Lazer Tarama Çizgisi -->
-              <div id="laser-scan" class="scanner-line hidden"></div>
-            </div>
-
             <div class="flex items-center justify-between text-[10px] text-zinc-400">
               <span>FOV: 84° • ISO 200</span>
               <span>DEV: JETSON-ORIN-01</span>
             </div>
+          </div>
+
+          <!-- Plaka Hedefleme Kutusu (Bounding Box) — plaka konumuna sabitlenmiş -->
+          <div id="plate-bounding-box" class="absolute left-1/2 -translate-x-1/2 bottom-[12%] w-44 h-14 border-2 border-emerald-400 bg-emerald-400/10 rounded flex items-center justify-center transition-all pointer-events-none">
+            <span class="absolute -top-4 left-1 text-[9px] bg-emerald-500 text-black px-1 font-bold rounded">
+              ALPR OCR: 98.4%
+            </span>
+            <!-- Dinamik Lazer Tarama Çizgisi -->
+            <div id="laser-scan" class="scanner-line hidden"></div>
           </div>
 
           <!-- Görsel Yok Uyarısı -->
@@ -334,13 +389,12 @@
         <div class="flex flex-col gap-1.5">
           <span class="text-xs font-mono text-zinc-400">Algılanan Plaka Görseli (Kırpma):</span>
           <div class="w-full h-20 bg-zinc-100 rounded-xl border border-zinc-200 overflow-hidden flex items-center justify-center p-2 shadow-inner">
-            <img
-              id="plate-crop-img"
-              src="/static/assets/sample_plate_14ev669.webp"
-              alt="Plaka Kesiti"
-              class="max-h-full max-w-full object-contain filter contrast-125"
-            />
+            <div id="plate-crop-display" class="tr-plate" role="img" aria-label="Algılanan plaka">
+              <div class="tr-plate-blue"><span>TR</span></div>
+              <div class="tr-plate-chars" id="plate-crop-chars">14 EV 669</div>
+            </div>
           </div>
+          <span class="text-[11px] font-mono text-zinc-400 self-end" id="plate-crop-sub">Tescil ili: Bolu · sentetik kırpma</span>
         </div>
 
         <!-- Düzenlenebilir Plaka Girdisi & Kontrol Et -->
@@ -833,7 +887,7 @@
       document.getElementById('dossier-name').innerText = s.name;
       document.getElementById('dossier-kind').innerText = s.kind;
       document.getElementById('dossier-address').innerText = s.address;
-      document.getElementById('dossier-match-status').innerText = s.matchStatus;
+      setPlateDisplays(s.plate);
 
       updateStatusBadge(s.statusType, s.statusText, s.statusAction);
 
@@ -843,6 +897,28 @@
 
       triggerPlateScan(true);
       showToast(`Senaryo seçildi: ${s.plate}`);
+    }
+
+    // Plaka gorsellerini (kamera vizoru bindirmesi + ALPR kirpma onizlemesi)
+    // senaryoya gore gunceller. Ayri gorsel dosyasi yok; tek gercek fotograf
+    // uzerine sentetik plaka bindirilir (ROADMAP: demo verisi sentetiktir).
+    const IL_ADLARI = {
+      '01': 'Adana', '06': 'Ankara', '07': 'Antalya', '10': 'Balıkesir',
+      '14': 'Bolu', '16': 'Bursa', '20': 'Denizli', '26': 'Eskişehir',
+      '34': 'İstanbul', '35': 'İzmir', '38': 'Kayseri', '41': 'Kocaeli',
+      '42': 'Konya', '55': 'Samsun', '61': 'Trabzon'
+    };
+    function setPlateDisplays(plate) {
+      const txt = (plate || '').trim().toUpperCase();
+      const crop = document.getElementById('plate-crop-chars');
+      const cam = document.getElementById('cam-plate-chars');
+      if (crop) crop.innerText = txt;
+      if (cam) cam.innerText = txt;
+      const sub = document.getElementById('plate-crop-sub');
+      if (sub) {
+        const il = IL_ADLARI[txt.slice(0, 2)];
+        sub.innerText = (il ? `Tescil ili: ${il} · ` : '') + 'sentetik kırpma';
+      }
     }
 
     function triggerPlateScan(submitAfter = false) {
@@ -857,7 +933,8 @@
         laser.classList.add('hidden');
         box.classList.remove('border-red-500', 'bg-red-500/10');
         box.classList.add('border-emerald-400');
-        showToast(`Plaka okundu: ${document.getElementById('plate-input-val').value}`);
+        const plateVal = document.getElementById('plate-input-val').value;
+        showToast(`Plaka okundu: ${plateVal}`);
         if (submitAfter) {
           submitQuery();
         }
@@ -870,15 +947,18 @@
       const placeholder = document.getElementById('empty-img-placeholder');
       const btnText = document.getElementById('cam-btn-text');
       const badge = document.getElementById('cam-status-badge');
+      const plateOverlay = document.getElementById('cam-plate-overlay');
 
       if (isCameraActive) {
         img.classList.remove('hidden');
+        plateOverlay?.classList.remove('hidden');
         placeholder.classList.add('hidden');
         btnText.innerText = 'Kamera Durdur';
         badge.innerText = '● CANLI AKIŞ: NİZAMİYE GİRİŞ';
         badge.className = 'px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-100 text-zinc-600 border border-zinc-200';
       } else {
         img.classList.add('hidden');
+        plateOverlay?.classList.add('hidden');
         placeholder.classList.remove('hidden');
         btnText.innerText = 'Kamera Başlat';
         badge.innerText = '○ KAMERA DURDURULDU';
@@ -903,11 +983,15 @@
       tag.className = `text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${s.tag}`;
       document.getElementById('status-dot').className = `w-2 h-2 rounded-full ${s.dot}`;
       document.getElementById('plate-status-box').className = `p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between ${s.box}`;
-      document.getElementById('dossier-match-badge').innerHTML = s.badge;
+      // Sadece ic span'i guncelle; "Eşleşme:" onekini ve span elemanini koru.
+      // (Onceden tum #dossier-match-badge innerHTML'i eziliyordu -> span silinince
+      //  ikinci senaryo tiklamasinda loadScenario null'a yaziyor ve patliyordu.)
+      document.getElementById('dossier-match-status').innerHTML = s.badge;
     }
 
     function verifyPlateAction() {
       const plate = document.getElementById('plate-input-val').value.trim().toUpperCase();
+      setPlateDisplays(plate);
       const r = REGISTRY_DATA.find(x => x.plate.replace(/\s+/g, '') === plate.replace(/\s+/g, ''));
       if (!r) {
         updateStatusBadge('unregistered', `${plate} için sistemde aktif tescil kaydı bulunamadı.`, 'MİSAFİR GİRİŞİ');
