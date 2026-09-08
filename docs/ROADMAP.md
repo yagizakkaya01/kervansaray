@@ -257,11 +257,11 @@ belirlendi; `eval/gold_set.jsonl`'deki tüm sorular (kapsam dışı ret dahil) y
 
 **Durum (2026-09-08):** ✅ tamamlandı.
 - `src/kervansaray/api/routes_query.py`: `POST /api/query` HTTP ucu eklendi (gövde doğrulama, `query`, `as_of`, `use_cache`).
-- `src/kervansaray/api/static/index.html`: Portfolyo sitesiyle (`yagizakkaya.com.tr/urettiklerim.html`) birebir uyumlu sıfır-derlemeli (Vanilla HTML/CSS/JS) web arayüzü eklendi; `api/__init__.py` üzerinden `GET /` ile bağlandı. 6 adet hazır soru çipi ve üçlü şeffaf görünüm (anlatı, tool çağrısı, sonuç tablosu).
+- `src/kervansaray/api/static/index.html`: Portfolyo sitesiyle (`yagizakkaya.com.tr/urettiklerim.html`) birebir uyumlu, Bento-Grid modüler mimarili (Kamera & Geçiş Monitörü HUD, Plaka OCR & Karar Kartı, Araç & Kişi Kayıt Künyesi, Gemini 3.8 Flash Doğal Dil Terminali) sıfır-derlemeli (Vanilla HTML/CSS/JS) arayüz. Ponytail incelemesiyle stil eşlemeleri ve form fonksiyonları sadeleştirildi, sıfır harici paket bağımlılığı korundu.
 - `eval/runner.py` & `eval/__main__.py`: `--llm` bayrağı eklendi; modelin tool seçimi ve 5 guardrail ret (`decline`) sorusu değerlendirme döngüsüne bağlandı.
 - **Ponytail Temizliği**: Kullanılmayan text-only `groq_client.py` ve `openai_client.py` ile `generate_with_fallback` silindi. `requirements.txt`'den `groq` ve `openai` kaldırıldı. `logging.py` içindeki hayalet logger'lar temizlendi.
 - **Gözlemlenebilirlik**: `LLM_REQUESTS` ve `LLM_LATENCY` sayaçları `query_pipeline.py`'deki gerçek `llm.generate` çağrısına bağlandı.
-- Testler: Toplam 67 test yeşil (36 db-bağımlı test skip), ruff sıfır hata.
+- Testler: Toplam 75 test yeşil (36 db-bağımlı test skip), ruff sıfır hata.
 
 ---
 

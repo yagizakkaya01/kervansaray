@@ -901,69 +901,65 @@
       reader.readAsDataURL(file);
     }
 
+    // --- 4. Tescil Formu & Tablo İşlemleri (Görseldeki İkinci Pencere) ---
+    const STATUS_MAP = {
+      blacklist: { box: 'bg-red-50 border-red-300 text-red-900 animate-pulse', dot: 'bg-red-600', tag: 'bg-red-600 text-white', badge: '<span class="text-red-600 font-bold">⚠️ KARA LİSTE</span>' },
+      vip: { box: 'bg-blue-50 border-blue-200 text-blue-900', dot: 'bg-blue-600', tag: 'bg-blue-600 text-white', badge: '<span class="text-blue-600 font-bold">★ VIP MİSAFİR</span>' },
+      staff: { box: 'bg-emerald-50 border-emerald-200 text-emerald-900', dot: 'bg-emerald-600', tag: 'bg-emerald-600 text-white', badge: '<span class="text-emerald-600 font-bold">✓ PERSONEL</span>' },
+      unregistered: { box: 'bg-amber-50 border-amber-200 text-amber-900', dot: 'bg-amber-500', tag: 'bg-amber-100 text-amber-900', badge: '<span class="text-amber-700 font-bold">? KAYITSIZ ARAÇ</span>' }
+    };
+
     function updateStatusBadge(type, text, action) {
-      const box = document.getElementById('plate-status-box');
-      const dot = document.getElementById('status-dot');
-      const msg = document.getElementById('status-message');
+      const s = STATUS_MAP[type] || STATUS_MAP.unregistered;
+      document.getElementById('status-message').innerText = text;
       const tag = document.getElementById('status-action-tag');
-      const dossierMatch = document.getElementById('dossier-match-badge');
-
-      msg.innerText = text;
       tag.innerText = action;
+      tag.className = `text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${s.tag}`;
+      document.getElementById('status-dot').className = `w-2 h-2 rounded-full ${s.dot}`;
+      document.getElementById('plate-status-box').className = `p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between ${s.box}`;
+      document.getElementById('dossier-match-badge').innerHTML = s.badge;
+    }
 
-      if (type === 'blacklist') {
-        box.className = 'p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between bg-red-50 border-red-300 text-red-900 animate-pulse';
-        dot.className = 'w-2 h-2 rounded-full bg-red-600';
-        tag.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-red-600 text-white rounded';
-        dossierMatch.innerHTML = '<span class="text-red-600 font-bold">⚠️ KARA LİSTE</span>';
-      } else if (type === 'vip') {
-        box.className = 'p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between bg-blue-50 border-blue-200 text-blue-900';
-        dot.className = 'w-2 h-2 rounded-full bg-blue-600';
-        tag.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-blue-600 text-white rounded';
-        dossierMatch.innerHTML = '<span class="text-blue-600 font-bold">★ VIP MİSAFİR</span>';
-      } else if (type === 'staff') {
-        box.className = 'p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between bg-emerald-50 border-emerald-200 text-emerald-900';
-        dot.className = 'w-2 h-2 rounded-full bg-emerald-600';
-        tag.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-emerald-600 text-white rounded';
-        dossierMatch.innerHTML = '<span class="text-emerald-600 font-bold">✓ PERSONEL</span>';
-      } else {
-        box.className = 'p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between bg-amber-50 border-amber-200 text-amber-900';
-        dot.className = 'w-2 h-2 rounded-full bg-amber-500';
-        tag.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-amber-100 text-amber-900 rounded';
-        dossierMatch.innerHTML = '<span class="text-amber-700 font-bold">? KAYITSIZ ARAÇ</span>';
-      }
+    function getFormData() {
+      const g = id => (document.getElementById(id)?.value || '').trim();
+      return {
+        plate: g('form-plate').toUpperCase(),
+        name: g('form-name'),
+        surname: g('form-surname'),
+        kind: g('form-kind') || 'guest',
+        address: g('form-address'),
+        phone: g('form-phone'),
+        email: g('form-email')
+      };
+    }
+
+    function setFormData(data = {}) {
+      ['plate', 'name', 'surname', 'kind', 'address', 'phone', 'email'].forEach(f => {
+        const el = document.getElementById(`form-${f}`);
+        if (el) el.value = data[f] ?? (f === 'kind' ? 'guest' : '');
+      });
     }
 
     function verifyPlateAction() {
       const plate = document.getElementById('plate-input-val').value.trim().toUpperCase();
-      const existing = REGISTRY_DATA.find(r => r.plate.replace(/\s+/g, '') === plate.replace(/\s+/g, ''));
-      
-      if (existing) {
-        if (existing.kind === 'blacklist') {
-          updateStatusBadge('blacklist', `${plate} kara listede kayıtlı! Tesis girişi yasaklanmıştır.`, 'GİRİŞ İZNİ VERME');
-        } else if (existing.kind === 'staff') {
-          updateStatusBadge('staff', `${plate} personel aracıdır (${existing.name} ${existing.surname}).`, 'BARİYER AÇILDI');
-        } else {
-          updateStatusBadge('vip', `${plate} kayıtlı misafirdir (${existing.name} ${existing.surname}).`, 'GEÇİŞ ONAYLANDI');
-        }
-      } else {
+      const r = REGISTRY_DATA.find(x => x.plate.replace(/\s+/g, '') === plate.replace(/\s+/g, ''));
+      if (!r) {
         updateStatusBadge('unregistered', `${plate} için sistemde aktif tescil kaydı bulunamadı.`, 'MİSAFİR GİRİŞİ');
+      } else if (r.kind === 'blacklist') {
+        updateStatusBadge('blacklist', `${plate} kara listede kayıtlı! Tesis girişi yasaklanmıştır.`, 'GİRİŞ İZNİ VERME');
+      } else if (r.kind === 'staff') {
+        updateStatusBadge('staff', `${plate} personel aracıdır (${r.name} ${r.surname}).`, 'BARİYER AÇILDI');
+      } else {
+        updateStatusBadge('vip', `${plate} kayıtlı misafirdir (${r.name} ${r.surname}).`, 'GEÇİŞ ONAYLANDI');
       }
       showToast(`Plaka doğrulandı: ${plate}`);
     }
 
     function fillFormFromPlate() {
       const plate = document.getElementById('plate-input-val').value.trim().toUpperCase();
+      const r = REGISTRY_DATA.find(x => x.plate.replace(/\s+/g, '') === plate.replace(/\s+/g, ''));
+      setFormData(r || { plate });
       document.getElementById('form-plate').value = plate;
-      const found = REGISTRY_DATA.find(r => r.plate.replace(/\s+/g, '') === plate.replace(/\s+/g, ''));
-      if (found) {
-        document.getElementById('form-name').value = found.name;
-        document.getElementById('form-surname').value = found.surname;
-        document.getElementById('form-kind').value = found.kind;
-        document.getElementById('form-address').value = found.address;
-        document.getElementById('form-phone').value = found.phone;
-        document.getElementById('form-email').value = found.email;
-      }
       document.getElementById('vehicle-form').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -980,18 +976,14 @@
       submitQuery();
     }
 
-    // --- 4. Tescil Formu & Tablo İşlemleri (Görseldeki İkinci Pencere) ---
     function renderRegistryTable() {
       const tbody = document.getElementById('registry-table-body');
       tbody.innerHTML = '';
-
       REGISTRY_DATA.forEach((r, idx) => {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-zinc-50/80 cursor-pointer transition-colors';
         tr.onclick = () => selectRegistryRow(r);
-
         const badgeColor = r.kind === 'blacklist' ? 'text-red-700 bg-red-50' : (r.kind === 'staff' ? 'text-emerald-700 bg-emerald-50' : 'text-blue-700 bg-blue-50');
-
         tr.innerHTML = `
           <td class="py-2.5 px-3 font-semibold text-zinc-400">${idx + 1}</td>
           <td class="py-2.5 px-3 font-bold text-zinc-900">${r.plate}</td>
@@ -1007,54 +999,29 @@
     }
 
     function selectRegistryRow(r) {
-      document.getElementById('form-plate').value = r.plate;
-      document.getElementById('form-name').value = r.name;
-      document.getElementById('form-surname').value = r.surname;
-      document.getElementById('form-kind').value = r.kind;
-      document.getElementById('form-address').value = r.address;
-      document.getElementById('form-phone').value = r.phone;
-      document.getElementById('form-email').value = r.email;
+      setFormData(r);
       document.getElementById('plate-input-val').value = r.plate;
       verifyPlateAction();
     }
 
     function saveRegistration() {
-      const plate = document.getElementById('form-plate').value.trim().toUpperCase();
-      if (!plate) return;
-
-      const item = {
-        id: REGISTRY_DATA.length + 1,
-        plate: plate,
-        name: document.getElementById('form-name').value.trim(),
-        surname: document.getElementById('form-surname').value.trim(),
-        kind: document.getElementById('form-kind').value,
-        address: document.getElementById('form-address').value.trim(),
-        phone: document.getElementById('form-phone').value.trim(),
-        email: document.getElementById('form-email').value.trim()
-      };
-
-      REGISTRY_DATA.unshift(item);
+      const data = getFormData();
+      if (!data.plate) return;
+      REGISTRY_DATA.unshift({ id: REGISTRY_DATA.length + 1, ...data });
       renderRegistryTable();
       verifyPlateAction();
-      showToast(`Yeni kayıt eklendi: ${plate}`);
+      showToast(`Yeni kayıt eklendi: ${data.plate}`);
     }
 
     function updateRegistration() {
-      const plate = document.getElementById('form-plate').value.trim().toUpperCase();
-      const idx = REGISTRY_DATA.findIndex(r => r.plate.replace(/\s+/g, '') === plate.replace(/\s+/g, ''));
+      const data = getFormData();
+      if (!data.plate) return;
+      const idx = REGISTRY_DATA.findIndex(r => r.plate.replace(/\s+/g, '') === data.plate.replace(/\s+/g, ''));
       if (idx !== -1) {
-        REGISTRY_DATA[idx] = {
-          ...REGISTRY_DATA[idx],
-          name: document.getElementById('form-name').value.trim(),
-          surname: document.getElementById('form-surname').value.trim(),
-          kind: document.getElementById('form-kind').value,
-          address: document.getElementById('form-address').value.trim(),
-          phone: document.getElementById('form-phone').value.trim(),
-          email: document.getElementById('form-email').value.trim()
-        };
+        REGISTRY_DATA[idx] = { ...REGISTRY_DATA[idx], ...data };
         renderRegistryTable();
         verifyPlateAction();
-        showToast(`Kayıt güncellendi: ${plate}`);
+        showToast(`Kayıt güncellendi: ${data.plate}`);
       } else {
         saveRegistration();
       }
