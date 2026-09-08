@@ -12,12 +12,12 @@ from typing import Any
 
 from sqlalchemy.orm import Session as DbSession
 
-from kervansaray.llm import gemini_client
+from kervansaray.llm import gemini_client, get_available_clients
 from kervansaray.llm.prompts import FEW_SHOT_EXAMPLES, build_system_prompt
 from kervansaray.observability import LLM_LATENCY, LLM_REQUESTS
 from kervansaray.text.dates import extract_time_hint
 from kervansaray.text.turkish import to_ascii
-from kervansaray.tools import GEMINI_FUNCTION_DECLARATIONS, dispatch_tool
+from kervansaray.tools import GEMINI_FUNCTION_DECLARATIONS, OPENAI_TOOLS, dispatch_tool
 from kervansaray.tools.types import ToolResult
 
 log = logging.getLogger(__name__)
@@ -198,27 +198,50 @@ def run_query(
     time_hint = extract_time_hint(clean_query, as_of=as_of)
     system_instruction = build_system_prompt(as_of=as_of, time_hint=time_hint)
 
-    # 2. LLM cagir (varsayilan: gemini_client)
-    llm = client or gemini_client
-    prov_name = getattr(llm, "PROVIDER", "unknown")
-    t_llm = perf_counter()
-    try:
-        llm_out = llm.generate(
-            clean_query,
-            system_instruction=system_instruction,
-            tools=GEMINI_FUNCTION_DECLARATIONS,
-            few_shots=FEW_SHOT_EXAMPLES,
-        )
-        LLM_LATENCY.labels(prov_name).observe(perf_counter() - t_llm)
-        LLM_REQUESTS.labels(prov_name, "ok").inc()
-    except Exception as exc:  # noqa: BLE001
-        LLM_LATENCY.labels(prov_name).observe(perf_counter() - t_llm)
-        LLM_REQUESTS.labels(prov_name, "error").inc()
-        log.exception("LLM cagrisi sirasinda hata olustu: %s", exc)
+    # 2. LLM cagir (aktif saglayicilar sirasiyla denenir; fallback destekli)
+    if client:
+        candidates = [client]
+    else:
+        candidates = get_available_clients()
+        if not candidates:
+            candidates = [gemini_client]
+
+    llm_out = None
+    used_client = None
+    last_error: Exception | None = None
+
+    for cand in candidates:
+        cand_prov = getattr(cand, "PROVIDER", "unknown")
+        cand_tools = OPENAI_TOOLS if cand_prov == "nvidia" else GEMINI_FUNCTION_DECLARATIONS
+        t_llm = perf_counter()
+        try:
+            llm_out = cand.generate(
+                clean_query,
+                system_instruction=system_instruction,
+                tools=cand_tools,
+                few_shots=FEW_SHOT_EXAMPLES,
+            )
+            LLM_LATENCY.labels(cand_prov).observe(perf_counter() - t_llm)
+            LLM_REQUESTS.labels(cand_prov, "ok").inc()
+            used_client = cand
+            break
+        except Exception as exc:  # noqa: BLE001
+            LLM_LATENCY.labels(cand_prov).observe(perf_counter() - t_llm)
+            LLM_REQUESTS.labels(cand_prov, "error").inc()
+            log.warning(
+                "LLM saglayicisi (%s) basarisiz oldu, siradakine geciliyor: %s",
+                cand_prov,
+                exc,
+            )
+            last_error = exc
+
+    if llm_out is None:
+        log.exception("Tum LLM saglayicilari basarisiz oldu. Son hata: %s", last_error)
+        fallback_prov = getattr(candidates[-1], "PROVIDER", "unknown") if candidates else "unknown"
         return {
             "query": user_text,
             "status": "error",
-            "provider": prov_name,
+            "provider": fallback_prov,
             "tool_call": None,
             "tool_result": None,
             "narrative": (
@@ -229,6 +252,7 @@ def run_query(
             "elapsed_seconds": round(perf_counter() - t0, 3),
         }
 
+    prov_name = getattr(used_client, "PROVIDER", "unknown")
     provider = llm_out.get("provider", prov_name)
 
     # 3. Model direkt metin mi dondu (ornek: kapsam disi ret)?
