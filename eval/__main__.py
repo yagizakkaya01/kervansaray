@@ -45,7 +45,8 @@ def main(argv: list[str] | None = None) -> int:
         for payload in scenario.payloads():
             ingest_event(session, payload)
         session.commit()
-        result = runner.run(session)
+        with_llm = "--llm" in argv
+        result = runner.run(session, with_llm=with_llm)
     finally:
         session.close()
 

@@ -57,3 +57,67 @@ def test_get_events_reads_v_events_view(client):
     r2 = client.get("/events?plate=34+abc+123")
     assert r2.get_json()["count"] == 1
     assert r2.get_json()["events"][0]["plate"] == "34ABC123"
+
+
+def test_post_query_validation():
+    from unittest.mock import MagicMock, patch
+
+    from kervansaray.api import create_app
+
+    app = create_app()
+    app.config["TESTING"] = True
+    c = app.test_client()
+
+    # 1. Invalid / non-JSON body
+    r = c.post("/api/query", data="invalid", content_type="text/plain")
+    assert r.status_code == 400
+
+    # 2. Empty query
+    r = c.post("/api/query", json={"query": ""})
+    assert r.status_code == 400
+    assert "boş olamaz" in r.get_json()["error"]
+
+    r = c.post("/api/query", json={"query": "   "})
+    assert r.status_code == 400
+
+    # 3. Invalid as_of format
+    r = c.post("/api/query", json={"query": "kac arac var?", "as_of": "gecersiz-tarih"})
+    assert r.status_code == 400
+    assert "Geçersiz 'as_of'" in r.get_json()["error"]
+
+    # 4. Valid query with mocked run_query
+    mock_res = {
+        "query": "bugun kac arac girdi?",
+        "status": "success",
+        "narrative": "Bugün 12 araç girdi.",
+        "tool_call": {"name": "aggregate_events", "args": {}},
+        "tool_result": {"scalar": 12},
+        "provider": "gemini",
+        "cached": False,
+    }
+    with patch("kervansaray.api.routes_query.session_scope") as mock_scope, \
+         patch("kervansaray.api.routes_query.run_query", return_value=mock_res) as mock_rq:
+        mock_scope.return_value.__enter__.return_value = MagicMock()
+
+        r = c.post("/api/query", json={"query": "bugun kac arac girdi?"})
+        assert r.status_code == 200
+        data = r.get_json()
+        assert data["status"] == "success"
+        assert data["narrative"] == "Bugün 12 araç girdi."
+        assert data["tool_result"]["scalar"] == 12
+        assert mock_rq.call_count == 1
+
+
+def test_get_index_serves_frontend():
+    from kervansaray.api import create_app
+
+    app = create_app()
+    app.config["TESTING"] = True
+    c = app.test_client()
+
+    r = c.get("/")
+    assert r.status_code == 200
+    assert "Kervansaray" in r.get_data(as_text=True)
+    assert "query-input" in r.get_data(as_text=True)
+
+

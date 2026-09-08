@@ -96,20 +96,47 @@ def _normalise(category: str, expected: dict, result) -> tuple:
     raise ValueError(f"normalise: bilinmeyen kategori {category}")
 
 
-def run(db: DbSession) -> EvalResult:
+def run(db: DbSession, *, with_llm: bool = False, client: object = None) -> EvalResult:
     res = EvalResult()
     for row in load_gold():
         res.total += 1
         cat, tool = row["category"], row["tool"]
 
-        if tool == "decline":
+        if not with_llm and tool == "decline":
             res.deferred += 1
             continue
 
         try:
-            result = dispatch_tool(db, tool, row["params"])
-            exp_norm, act_norm = _normalise(cat, row["expected"], result)
-            ok = exp_norm == act_norm
+            if with_llm:
+                from kervansaray.query_pipeline import run_query
+                from kervansaray.tools.types import ToolResult
+
+                qr = run_query(row["question"], db, client=client)
+                if tool == "decline":
+                    ok = qr.get("status") == "declined"
+                    exp_norm, act_norm = {"decline": True}, {"status": qr.get("status")}
+                else:
+                    tc = qr.get("tool_call") or {}
+                    if tc.get("name") != tool:
+                        ok = False
+                        exp_norm, act_norm = f"tool:{tool}", f"tool:{tc.get('name')}"
+                    else:
+                        tr = qr.get("tool_result") or {}
+                        tool_res = ToolResult(
+                            tool=tr.get("tool", tool),
+                            params=tr.get("params", {}),
+                            scalar=tr.get("scalar"),
+                            rows=tr.get("rows", []),
+                            event_ids=tr.get("event_ids", []),
+                            truncated=tr.get("truncated", False),
+                            note=tr.get("note"),
+                        )
+                        exp_norm, act_norm = _normalise(cat, row["expected"], tool_res)
+                        ok = exp_norm == act_norm
+            else:
+                result = dispatch_tool(db, tool, row["params"])
+                exp_norm, act_norm = _normalise(cat, row["expected"], result)
+                ok = exp_norm == act_norm
         except Exception as exc:  # noqa: BLE001
             ok, exp_norm, act_norm = False, row["expected"], f"HATA: {exc}"
 

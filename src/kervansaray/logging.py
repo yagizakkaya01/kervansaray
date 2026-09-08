@@ -10,9 +10,7 @@ from .config import settings
 log = logging.getLogger("kervansaray")
 
 _NOISY = (
-    "urllib3", "httpcore", "httpx", "requests",
-    "groq", "groq._base_client", "openai",
-    "werkzeug",
+    "urllib3", "requests", "werkzeug",
 )
 
 

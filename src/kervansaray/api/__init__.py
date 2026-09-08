@@ -13,14 +13,20 @@ from kervansaray.logging import setup_logging
 from kervansaray.observability import init_metrics
 
 from .routes_events import bp as events_bp
+from .routes_query import bp as query_bp
 
 
 def create_app() -> Flask:
     setup_logging()
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder="static")
 
     init_metrics(app)
     app.register_blueprint(events_bp)
+    app.register_blueprint(query_bp)
+
+    @app.get("/")
+    def index():
+        return app.send_static_file("index.html")
 
     @app.get("/healthz")
     def healthz():

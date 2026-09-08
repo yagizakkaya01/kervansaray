@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session as DbSession
 
 from kervansaray.llm import gemini_client
 from kervansaray.llm.prompts import FEW_SHOT_EXAMPLES, build_system_prompt
+from kervansaray.observability import LLM_LATENCY, LLM_REQUESTS
 from kervansaray.text.dates import extract_time_hint
 from kervansaray.text.turkish import to_ascii
 from kervansaray.tools import GEMINI_FUNCTION_DECLARATIONS, dispatch_tool
@@ -191,6 +192,8 @@ def run_query(
 
     # 2. LLM cagir (varsayilan: gemini_client)
     llm = client or gemini_client
+    prov_name = getattr(llm, "PROVIDER", "unknown")
+    t_llm = perf_counter()
     try:
         llm_out = llm.generate(
             clean_query,
@@ -198,12 +201,16 @@ def run_query(
             tools=GEMINI_FUNCTION_DECLARATIONS,
             few_shots=FEW_SHOT_EXAMPLES,
         )
+        LLM_LATENCY.labels(prov_name).observe(perf_counter() - t_llm)
+        LLM_REQUESTS.labels(prov_name, "ok").inc()
     except Exception as exc:  # noqa: BLE001
+        LLM_LATENCY.labels(prov_name).observe(perf_counter() - t_llm)
+        LLM_REQUESTS.labels(prov_name, "error").inc()
         log.exception("LLM cagrisi sirasinda hata olustu: %s", exc)
         return {
             "query": user_text,
             "status": "error",
-            "provider": getattr(llm, "PROVIDER", "unknown"),
+            "provider": prov_name,
             "tool_call": None,
             "tool_result": None,
             "narrative": f"Dil modeli sorguyu işleyemedi: {exc}",
@@ -211,7 +218,7 @@ def run_query(
             "elapsed_seconds": round(perf_counter() - t0, 3),
         }
 
-    provider = llm_out.get("provider", "unknown")
+    provider = llm_out.get("provider", prov_name)
 
     # 3. Model direkt metin mi dondu (ornek: kapsam disi ret)?
     fc = llm_out.get("function_call")

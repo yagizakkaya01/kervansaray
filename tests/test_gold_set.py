@@ -64,3 +64,41 @@ def test_tool_layer_matches_gold_oracle(loaded_eval_db):
     result = runner.run(loaded_eval_db)
     assert result.scored >= 35
     assert result.correct == result.scored, "\n" + result.summary()
+
+
+def test_eval_runner_with_llm_declines():
+    from unittest.mock import MagicMock, patch
+
+    mock_db = MagicMock()
+    mock_client = MagicMock()
+    mock_client.generate.return_value = {
+        "response": "[DECLINED] Bu konu otopark sistemi kapsamı dışındadır.",
+        "function_call": None,
+        "provider": "mock",
+    }
+
+    gold_declines = [
+        {
+            "id": "dec-01",
+            "category": "decline",
+            "question": "Bugun hava nasil?",
+            "tool": "decline",
+            "expected": {"decline": True},
+            "params": {},
+        },
+        {
+            "id": "dec-02",
+            "category": "decline",
+            "question": "Sarki soyle",
+            "tool": "decline",
+            "expected": {"decline": True},
+            "params": {},
+        },
+    ]
+
+    with patch("eval.runner.load_gold", return_value=gold_declines):
+        res = runner.run(mock_db, with_llm=True, client=mock_client)
+        assert res.scored == 2
+        assert res.correct == 2
+        assert res.deferred == 0
+

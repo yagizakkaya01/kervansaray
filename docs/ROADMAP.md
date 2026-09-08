@@ -255,6 +255,14 @@ gibi ücretsiz OpenAI-uyumlu uçlar da `OPENAI_BASE_URL` ile ek bir aday olarak 
 **Çıkış:** altın set doğruluğu hedefte; sağlayıcı sırası ölçüme dayanarak
 belirlendi; `eval/gold_set.jsonl`'deki tüm sorular (kapsam dışı ret dahil) yeşil.
 
+**Durum (2026-09-08):** ✅ tamamlandı.
+- `src/kervansaray/api/routes_query.py`: `POST /api/query` HTTP ucu eklendi (gövde doğrulama, `query`, `as_of`, `use_cache`).
+- `src/kervansaray/api/static/index.html`: Portfolyo sitesiyle (`yagizakkaya.com.tr/urettiklerim.html`) birebir uyumlu sıfır-derlemeli (Vanilla HTML/CSS/JS) web arayüzü eklendi; `api/__init__.py` üzerinden `GET /` ile bağlandı. 6 adet hazır soru çipi ve üçlü şeffaf görünüm (anlatı, tool çağrısı, sonuç tablosu).
+- `eval/runner.py` & `eval/__main__.py`: `--llm` bayrağı eklendi; modelin tool seçimi ve 5 guardrail ret (`decline`) sorusu değerlendirme döngüsüne bağlandı.
+- **Ponytail Temizliği**: Kullanılmayan text-only `groq_client.py` ve `openai_client.py` ile `generate_with_fallback` silindi. `requirements.txt`'den `groq` ve `openai` kaldırıldı. `logging.py` içindeki hayalet logger'lar temizlendi.
+- **Gözlemlenebilirlik**: `LLM_REQUESTS` ve `LLM_LATENCY` sayaçları `query_pipeline.py`'deki gerçek `llm.generate` çağrısına bağlandı.
+- Testler: Toplam 67 test yeşil (36 db-bağımlı test skip), ruff sıfır hata.
+
 ---
 
 ## Faz 6 — Metin araması ve günlük anomali denetimi · 0.5 hafta

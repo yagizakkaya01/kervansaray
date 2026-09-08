@@ -18,8 +18,6 @@ Flask==3.1.0
 prometheus-client>=0.20.0
 
 # --- LLM saglayicilari (bulut; brief S10: model asla sunucuda calismaz) ---
-groq>=0.5.0
-openai~=1.109
 requests==2.32.3
 
 # --- Metin isleme (Turkce normalizasyon + bounded fuzzy match) ---
