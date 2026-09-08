@@ -211,6 +211,21 @@ yazım demektir. Baştan guardrail setinin parçasıdırlar:
 **Çıkış:** her tool tek tek unit-test'li; altın setteki "beklenen tool çağrısı"
 alanı doğrulanabiliyor; kapsam dışı sorular testte reddediliyor.
 
+**Durum (2026-09-08):** ✅ tamamlandı.
+- `src/kervansaray/tools/schemas.py`: 5 SQL tool için standart JSON şemaları (`query_events`, `aggregate_events`, `vehicle_history`, `find_anomalies`, `occupancy`). `aggregate_events` için `direction` ve `registered` filtreleri eklendi. Hem Gemini (`GEMINI_FUNCTION_DECLARATIONS`) hem OpenAI/Groq (`OPENAI_TOOLS`) formatları tanımlandı.
+- `src/kervansaray/tools/dispatcher.py`: Tip doğrulamalı güvenli dağıtıcı (`dispatch_tool`). ISO tarih aralıkları (`_parse_range`), plaka kanonikleştirme ve hata yakalama tek noktada toplandı.
+- `src/kervansaray/text/dates.py`: Deterministik Türkçe tarih/zaman çözümleyici (`resolve_time_range`, `extract_time_hint`). ISO tarihler, Türkçe aylar, saat aralıkları, "dün", "dün gece", "hafta sonu", "bu ay" kalıplarını regex ile çözer; modele tarih aritmetiği yaptırılmaz.
+- `src/kervansaray/llm/prompts.py`: Sistem prompt'u şablonu, `v_events` enum sözlükleri, 9 adet few-shot örneği ve katı guardrail'ler (ham veri üzerinde gözle sayı saymama, otopark dışı soruları doğrudan reddetme).
+- `src/kervansaray/llm/gemini_client.py`: Gemini 2.0 Flash Function Calling REST istemcisi (`requests` oturumu, retry adaptörü, model `functionCall` / `text` ayrıştırıcısı).
+- `src/kervansaray/query_pipeline.py`: Doğal dil sorgu koşucusu (`run_query`). Soru -> zaman ipucu -> sistem prompt'u -> LLM -> `dispatch_tool` -> `format_narrative` (deterministik Türkçe özet; `value`, `sessions` içeride/dışarıda kontrolü).
+- **Hibrit In-Memory Cache (`QueryCache`)**: Standart kütüphane (`dict` + `time.monotonic`), 500 kayıt FIFO sınırı. Canlı/anlık sorgular için 20s TTL, geçmiş tarihler ve ret yanıtları için 24 saat TTL ile API kota koruması.
+- `eval/runner.py`: Ham fonksiyon çağrısı yerine `dispatch_tool` üzerinden çalışacak şekilde bağlandı; altın setteki 42 sorunun tamamı artık dispatcher üzerinden doğrulanıyor.
+- **Ponytail Kararları ve Ertelemeleri:**
+  - *Groq / OpenAI Tool Client'ları:* Kullanıcının elinde henüz API anahtarı olmadığı için test edilemeyen hayalet kod yazılmadı (YAGNI). Şema (`OPENAI_TOOLS`) hazır tutuldu, istemci kodları anahtar gelince Faz 5'te eklenecek.
+  - *Read-only DB kullanıcısı:* Uygulama içinde sahte rol değiştirme kodu yerine Faz 8b VPS kurulumunda tek satırlık `GRANT SELECT ON v_events` SQL'i olarak ertelendi.
+  - *CORS ve Gunicorn Cache:* Ortada henüz browser UI ve gunicorn worker olmadığı için Faz 5 ve Faz 8b'ye bırakıldı.
+- Testler: `test_dates` (8), `test_tool_schemas` (5), `test_gemini_client` (3), `test_query_pipeline` (9) — toplam 64 test yeşil.
+
 ---
 
 ## Faz 5 — LLM sorgu orkestrasyonu · 1 hafta
