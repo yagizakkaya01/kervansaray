@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kervansaray — Yağız Akkaya</title>
+  <title>Kervansaray — Otopark & Araç İstihbarat Terminali</title>
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -22,7 +22,7 @@
               red: '#dc2626',
               'red-hover': '#b91c1c',
               dark: '#0f1115',
-              surface: '#faf9fb',
+              surface: '#faf8fb',
               border: '#e4e4e7',
             }
           }
@@ -36,13 +36,55 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+
+    /* Lazer plaka tarama animasyonu */
+    @keyframes scan-sweep {
+      0% { top: 0%; opacity: 0.8; }
+      50% { top: 90%; opacity: 1; }
+      100% { top: 0%; opacity: 0.8; }
+    }
+    .scanner-line {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #dc2626, #ef4444, #dc2626, transparent);
+      box-shadow: 0 0 12px #ef4444;
+      animation: scan-sweep 1.8s ease-in-out infinite;
+    }
+
+    /* Türk Plakası Şablonu */
+    .tr-plate {
+      display: inline-flex;
+      align-items: center;
+      background: #ffffff;
+      border: 2.5px solid #111318;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow: hidden;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .tr-plate-blue {
+      background-color: #003399;
+      color: #ffffff;
+      padding: 6px 6px;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
   </style>
 </head>
 <body class="bg-[#faf8fb] text-[#111318] font-sans antialiased min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
 
-  <!-- Üst Navigasyon Çubuğu (Global Header) -->
-  <header class="sticky top-0 z-50 bg-[#faf8fb]/85 backdrop-blur-md border-b border-zinc-200/80 transition-all">
-    <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+  <!-- Üst Navigasyon Çubuğu (Global Header - urettiklerim.html tarzı) -->
+  <header class="sticky top-0 z-50 bg-[#faf8fb]/90 backdrop-blur-md border-b border-zinc-200/80 transition-all">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       
       <!-- Profil / Logo -->
       <a href="/" class="flex items-center gap-3 group">
@@ -68,82 +110,477 @@
 
       <!-- Sağ Durum Rozeti -->
       <div class="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-500">
-        <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
-        <span class="hover:text-zinc-800 transition-colors">@yagizakkaya</span>
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+        <span class="text-zinc-700 font-medium">Sistem Devrede</span>
       </div>
 
     </div>
   </header>
 
   <!-- Ana İçerik Alanı -->
-  <main class="flex-1 max-w-5xl w-full mx-auto px-6 py-10 sm:py-14 flex flex-col gap-10">
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-10 flex flex-col gap-8">
     
     <!-- Başlık & Açıklama Bölümü -->
-    <div class="max-w-3xl">
-      <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-red-50 border border-red-100 text-red-600 text-xs font-mono font-medium mb-4">
-        <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
-        // 02 • ÇALIŞMALAR // KERVANSARAY ENGINE
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-zinc-200/70 pb-6">
+      <div>
+        <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-red-50 border border-red-100 text-red-600 text-xs font-mono font-medium mb-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+          // 02 • ÇALIŞMALAR // KERVANSARAY ALPR & İSTİHBARAT TERMİNALİ
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-900">
+          Kervansaray
+        </h1>
+        <p class="mt-2 text-sm sm:text-base text-zinc-500 max-w-2xl leading-relaxed">
+          Plaka tanıma vizörü, güvenlik nizamiyesi araç tescil künyesi ve Gemini 3.8 Flash destekli doğal dil SQL istihbarat motoru.
+        </p>
       </div>
-      <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-zinc-900 leading-[1.15]">
-        Kervansaray
-      </h1>
-      <p class="mt-3 text-base sm:text-lg text-zinc-500 font-normal leading-relaxed">
-        Otopark giriş/çıkış zekâsı, doğal dil SQL orkestrasyonu ve üçlü şeffaf doğrulama motoru. Soruyu sorun; model anlatısını, çağrılan SQL aracını ve veritabanı gerçeğini yan yana görün.
-      </p>
 
-      <!-- Etiketler & Model Durumu -->
-      <div class="flex flex-wrap items-center gap-2 mt-4">
-        <span class="px-3 py-1 bg-zinc-100 text-zinc-700 rounded-lg text-xs font-mono">#gemini-3.8-flash</span>
-        <span class="px-3 py-1 bg-zinc-100 text-zinc-700 rounded-lg text-xs font-mono">#postgresql</span>
-        <span class="px-3 py-1 bg-zinc-100 text-zinc-700 rounded-lg text-xs font-mono">#function-calling</span>
-        <span class="px-3 py-1 bg-zinc-100 text-zinc-700 rounded-lg text-xs font-mono">#provenance</span>
-        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-mono font-medium flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          Canlı API Aktif
+      <!-- Canlı Sistem İndikatörleri -->
+      <div class="flex items-center gap-2 font-mono text-xs">
+        <span class="px-2.5 py-1 bg-white border border-zinc-200 rounded-lg text-zinc-600 shadow-sm flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          CAM-01: Aktif
+        </span>
+        <span class="px-2.5 py-1 bg-white border border-zinc-200 rounded-lg text-zinc-600 shadow-sm">
+          Model: gemini-3.8-flash
         </span>
       </div>
     </div>
 
-    <!-- KERVANSARAY İNTERAKTİF SORGULAMA KAPSAYICISI -->
-    <div class="flex flex-col gap-6">
+    <!-- ========================================================================= -->
+    <!-- BENTO MODÜL 1: PLAKA TANIMA SİSTEMİ (Kamera Vizörü + Plaka Sonucu)      -->
+    <!-- ========================================================================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       
+      <!-- Sol Panel: Araç / Plaka Görseli & Kamera Vizörü (7 Sütun) -->
+      <div class="lg:col-span-7 bg-white rounded-2xl border border-zinc-200/80 p-5 shadow-sm flex flex-col gap-4">
+        
+        <!-- Vizör Üst Başlık -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-zinc-800">
+            <span class="w-2 h-2 rounded-full bg-red-600"></span>
+            Araç / Plaka Görseli (Kamera Girişi)
+          </div>
+          <span id="cam-status-badge" class="px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-100 text-zinc-600 border border-zinc-200">
+            ● CANLI AKIŞ: NİZAMİYE GİRİŞ
+          </span>
+        </div>
+
+        <!-- Kamera Ekranı / Görsel Vizör Alanı -->
+        <div class="relative w-full aspect-[4/3] bg-zinc-950 rounded-xl overflow-hidden border border-zinc-800 flex items-center justify-center group shadow-inner">
+          
+          <!-- Araç Görseli -->
+          <img
+            id="car-view-img"
+            src="/static/assets/sample_car_14ev669.webp"
+            alt="Araç Geçiş Görseli"
+            class="w-full h-full object-cover select-none transition-transform duration-300"
+          />
+
+          <!-- Kamera HUD & Nişangah Katmanı -->
+          <div class="absolute inset-0 pointer-events-none p-3 flex flex-col justify-between text-white/80 font-mono text-[11px]">
+            <div class="flex items-center justify-between">
+              <span class="bg-black/60 backdrop-blur px-2 py-0.5 rounded border border-white/10 text-emerald-400 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                REC [1080p 30fps]
+              </span>
+              <span id="hud-clock" class="bg-black/60 backdrop-blur px-2 py-0.5 rounded border border-white/10 text-zinc-300">
+                2026-09-08 13:35:00
+              </span>
+            </div>
+
+            <!-- Plaka Hedefleme Kutusu (Bounding Box) -->
+            <div id="plate-bounding-box" class="relative mx-auto w-44 h-14 border-2 border-emerald-400 bg-emerald-400/10 rounded flex items-center justify-center transition-all">
+              <span class="absolute -top-4 left-1 text-[9px] bg-emerald-500 text-black px-1 font-bold rounded">
+                ALPR OCR: 98.4%
+              </span>
+              <!-- Dinamik Lazer Tarama Çizgisi -->
+              <div id="laser-scan" class="scanner-line hidden"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[10px] text-zinc-400">
+              <span>FOV: 84° • ISO 200</span>
+              <span>DEV: JETSON-ORIN-01</span>
+            </div>
+          </div>
+
+          <!-- Görsel Yok Uyarısı -->
+          <div id="empty-img-placeholder" class="hidden absolute inset-0 bg-zinc-900 flex flex-col items-center justify-center gap-2 text-zinc-500">
+            <svg class="w-8 h-8 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="text-xs font-mono">Görsel seçilmedi veya kamera kapalı</span>
+          </div>
+
+        </div>
+
+        <!-- Hızlı Senaryo Seçici Butonları -->
+        <div class="flex items-center gap-2 overflow-x-auto py-1">
+          <span class="text-[11px] font-mono text-zinc-400 shrink-0">Test Senaryoları:</span>
+          <button onclick="loadScenario('14ev669')" class="px-2.5 py-1 text-xs font-mono bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-lg border border-zinc-200 transition-colors shrink-0">
+            14 EV 669 (Toyota • Kayıtsız)
+          </button>
+          <button onclick="loadScenario('34vip99')" class="px-2.5 py-1 text-xs font-mono bg-red-50 hover:bg-red-100 text-red-700 rounded-lg border border-red-200 transition-colors shrink-0">
+            34 VIP 99 (Kara Liste!)
+          </button>
+          <button onclick="loadScenario('38he907')" class="px-2.5 py-1 text-xs font-mono bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 transition-colors shrink-0">
+            38 HE 907 (Gece Şüpheli)
+          </button>
+          <button onclick="loadScenario('34kay44')" class="px-2.5 py-1 text-xs font-mono bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors shrink-0">
+            34 KAY 44 (VIP Misafir)
+          </button>
+        </div>
+
+        <!-- Eylem Butonları Izgarası (Görseldeki 6 Buton) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1 border-t border-zinc-100">
+          
+          <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleFileUpload(event)">
+          <button onclick="document.getElementById('file-input').click()" class="px-3 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl border border-zinc-200/80 transition-colors flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span>Resim Dosyası Seç</span>
+          </button>
+
+          <button id="btn-scan" onclick="triggerPlateScan()" class="px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>Plaka Okuma Başlat</span>
+          </button>
+
+          <button id="btn-cam-toggle" onclick="toggleCamera()" class="px-3 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span id="cam-btn-text">Kamera Durdur</span>
+          </button>
+
+          <button onclick="clearImage()" class="px-3 py-2.5 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-medium rounded-xl border border-zinc-200 transition-colors">
+            Görseli Kaldır
+          </button>
+
+          <button onclick="closePlateResult()" class="px-3 py-2.5 bg-white hover:bg-zinc-50 text-zinc-700 text-xs font-medium rounded-xl border border-zinc-200 transition-colors">
+            Plaka Sonucu Kapat
+          </button>
+
+          <button onclick="checkPlateHistory()" class="px-3 py-2.5 bg-white hover:bg-zinc-50 text-zinc-900 text-xs font-semibold rounded-xl border border-zinc-200 transition-colors flex items-center justify-center gap-1.5">
+            <span>Hareketleri Getir</span>
+            <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- Sağ Panel: Plaka Sonucu & Hızlı Karar Kartı (5 Sütun) -->
+      <div id="plate-result-panel" class="lg:col-span-5 bg-white rounded-2xl border border-zinc-200/80 p-5 shadow-sm flex flex-col gap-4">
+        
+        <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+          <div class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-zinc-800">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            Plaka Sonucu (ALPR Çıktısı)
+          </div>
+          <span class="text-xs font-mono text-zinc-400">Güven: <strong class="text-zinc-700">0.98</strong></span>
+        </div>
+
+        <!-- Kırpılmış Plaka Görseli (Plate Crop) -->
+        <div class="flex flex-col gap-1.5">
+          <span class="text-xs font-mono text-zinc-400">Algılanan Plaka Görseli (Kırpma):</span>
+          <div class="w-full h-20 bg-zinc-100 rounded-xl border border-zinc-200 overflow-hidden flex items-center justify-center p-2 shadow-inner">
+            <img
+              id="plate-crop-img"
+              src="/static/assets/sample_plate_14ev669.webp"
+              alt="Plaka Kesiti"
+              class="max-h-full max-w-full object-contain filter contrast-125"
+            />
+          </div>
+        </div>
+
+        <!-- Düzenlenebilir Plaka Girdisi & Kontrol Et -->
+        <div class="flex flex-col gap-1.5">
+          <label for="plate-input-val" class="text-xs text-zinc-500 italic">
+            Plakayı düzenlemek için aşağıdaki metin kutusuna tıklayın:
+          </label>
+          <div class="flex items-center gap-2">
+            <!-- Mavi TR Şeritli Plaka -->
+            <div class="tr-plate flex-1 h-12">
+              <div class="tr-plate-blue h-full">
+                <span>TR</span>
+              </div>
+              <input
+                type="text"
+                id="plate-input-val"
+                value="14 EV 669"
+                class="w-full px-3 text-lg font-bold text-zinc-900 bg-transparent tracking-widest focus:outline-none uppercase"
+              />
+            </div>
+            
+            <button
+              onclick="verifyPlateAction()"
+              class="px-4 h-12 bg-zinc-900 hover:bg-red-600 text-white text-xs font-semibold rounded-xl transition-colors shrink-0 flex items-center gap-1.5"
+            >
+              <span>Plakayı Kontrol Et</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Akıllı Durum Bildirim Kutusu -->
+        <div class="flex flex-col gap-1.5">
+          <span class="text-xs font-mono text-zinc-400">Güvenlik & Kayıt Durumu:</span>
+          <div id="plate-status-box" class="p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between bg-amber-50 border-amber-200 text-amber-800">
+            <div class="flex items-center gap-2 font-semibold">
+              <span id="status-dot" class="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span id="status-message">Araç kayıtlı değil (Yabancı / Misafir).</span>
+            </div>
+            <span id="status-action-tag" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-amber-100 text-amber-900 rounded">
+              GİRİŞ İZNİ BEKLENİYOR
+            </span>
+          </div>
+        </div>
+
+        <!-- Hızlı Eylem Butonları -->
+        <div class="flex items-center gap-2 pt-2 border-t border-zinc-100">
+          <button onclick="fillFormFromPlate()" class="flex-1 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl transition-colors">
+            Plaka Kayıtlarını Göster
+          </button>
+          <button onclick="askGeminiForPlate()" class="flex-1 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-xl border border-red-200 transition-colors flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+            <span>Gemini'ye Sor</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- BENTO MODÜL 2: ARAÇ PLAKA VE KİŞİ BİLGİLERİ (Görseldeki Alt Form Penceresi)-->
+    <!-- ========================================================================= -->
+    <div class="bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm flex flex-col gap-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-100 pb-4">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-zinc-800">
+            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+            Araç & Kişi Plaka Bilgileri (Tescil Künyesi)
+          </div>
+          <p class="text-xs text-zinc-400 mt-0.5">
+            Sistemde kayıtlı araç/sürücü veritabanı eşleştirmesi ve hızlı kayıt modülü.
+          </p>
+        </div>
+
+        <div id="dossier-match-badge" class="px-3 py-1 bg-zinc-100 border border-zinc-200 text-zinc-600 rounded-lg text-xs font-mono">
+          Eşleşme Durumu: <strong class="text-zinc-900">Kayıtsız Ziyaretçi</strong>
+        </div>
+      </div>
+
+      <!-- Form Alanları (3 Sütunlu Ergonomik Grid) -->
+      <form id="vehicle-form" onsubmit="event.preventDefault(); saveRegistration();" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        
+        <div>
+          <label for="form-plate" class="block text-xs font-mono font-semibold text-zinc-600 uppercase mb-1">
+            Plaka Numarası *
+          </label>
+          <input
+            type="text"
+            id="form-plate"
+            value="14 EV 669"
+            required
+            class="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-mono font-bold text-zinc-900 uppercase focus:bg-white focus:border-zinc-900 focus:outline-none transition-colors"
+          />
+        </div>
+
+        <div>
+          <label for="form-name" class="block text-xs font-mono font-semibold text-zinc-600 uppercase mb-1">
+            Ad
+          </label>
+          <input
+            type="text"
+            id="form-name"
+            placeholder="Sürücü / Misafir Adı"
+            class="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm text-zinc-900 focus:bg-white focus:border-zinc-900 focus:outline-none transition-colors"
+          />
+        </div>
+
+        <div>
+          <label for="form-surname" class="block text-xs font-mono font-semibold text-zinc-600 uppercase mb-1">
+            Soyad
+          </label>
+          <input
+            type="text"
+            id="form-surname"
+            placeholder="Sürücü Soyadı"
+            class="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm text-zinc-900 focus:bg-white focus:border-zinc-900 focus:outline-none transition-colors"
+          />
+        </div>
+
+        <div>
+          <label for="form-kind" class="block text-xs font-mono font-semibold text-zinc-600 uppercase mb-1">
+            Kişi / Kayıt Türü
+          </label>
+          <select
+            id="form-kind"
+            class="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm text-zinc-900 focus:bg-white focus:border-zinc-900 focus:outline-none transition-colors font-sans"
+          >
+            <option value="guest">Misafir (Otel / Tesis)</option>
+            <option value="staff">Personel (Daimi Giriş)</option>
+            <option value="vendor">Tedarikçi (Lojistik)</option>
+            <option value="blacklist">Kara Liste (Giriş Yasağı)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="form-phone" class="block text-xs font-mono font-semibold text-zinc-600 uppercase mb-1">
+            Telefon
+          </label>
+          <input
+            type="text"
+            id="form-phone"
+            placeholder="(0555) 555 55 55"
+            value="(0555) 555 55 55"
+            class="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-mono text-zinc-900 focus:bg-white focus:border-zinc-900 focus:outline-none transition-colors"
+          />
+        </div>
+
+        <div>
+          <label for="form-email" class="block text-xs font-mono font-semibold text-zinc-600 uppercase mb-1">
+            E-Mail
+          </label>
+          <input
+            type="email"
+            id="form-email"
+            placeholder="ornek@kervansaray.com"
+            value="ziyaretci@gmail.com"
+            class="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-mono text-zinc-900 focus:bg-white focus:border-zinc-900 focus:outline-none transition-colors"
+          />
+        </div>
+
+        <div class="sm:col-span-2 lg:col-span-3">
+          <label for="form-address" class="block text-xs font-mono font-semibold text-zinc-600 uppercase mb-1">
+            Oda No / Birim / Adres Notu
+          </label>
+          <input
+            type="text"
+            id="form-address"
+            placeholder="Örn: Doğu Otoparkı - 204 No'lu Oda Misafiri"
+            class="w-full h-11 px-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm text-zinc-900 focus:bg-white focus:border-zinc-900 focus:outline-none transition-colors"
+          />
+        </div>
+
+      </form>
+
+      <!-- Form Butonları (Görseldeki 4 Eylem) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-zinc-100">
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onclick="saveRegistration()"
+            class="px-5 py-2.5 bg-zinc-900 hover:bg-emerald-600 text-white text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5"
+          >
+            <span>KAYDET</span>
+          </button>
+          
+          <button
+            type="button"
+            onclick="updateRegistration()"
+            class="px-5 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl border border-zinc-200 transition-colors"
+          >
+            GÜNCELLE
+          </button>
+
+          <button
+            type="button"
+            onclick="deleteRegistration()"
+            class="px-5 py-2.5 bg-zinc-100 hover:bg-red-50 hover:text-red-700 text-zinc-700 text-xs font-semibold rounded-xl border border-zinc-200 transition-colors"
+          >
+            SİL
+          </button>
+
+          <button
+            type="button"
+            onclick="renderRegistryTable()"
+            class="px-5 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl border border-zinc-200 transition-colors"
+          >
+            LİSTELE
+          </button>
+        </div>
+
+        <span id="form-toast" class="text-xs font-mono text-emerald-600 font-medium hidden">
+          ✓ İşlem başarıyla uygulandı
+        </span>
+      </div>
+
+      <!-- Tescil Tablosu (Görseldeki Alt Grid) -->
+      <div class="overflow-x-auto rounded-xl border border-zinc-200">
+        <table class="w-full text-left text-xs font-mono border-collapse">
+          <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-600">
+            <tr>
+              <th class="py-2.5 px-3">#</th>
+              <th class="py-2.5 px-3">Plaka Numarası</th>
+              <th class="py-2.5 px-3">Ad</th>
+              <th class="py-2.5 px-3">Soyad</th>
+              <th class="py-2.5 px-3">Kayıt Türü</th>
+              <th class="py-2.5 px-3">Oda / Birim</th>
+              <th class="py-2.5 px-3">Telefon</th>
+              <th class="py-2.5 px-3">E-Mail</th>
+            </tr>
+          </thead>
+          <tbody id="registry-table-body" class="divide-y divide-zinc-100 text-zinc-800">
+            <!-- Dinamik doldurulur -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- BENTO MODÜL 3: DOĞAL DİL İSTİHBARAT & ÜÇLÜ DOĞRULAMA TERMİNALİ          -->
+    <!-- ========================================================================= -->
+    <div class="bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm flex flex-col gap-6">
+      
+      <div class="flex flex-col gap-1 border-b border-zinc-100 pb-4">
+        <div class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-zinc-800">
+          <span class="w-2 h-2 rounded-full bg-red-600"></span>
+          Kervansaray Doğal Dil İstihbarat Terminali (Gemini 3.8 Flash)
+        </div>
+        <p class="text-xs text-zinc-500">
+          Otopark SQL veritabanına Türkçe sorular sorun; LLM anlatısını, seçilen aracı ve veritabanı gerçeğini şeffafça görün.
+        </p>
+      </div>
+
       <!-- Önerilen Soru Çipleri -->
       <div class="flex flex-col gap-2">
         <span class="text-xs font-mono text-zinc-400 font-medium uppercase tracking-wider">
           Önerilen Hazır Sorular (Tek Tıkla Sor)
         </span>
         <div class="flex flex-wrap gap-2" id="chips-container">
-          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
             15 Nisan 2026'da toplam kaç araç hareketi oldu?
           </button>
-          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
             Şu an sahada kaç araç var?
           </button>
-          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
             Tüm dönem boyunca gece 03:00 civarı giriş yapan araç oldu mu?
           </button>
-          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
             Bu dönemde kara listedeki bir plaka görüldü mü?
           </button>
-          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
             Bu dönemde 48 saatten uzun sahada kalan araç var mı?
           </button>
-          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
             VIP misafir araçları için geçerli prosedür nedir?
           </button>
-          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-white border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
             Bugün hava nasıl olacak? (Guardrail ret testi)
           </button>
         </div>
       </div>
 
       <!-- Soru Giriş Çubuğu -->
-      <div class="relative bg-white border border-zinc-200 rounded-2xl shadow-sm hover:border-zinc-300 focus-within:border-zinc-900 focus-within:ring-2 focus-within:ring-zinc-900/10 transition-all p-2 flex items-center gap-2">
+      <div class="relative bg-zinc-50 border border-zinc-200 rounded-2xl shadow-sm hover:border-zinc-300 focus-within:border-zinc-900 focus-within:ring-2 focus-within:ring-zinc-900/10 transition-all p-2 flex items-center gap-2">
         <input
           type="text"
           id="query-input"
           placeholder="Otopark hareketleri, araç geçmişi veya anomali sorgusu yazın..."
-          class="flex-1 bg-transparent px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none"
+          class="flex-1 bg-transparent px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none font-sans"
           onkeydown="if(event.key==='Enter') submitQuery()"
         />
         <button
@@ -159,13 +596,13 @@
       </div>
 
       <!-- Yükleniyor Durumu -->
-      <div id="loading-state" class="hidden py-12 flex flex-col items-center justify-center gap-3 text-center">
+      <div id="loading-state" class="hidden py-10 flex flex-col items-center justify-center gap-3 text-center">
         <div class="w-8 h-8 border-2 border-zinc-300 border-t-red-600 rounded-full animate-spin"></div>
         <p class="text-xs font-mono text-zinc-500">Gemini 3.8 Flash çözümlüyor & SQL aracı çalıştırılıyor...</p>
       </div>
 
       <!-- ÜÇLÜ GÖRÜNÜM SONUÇ PANELİ -->
-      <div id="result-panel" class="hidden flex flex-col gap-5">
+      <div id="result-panel" class="hidden flex flex-col gap-5 pt-2">
         
         <!-- Üst Durum Şeridi -->
         <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-zinc-100 rounded-xl border border-zinc-200 text-xs font-mono">
@@ -180,7 +617,7 @@
         </div>
 
         <!-- 1. GÖRÜNÜM: MODEL PROSE (ANLATI) -->
-        <div class="bg-white p-5 rounded-2xl border border-zinc-200 shadow-sm flex flex-col gap-2">
+        <div class="bg-zinc-50 p-5 rounded-2xl border border-zinc-200/80 shadow-sm flex flex-col gap-2">
           <div class="flex items-center gap-2 text-xs font-mono text-zinc-400 uppercase tracking-wider font-semibold">
             <span class="w-2 h-2 rounded-full bg-blue-500"></span>
             1. Model Anlatısı (Doğal Dil Özeti)
@@ -194,7 +631,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
           
           <!-- 2. GÖRÜNÜM: TOOL ÇAĞRISI + PARAMETRELER -->
-          <div class="lg:col-span-1 bg-zinc-900 text-zinc-200 p-5 rounded-2xl border border-zinc-800 flex flex-col gap-3 font-mono text-xs">
+          <div class="lg:col-span-1 bg-zinc-900 text-zinc-200 p-5 rounded-2xl border border-zinc-800 flex flex-col gap-3 font-mono text-xs shadow-sm">
             <div class="flex items-center justify-between text-zinc-400 font-semibold uppercase tracking-wider pb-2 border-b border-zinc-800">
               <span class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-amber-400"></span>
@@ -212,9 +649,9 @@
           </div>
 
           <!-- 3. GÖRÜNÜM: SONUÇ TABLOSU (GERÇEK) -->
-          <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-zinc-200 shadow-sm flex flex-col gap-3">
-            <div class="flex items-center justify-between text-xs font-mono text-zinc-400 uppercase tracking-wider pb-2 border-b border-zinc-100">
-              <span class="flex items-center gap-2 font-semibold">
+          <div class="lg:col-span-2 bg-zinc-50 p-5 rounded-2xl border border-zinc-200/80 shadow-sm flex flex-col gap-3">
+            <div class="flex items-center justify-between text-xs font-mono text-zinc-400 uppercase tracking-wider pb-2 border-b border-zinc-200">
+              <span class="flex items-center gap-2 font-semibold text-zinc-700">
                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 3. Sonuç Tablosu (Veritabanı Gerçeği)
               </span>
@@ -228,7 +665,7 @@
             </div>
 
             <!-- Tablo Alanı -->
-            <div class="overflow-x-auto max-h-80 overflow-y-auto">
+            <div class="overflow-x-auto max-h-80 overflow-y-auto rounded-xl border border-zinc-200 bg-white">
               <table id="result-table" class="w-full text-left text-xs border-collapse font-mono">
                 <thead class="bg-zinc-50 sticky top-0 border-b border-zinc-200 text-zinc-600">
                   <tr id="table-head"></tr>
@@ -248,7 +685,7 @@
     </div>
 
     <!-- Hızlı Geri Dönüş Linki -->
-    <div class="flex items-center justify-between pt-6 border-t border-zinc-200/70">
+    <div class="flex items-center justify-between pt-4 border-t border-zinc-200/70">
       <a href="https://yagizakkaya.com.tr/index.html" target="_blank" class="inline-flex items-center gap-2 text-sm font-semibold text-zinc-800 hover:text-red-600 transition-colors group">
         <svg class="w-4 h-4 text-zinc-400 group-hover:-translate-x-0.5 group-hover:text-red-600 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -257,15 +694,15 @@
       </a>
 
       <span class="text-xs font-mono text-zinc-400">
-        kervansaray engine v1.0
+        kervansaray engine v1.0 • ALPR & Intelligence
       </span>
     </div>
 
   </main>
 
-  <!-- Altbilgi (Footer) -->
+  <!-- Altbilgi (Footer - urettiklerim.html birebir) -->
   <footer class="border-t border-zinc-200/80 bg-white/70 py-8 text-xs text-zinc-500 font-mono">
-    <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2">
         <span class="text-red-600 font-bold">&gt; terminal_ready:</span>
         <span>Yağız Akkaya • Kervansaray</span>
@@ -278,7 +715,372 @@
     </div>
   </footer>
 
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT: ALPR SİMÜLASYONU, TESCİL FORMU & LLM QUERY PIPELINE         -->
+  <!-- ========================================================================= -->
   <script>
+    // --- 1. Hazır Senaryolar Veritabanı (Mock & Initial Seed) ---
+    const SCENARIOS = {
+      '14ev669': {
+        plate: '14 EV 669',
+        carImg: '/static/assets/sample_car_14ev669.webp',
+        plateImg: '/static/assets/sample_plate_14ev669.webp',
+        statusText: 'Araç kayıtlı değil (Yabancı / Misafir).',
+        statusType: 'unregistered',
+        statusAction: 'GİRİŞ İZNİ BEKLENİYOR',
+        name: 'Ahmet',
+        surname: 'Yılmaz',
+        kind: 'guest',
+        phone: '(0555) 555 55 55',
+        email: 'ziyaretci@gmail.com',
+        address: 'Bolu Merkez • Geçici Misafir Araç',
+        prompt: '14 EV 669 plakalı araç daha önce otoparka giriş yaptı mı?'
+      },
+      '34vip99': {
+        plate: '34 VIP 99',
+        carImg: '/static/assets/sample_car_14ev669.webp',
+        plateImg: '/static/assets/sample_plate_14ev669.webp',
+        statusText: 'KARA LİSTE ALARMI! Araç tesise kesinlikle alınmayacaktır.',
+        statusType: 'blacklist',
+        statusAction: 'GİRİŞ ENGELİ (AMİRE BİLDİR)',
+        name: 'Şüpheli',
+        surname: 'Kayıt',
+        kind: 'blacklist',
+        phone: '(0532) 000 00 00',
+        email: 'guvenlik@kervansaray.com',
+        address: 'Hukuk Birimi • Kara Liste Kararı No: 2026/41',
+        prompt: '34 VIP 99 plakalı araç kara listede mi ve ne zaman tespit edildi?'
+      },
+      '38he907': {
+        plate: '38 HE 907',
+        carImg: '/static/assets/sample_car_14ev669.webp',
+        plateImg: '/static/assets/sample_plate_14ev669.webp',
+        statusText: 'Dikkat: 48h Overstay & Gece 03:15 girişi şüphesi.',
+        statusType: 'warning',
+        statusAction: 'DEVİYE KONTROLÜ İSTENDİ',
+        name: 'Mehmet',
+        surname: 'Demir',
+        kind: 'guest',
+        phone: '(0542) 333 44 55',
+        email: 'm.demir@erciyes.edu.tr',
+        address: 'Oda 312 • Gece Geç Giriş Yapan Araç',
+        prompt: '38 HE 907 plakalı aracın tüm geçiş geçmişini ve anomali durumunu getir.'
+      },
+      '34kay44': {
+        plate: '34 KAY 44',
+        carImg: '/static/assets/sample_car_14ev669.webp',
+        plateImg: '/static/assets/sample_plate_14ev669.webp',
+        statusText: 'VIP Misafir: Doğu Otoparkı A-01 No\'lu Yer Ayrılmıştır.',
+        statusType: 'vip',
+        statusAction: 'VALE & DOĞU GİRİŞİ',
+        name: 'Sayın',
+        surname: 'Kaya',
+        kind: 'guest',
+        phone: '(0533) 777 88 99',
+        email: 'kaya@holding.com.tr',
+        address: 'Başkanlık Süiti • VIP Karşılama Protokolü',
+        prompt: 'VIP misafir araçları için geçerli prosedür nedir?'
+      }
+    };
+
+    // Bellek içi tescil kayıtları tablosu
+    let REGISTRY_DATA = [
+      { id: 1, plate: '06 AK 0052', name: 'Can', surname: 'Öztürk', kind: 'staff', address: 'Bilgi İşlem Kat 2', phone: '(0532) 111 22 33', email: 'can.ozturk@kervansaray.com' },
+      { id: 2, plate: '34 KAY 44', name: 'Sayın', surname: 'Kaya', kind: 'guest', address: 'Başkanlık Süiti', phone: '(0533) 777 88 99', email: 'kaya@holding.com.tr' },
+      { id: 3, plate: '34 VIP 99', name: 'Kara Liste', surname: 'İhlali', kind: 'blacklist', address: 'Yasaklı Araç', phone: '—', email: 'guvenlik@kervansaray.com' },
+      { id: 4, plate: '14 EV 669', name: 'Ahmet', surname: 'Yılmaz', kind: 'guest', address: 'Bolu Merkez', phone: '(0555) 555 55 55', email: 'ziyaretci@gmail.com' }
+    ];
+
+    let isCameraActive = true;
+
+    // --- 2. Sayfa Yüklendiğinde Başlatma ---
+    window.addEventListener('DOMContentLoaded', () => {
+      startHudClock();
+      renderRegistryTable();
+    });
+
+    function startHudClock() {
+      setInterval(() => {
+        const now = new Date();
+        const str = now.toISOString().replace('T', ' ').substring(0, 19);
+        const el = document.getElementById('hud-clock');
+        if (el) el.innerText = str + ' UTC+3';
+      }, 1000);
+    }
+
+    // --- 3. Senaryo Değiştirici & ALPR Tetikleyici ---
+    function loadScenario(key) {
+      const s = SCENARIOS[key];
+      if (!s) return;
+
+      document.getElementById('plate-input-val').value = s.plate;
+      document.getElementById('form-plate').value = s.plate;
+      document.getElementById('form-name').value = s.name;
+      document.getElementById('form-surname').value = s.surname;
+      document.getElementById('form-kind').value = s.kind;
+      document.getElementById('form-phone').value = s.phone;
+      document.getElementById('form-email').value = s.email;
+      document.getElementById('form-address').value = s.address;
+
+      // Durum kutusunu güncelle
+      updateStatusBadge(s.statusType, s.statusText, s.statusAction);
+
+      // Soru kutusunu hazırla
+      if (s.prompt) {
+        document.getElementById('query-input').value = s.prompt;
+      }
+
+      // Plaka okuma animasyonunu oynat
+      triggerPlateScan(false);
+      showToast(`Senaryo yüklendi: ${s.plate}`);
+    }
+
+    function triggerPlateScan(submitAfter = false) {
+      const laser = document.getElementById('laser-scan');
+      const box = document.getElementById('plate-bounding-box');
+      
+      laser.classList.remove('hidden');
+      box.classList.remove('border-emerald-400');
+      box.classList.add('border-red-500', 'bg-red-500/10');
+
+      setTimeout(() => {
+        laser.classList.add('hidden');
+        box.classList.remove('border-red-500', 'bg-red-500/10');
+        box.classList.add('border-emerald-400');
+        showToast(`Plaka okundu: ${document.getElementById('plate-input-val').value}`);
+        if (submitAfter) {
+          verifyPlateAction();
+        }
+      }, 1400);
+    }
+
+    function toggleCamera() {
+      isCameraActive = !isCameraActive;
+      const img = document.getElementById('car-view-img');
+      const placeholder = document.getElementById('empty-img-placeholder');
+      const btnText = document.getElementById('cam-btn-text');
+      const badge = document.getElementById('cam-status-badge');
+
+      if (isCameraActive) {
+        img.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+        btnText.innerText = 'Kamera Durdur';
+        badge.innerText = '● CANLI AKIŞ: NİZAMİYE GİRİŞ';
+        badge.className = 'px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-100 text-zinc-600 border border-zinc-200';
+      } else {
+        img.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        btnText.innerText = 'Kamera Başlat';
+        badge.innerText = '○ KAMERA DURDURULDU';
+        badge.className = 'px-2 py-0.5 rounded text-[11px] font-mono bg-red-50 text-red-700 border border-red-200';
+      }
+    }
+
+    function clearImage() {
+      document.getElementById('car-view-img').classList.add('hidden');
+      document.getElementById('empty-img-placeholder').classList.remove('hidden');
+      showToast('Görsel vizörden kaldırıldı.');
+    }
+
+    function closePlateResult() {
+      document.getElementById('plate-result-panel').classList.toggle('opacity-30');
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.getElementById('car-view-img');
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+        document.getElementById('empty-img-placeholder').classList.add('hidden');
+        triggerPlateScan();
+        showToast(`Görsel yüklendi: ${file.name}`);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateStatusBadge(type, text, action) {
+      const box = document.getElementById('plate-status-box');
+      const dot = document.getElementById('status-dot');
+      const msg = document.getElementById('status-message');
+      const tag = document.getElementById('status-action-tag');
+      const dossierMatch = document.getElementById('dossier-match-badge');
+
+      msg.innerText = text;
+      tag.innerText = action;
+
+      if (type === 'blacklist') {
+        box.className = 'p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between bg-red-50 border-red-300 text-red-900 animate-pulse';
+        dot.className = 'w-2 h-2 rounded-full bg-red-600';
+        tag.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-red-600 text-white rounded';
+        dossierMatch.innerHTML = '<span class="text-red-600 font-bold">⚠️ KARA LİSTE</span>';
+      } else if (type === 'vip') {
+        box.className = 'p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between bg-blue-50 border-blue-200 text-blue-900';
+        dot.className = 'w-2 h-2 rounded-full bg-blue-600';
+        tag.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-blue-600 text-white rounded';
+        dossierMatch.innerHTML = '<span class="text-blue-600 font-bold">★ VIP MİSAFİR</span>';
+      } else if (type === 'staff') {
+        box.className = 'p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between bg-emerald-50 border-emerald-200 text-emerald-900';
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-600';
+        tag.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-emerald-600 text-white rounded';
+        dossierMatch.innerHTML = '<span class="text-emerald-600 font-bold">✓ PERSONEL</span>';
+      } else {
+        box.className = 'p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between bg-amber-50 border-amber-200 text-amber-900';
+        dot.className = 'w-2 h-2 rounded-full bg-amber-500';
+        tag.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-amber-100 text-amber-900 rounded';
+        dossierMatch.innerHTML = '<span class="text-amber-700 font-bold">? KAYITSIZ ARAÇ</span>';
+      }
+    }
+
+    function verifyPlateAction() {
+      const plate = document.getElementById('plate-input-val').value.trim().toUpperCase();
+      const existing = REGISTRY_DATA.find(r => r.plate.replace(/\s+/g, '') === plate.replace(/\s+/g, ''));
+      
+      if (existing) {
+        if (existing.kind === 'blacklist') {
+          updateStatusBadge('blacklist', `${plate} kara listede kayıtlı! Tesis girişi yasaklanmıştır.`, 'GİRİŞ İZNİ VERME');
+        } else if (existing.kind === 'staff') {
+          updateStatusBadge('staff', `${plate} personel aracıdır (${existing.name} ${existing.surname}).`, 'BARİYER AÇILDI');
+        } else {
+          updateStatusBadge('vip', `${plate} kayıtlı misafirdir (${existing.name} ${existing.surname}).`, 'GEÇİŞ ONAYLANDI');
+        }
+      } else {
+        updateStatusBadge('unregistered', `${plate} için sistemde aktif tescil kaydı bulunamadı.`, 'MİSAFİR GİRİŞİ');
+      }
+      showToast(`Plaka doğrulandı: ${plate}`);
+    }
+
+    function fillFormFromPlate() {
+      const plate = document.getElementById('plate-input-val').value.trim().toUpperCase();
+      document.getElementById('form-plate').value = plate;
+      const found = REGISTRY_DATA.find(r => r.plate.replace(/\s+/g, '') === plate.replace(/\s+/g, ''));
+      if (found) {
+        document.getElementById('form-name').value = found.name;
+        document.getElementById('form-surname').value = found.surname;
+        document.getElementById('form-kind').value = found.kind;
+        document.getElementById('form-address').value = found.address;
+        document.getElementById('form-phone').value = found.phone;
+        document.getElementById('form-email').value = found.email;
+      }
+      document.getElementById('vehicle-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function askGeminiForPlate() {
+      const plate = document.getElementById('plate-input-val').value.trim().toUpperCase();
+      document.getElementById('query-input').value = `${plate} plakalı aracın sistemdeki geçmişini ve varsa anomalilerini getir.`;
+      document.getElementById('query-input').scrollIntoView({ behavior: 'smooth' });
+      submitQuery();
+    }
+
+    function checkPlateHistory() {
+      const plate = document.getElementById('plate-input-val').value.trim().toUpperCase();
+      document.getElementById('query-input').value = `${plate} plakalı aracın tüm geçiş hareketlerini getir.`;
+      submitQuery();
+    }
+
+    // --- 4. Tescil Formu & Tablo İşlemleri (Görseldeki İkinci Pencere) ---
+    function renderRegistryTable() {
+      const tbody = document.getElementById('registry-table-body');
+      tbody.innerHTML = '';
+
+      REGISTRY_DATA.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-zinc-50/80 cursor-pointer transition-colors';
+        tr.onclick = () => selectRegistryRow(r);
+
+        const badgeColor = r.kind === 'blacklist' ? 'text-red-700 bg-red-50' : (r.kind === 'staff' ? 'text-emerald-700 bg-emerald-50' : 'text-blue-700 bg-blue-50');
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-semibold text-zinc-400">${idx + 1}</td>
+          <td class="py-2.5 px-3 font-bold text-zinc-900">${r.plate}</td>
+          <td class="py-2.5 px-3">${r.name}</td>
+          <td class="py-2.5 px-3">${r.surname}</td>
+          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeColor}">${r.kind.toUpperCase()}</span></td>
+          <td class="py-2.5 px-3 text-zinc-500">${r.address || '—'}</td>
+          <td class="py-2.5 px-3 text-zinc-500">${r.phone || '—'}</td>
+          <td class="py-2.5 px-3 text-zinc-500">${r.email || '—'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function selectRegistryRow(r) {
+      document.getElementById('form-plate').value = r.plate;
+      document.getElementById('form-name').value = r.name;
+      document.getElementById('form-surname').value = r.surname;
+      document.getElementById('form-kind').value = r.kind;
+      document.getElementById('form-address').value = r.address;
+      document.getElementById('form-phone').value = r.phone;
+      document.getElementById('form-email').value = r.email;
+      document.getElementById('plate-input-val').value = r.plate;
+      verifyPlateAction();
+    }
+
+    function saveRegistration() {
+      const plate = document.getElementById('form-plate').value.trim().toUpperCase();
+      if (!plate) return;
+
+      const item = {
+        id: REGISTRY_DATA.length + 1,
+        plate: plate,
+        name: document.getElementById('form-name').value.trim(),
+        surname: document.getElementById('form-surname').value.trim(),
+        kind: document.getElementById('form-kind').value,
+        address: document.getElementById('form-address').value.trim(),
+        phone: document.getElementById('form-phone').value.trim(),
+        email: document.getElementById('form-email').value.trim()
+      };
+
+      REGISTRY_DATA.unshift(item);
+      renderRegistryTable();
+      verifyPlateAction();
+      showToast(`Yeni kayıt eklendi: ${plate}`);
+    }
+
+    function updateRegistration() {
+      const plate = document.getElementById('form-plate').value.trim().toUpperCase();
+      const idx = REGISTRY_DATA.findIndex(r => r.plate.replace(/\s+/g, '') === plate.replace(/\s+/g, ''));
+      if (idx !== -1) {
+        REGISTRY_DATA[idx] = {
+          ...REGISTRY_DATA[idx],
+          name: document.getElementById('form-name').value.trim(),
+          surname: document.getElementById('form-surname').value.trim(),
+          kind: document.getElementById('form-kind').value,
+          address: document.getElementById('form-address').value.trim(),
+          phone: document.getElementById('form-phone').value.trim(),
+          email: document.getElementById('form-email').value.trim()
+        };
+        renderRegistryTable();
+        verifyPlateAction();
+        showToast(`Kayıt güncellendi: ${plate}`);
+      } else {
+        saveRegistration();
+      }
+    }
+
+    function deleteRegistration() {
+      const plate = document.getElementById('form-plate').value.trim().toUpperCase();
+      const lenBefore = REGISTRY_DATA.length;
+      REGISTRY_DATA = REGISTRY_DATA.filter(r => r.plate.replace(/\s+/g, '') !== plate.replace(/\s+/g, ''));
+      if (REGISTRY_DATA.length < lenBefore) {
+        renderRegistryTable();
+        verifyPlateAction();
+        showToast(`Kayıt silindi: ${plate}`);
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('form-toast');
+      toast.innerText = '✓ ' + msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3000);
+    }
+
+    // --- 5. Gemini 3.8 Flash Doğal Dil Sorgu Hattı ---
     function askChip(text) {
       const clean = text.replace(/\(Guardrail.*\)/, '').trim();
       document.getElementById('query-input').value = clean;
@@ -290,13 +1092,14 @@
       const q = input.value.trim();
       if (!q) return;
 
-      const loading = document.getElementById('loading-state');
-      const panel = document.getElementById('result-panel');
       const btn = document.getElementById('btn-submit');
+      const loading = document.getElementById('loading-state');
+      const resultPanel = document.getElementById('result-panel');
 
-      loading.classList.remove('hidden');
-      panel.classList.add('hidden');
       btn.disabled = true;
+      btn.classList.add('opacity-50');
+      loading.classList.remove('hidden');
+      resultPanel.classList.add('hidden');
 
       try {
         const resp = await fetch('/api/query', {
@@ -307,12 +1110,21 @@
 
         const data = await resp.json();
         renderResult(data);
+        resultPanel.classList.remove('hidden');
+        resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } catch (err) {
-        alert('Sorgu gönderilemedi: ' + err);
+        renderResult({
+          status: 'error',
+          narrative: 'Sunucuya bağlanırken bir hata oluştu: ' + err.message,
+          provider: 'hata',
+          elapsed_seconds: 0,
+          cached: false
+        });
+        resultPanel.classList.remove('hidden');
       } finally {
-        loading.classList.add('hidden');
-        panel.classList.remove('hidden');
         btn.disabled = false;
+        btn.classList.remove('opacity-50');
+        loading.classList.add('hidden');
       }
     }
 
@@ -347,21 +1159,21 @@
       const scalarValue = document.getElementById('scalar-value');
       const tableHead = document.getElementById('table-head');
       const tableBody = document.getElementById('table-body');
+      const rowCountBadge = document.getElementById('row-count-badge');
       const emptyMsg = document.getElementById('empty-table-msg');
-      const countBadge = document.getElementById('row-count-badge');
 
       tableHead.innerHTML = '';
       tableBody.innerHTML = '';
 
-      if (tr && tr.scalar !== undefined && tr.scalar !== null) {
+      if (tr && tr.scalar !== null && tr.scalar !== undefined) {
         scalarContainer.classList.remove('hidden');
         scalarValue.innerText = typeof tr.scalar === 'object' ? JSON.stringify(tr.scalar) : tr.scalar;
       } else {
         scalarContainer.classList.add('hidden');
       }
 
-      const rows = (tr && tr.rows && tr.rows.length) ? tr.rows : [];
-      countBadge.innerText = rows.length + ' Satır' + (tr && tr.truncated ? ' (Limitli)' : '');
+      const rows = (tr && Array.isArray(tr.rows)) ? tr.rows : [];
+      rowCountBadge.innerText = rows.length + ' Satır';
 
       if (rows.length === 0) {
         emptyMsg.classList.remove('hidden');
@@ -370,7 +1182,7 @@
         const cols = Object.keys(rows[0]);
         cols.forEach(col => {
           const th = document.createElement('th');
-          th.className = 'px-3 py-2 text-zinc-700 font-semibold';
+          th.className = 'py-2 px-3';
           th.innerText = col;
           tableHead.appendChild(th);
         });
@@ -380,9 +1192,8 @@
           trElem.className = 'hover:bg-zinc-50/80 transition-colors';
           cols.forEach(col => {
             const td = document.createElement('td');
-            td.className = 'px-3 py-2 border-t border-zinc-100 text-zinc-700 truncate max-w-[200px]';
-            const val = r[col];
-            td.innerText = (typeof val === 'object') ? JSON.stringify(val) : (val !== null ? val : '—');
+            td.className = 'py-1.5 px-3 whitespace-nowrap text-zinc-700';
+            td.innerText = (r[col] === null || r[col] === undefined) ? '—' : r[col];
             trElem.appendChild(td);
           });
           tableBody.appendChild(trElem);
