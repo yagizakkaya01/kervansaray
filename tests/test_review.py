@@ -80,18 +80,12 @@ def test_approve_candidate_success(monkeypatch):
         camera_id="cam-02",
         ts=datetime(2026, 4, 15, 11, 0, tzinfo=UTC),
     )
-    sess = Session(
-        id=5,
-        entry_event_id=ev.id,
-        canonical_plate=ev.canonical_plate,
-        vehicle_id=None,
-        missing_entry=False,
-        missing_exit=False,
-    )
 
     mock_db = MagicMock()
     mock_db.scalar.return_value = ev
-    mock_db.scalars.return_value = [sess]
+
+    mock_reconcile = MagicMock()
+    monkeypatch.setattr("kervansaray.ingest.sessions.reconcile_vehicle_sessions", mock_reconcile)
 
     from contextlib import contextmanager
 
@@ -113,9 +107,8 @@ def test_approve_candidate_success(monkeypatch):
     assert ev.match_status == MatchStatus.fuzzy
     assert ev.vehicle_id == 20
     assert ev.canonical_plate == "06XYZ01"
-    # İlişkili Session güncellenmiş olmalı
-    assert sess.vehicle_id == 20
-    assert sess.canonical_plate == "06XYZ01"
+    # Session mutabakatı tetiklenmiş olmalı
+    mock_reconcile.assert_called_once_with(mock_db, 20, {"06XYZO1", "06XYZ01"})
 
 
 def test_reject_candidate_success(monkeypatch):
@@ -140,6 +133,9 @@ def test_reject_candidate_success(monkeypatch):
     mock_db = MagicMock()
     mock_db.scalar.return_value = ev
 
+    mock_reconcile = MagicMock()
+    monkeypatch.setattr("kervansaray.ingest.sessions.reconcile_vehicle_sessions", mock_reconcile)
+
     from contextlib import contextmanager
 
     @contextmanager
@@ -156,6 +152,8 @@ def test_reject_candidate_success(monkeypatch):
 
     assert ev.match_status == MatchStatus.unmatched
     assert ev.candidate_vehicle_id is None
+    # Reconcile tetiklenmiş olmalı
+    mock_reconcile.assert_called_once_with(mock_db, None, {"34UNK99"})
 
 
 def test_review_not_found_and_not_pending(monkeypatch):
@@ -186,3 +184,103 @@ def test_review_not_found_and_not_pending(monkeypatch):
     mock_db.scalar.return_value = ev_already_exact
     r2 = c.post("/api/review/ev-exact/approve")
     assert r2.status_code == 400
+
+
+def test_review_bad_limit_returns_400():
+    app = create_app()
+    app.config["TESTING"] = True
+    c = app.test_client()
+
+    # ?limit=abc -> 400 (500 degil)
+    r1 = c.get("/api/review?limit=abc")
+    assert r1.status_code == 400
+    assert "gecersiz limit" in r1.get_json()["error"]
+
+    # ?limit=-10 -> 400
+    r2 = c.get("/api/review?limit=-10")
+    assert r2.status_code == 400
+
+
+def test_public_mode_disables_operator_routes(monkeypatch):
+    from kervansaray.config import settings
+
+    monkeypatch.setattr(settings, "ENABLE_OPERATOR_ROUTES", False)
+    app = create_app()
+    app.config["TESTING"] = True
+    c = app.test_client()
+
+    # 1. /api/review uclari hic kaydedilmemeli (404)
+    r_review = c.get("/api/review")
+    assert r_review.status_code == 404
+
+    # 2. POST /events yazma yolu 403 donmeli (mutasyon engelleme)
+    r_post_events = c.post("/events", json={"test": 1})
+    assert r_post_events.status_code == 403
+    assert "Public demo modunda" in r_post_events.get_json()["error"]
+
+
+def test_reconcile_vehicle_sessions_merges_orphan_exit():
+    from kervansaray.ingest.sessions import reconcile_vehicle_sessions
+
+    # Senaryo: 10:00'da bozuk plaka 34ABD123 ile giris (pending)
+    #          12:00'da dogru plaka 34ABC123 ile cikis (orphan exit)
+    ev_entry = Event(
+        id=101,
+        event_id="ev-entry-1",
+        raw_plate="34 ABD 123",
+        canonical_plate="34ABC123",  # Onay sonrasi kanoniklesmis
+        direction=Direction.entry,
+        vehicle_id=55,
+        match_status=MatchStatus.fuzzy,
+        ts=datetime(2026, 4, 15, 10, 0, tzinfo=UTC),
+    )
+    ev_exit = Event(
+        id=102,
+        event_id="ev-exit-1",
+        raw_plate="34 ABC 123",
+        canonical_plate="34ABC123",
+        direction=Direction.exit,
+        vehicle_id=55,
+        match_status=MatchStatus.exact,
+        ts=datetime(2026, 4, 15, 12, 0, tzinfo=UTC),
+    )
+
+    old_entry_session = Session(
+        id=1,
+        entry_event_id=101,
+        entry_ts=ev_entry.ts,
+        canonical_plate="34ABD123",
+        vehicle_id=None,
+        missing_exit=False,
+    )
+    old_exit_session = Session(
+        id=2,
+        exit_event_id=102,
+        exit_ts=ev_exit.ts,
+        canonical_plate="34ABC123",
+        vehicle_id=55,
+        missing_entry=True,
+    )
+
+    # Mock DB:
+    # 1. Eski sessionlari listeler -> [old_entry_session, old_exit_session]
+    # 2. Olaylari kronolojik listeler -> [ev_entry, ev_exit]
+    mock_db = MagicMock()
+    mock_db.scalars.side_effect = [
+        [old_entry_session, old_exit_session],  # silinecek session'lar
+        [ev_entry, ev_exit],                    # sirayla replay edilecek event'ler
+        None,                                   # _find_orphan_exit (ev_entry)
+        None,                                   # _find_current_session (ev_entry)
+    ]
+
+    # Reconcile calistir
+    reconciled = reconcile_vehicle_sessions(mock_db, vehicle_id=55, plates={"34ABD123", "34ABC123"})
+
+    # Eski 2 session silinmis olmali
+    assert mock_db.delete.call_count == 2
+    mock_db.delete.assert_any_call(old_entry_session)
+    mock_db.delete.assert_any_call(old_exit_session)
+
+    # 2 event replay edildi
+    assert len(reconciled) == 2
+

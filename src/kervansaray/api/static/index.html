@@ -1317,11 +1317,18 @@
     async function initReviewQueueCount() {
       try {
         const resp = await fetch('/api/review');
+        if (resp.status === 404 || resp.status === 403) {
+          // Public demo modunda operatör onay kuyruğu arayüzden gizlenir
+          document.getElementById('review-btn')?.classList.add('hidden');
+          return;
+        }
         if (resp.ok) {
           const data = await resp.json();
           updateReviewBadge(data.count || 0);
         }
-      } catch (_) {}
+      } catch (_) {
+        document.getElementById('review-btn')?.classList.add('hidden');
+      }
     }
 
     async function fetchReviewQueue() {

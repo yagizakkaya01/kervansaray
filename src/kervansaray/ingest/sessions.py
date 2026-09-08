@@ -122,3 +122,49 @@ def apply_event(db: DbSession, event: Event) -> Session:
     db.add(orphan)
     db.flush()
     return orphan
+
+
+def reconcile_vehicle_sessions(
+    db: DbSession, vehicle_id: int | None, plates: set[str]
+) -> list[Session]:
+    """Belirli bir araç veya plaka varyasyonları için session'ları yeniden mutabakat eder.
+
+    Operatör onay kuyruğunda bir olayı onayladığında veya reddettiğinde,
+    hatalı okumadan kaynaklanan bölünmüş veya yetim (orphan) session'ları
+    kronolojik sırada birleştirir.
+    """
+    from sqlalchemy import or_
+
+    clean_plates = {p for p in plates if p}
+    if vehicle_id is None and not clean_plates:
+        return []
+
+    # 1. Mevcut artefakt session'ları sil
+    sess_filters = []
+    if vehicle_id is not None:
+        sess_filters.append(Session.vehicle_id == vehicle_id)
+    if clean_plates:
+        sess_filters.append(Session.canonical_plate.in_(clean_plates))
+
+    existing = list(db.scalars(select(Session).where(or_(*sess_filters))))
+    for s in existing:
+        db.delete(s)
+    db.flush()
+
+    # 2. İlgili tüm olayları kronolojik sırada al
+    ev_filters = []
+    if vehicle_id is not None:
+        ev_filters.append(Event.vehicle_id == vehicle_id)
+    if clean_plates:
+        ev_filters.append(Event.canonical_plate.in_(clean_plates))
+
+    events = list(db.scalars(select(Event).where(or_(*ev_filters)).order_by(Event.ts.asc())))
+
+    # 3. apply_event ile baştan sırayla türet
+    recreated: list[Session] = []
+    for ev in events:
+        s = apply_event(db, ev)
+        recreated.append(s)
+
+    return recreated
+

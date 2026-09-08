@@ -24,6 +24,11 @@ _MAX_ROWS = 200
 
 @bp.post("/events")
 def post_event():
+    from kervansaray.config import settings
+
+    if not settings.ENABLE_OPERATOR_ROUTES:
+        return jsonify({"error": "Public demo modunda olay yazma (ingest) devre dışıdır"}), 403
+
     raw = request.get_json(silent=True)
     if raw is None:
         return jsonify({"error": "gecersiz JSON govdesi"}), 400

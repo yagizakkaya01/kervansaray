@@ -12,16 +12,28 @@ from flask import Blueprint, jsonify, request
 from sqlalchemy import select
 
 from kervansaray.db import session_scope
-from kervansaray.db.models import Event, MatchStatus, Session
+from kervansaray.db.models import Event, MatchStatus
 from kervansaray.logging import log
 
 bp = Blueprint("review", __name__, url_prefix="/api/review")
 
 
+def _parse_limit(raw: str | None, default: int = 50, max_limit: int = 100) -> int:
+    if raw is None:
+        return default
+    val = int(raw)
+    if val <= 0:
+        raise ValueError("limit must be positive")
+    return min(val, max_limit)
+
+
 @bp.get("")
 def list_pending():
     """Operatör onayı bekleyen bulanık plaka olaylarını listeler."""
-    limit = min(int(request.args.get("limit", 50)), 100)
+    try:
+        limit = _parse_limit(request.args.get("limit"))
+    except ValueError:
+        return jsonify({"error": "gecersiz limit parametresi"}), 400
     with session_scope() as db:
         stmt = (
             select(Event)
@@ -66,23 +78,19 @@ def approve_candidate(event_id: str):
         if ev.match_status != MatchStatus.pending:
             return jsonify({"error": f"Olay onay bekleyen durumda değil: {ev.match_status}"}), 400
 
+        old_plate = ev.canonical_plate
         # Aday aracı bağla
         ev.match_status = MatchStatus.fuzzy
         ev.vehicle_id = ev.candidate_vehicle_id
         if ev.candidate_vehicle:
             ev.canonical_plate = ev.candidate_vehicle.plate
+        db.flush()
 
-        # İlişkili açık veya tamamlanmış Session varsa vehicle_id ve plakayı senkronize et
-        sessions = list(
-            db.scalars(
-                select(Session).where(
-                    (Session.entry_event_id == ev.id) | (Session.exit_event_id == ev.id)
-                )
-            )
-        )
-        for s in sessions:
-            s.vehicle_id = ev.vehicle_id
-            s.canonical_plate = ev.canonical_plate
+        # Oturumları (Sessions) yeniden mutabakat et (bölünmüş ve yetim session'ları birleştir)
+        from kervansaray.ingest.sessions import reconcile_vehicle_sessions
+
+        plates = {old_plate, ev.canonical_plate}
+        reconcile_vehicle_sessions(db, ev.vehicle_id, plates)
 
         log.info(
             "Event review approved event_id=%s raw_plate=%s vehicle_id=%s plate=%s",
@@ -112,8 +120,14 @@ def reject_candidate(event_id: str):
         if ev.match_status != MatchStatus.pending:
             return jsonify({"error": f"Olay onay bekleyen durumda değil: {ev.match_status}"}), 400
 
+        old_plate = ev.canonical_plate
         ev.match_status = MatchStatus.unmatched
         ev.candidate_vehicle_id = None
+        db.flush()
+
+        from kervansaray.ingest.sessions import reconcile_vehicle_sessions
+
+        reconcile_vehicle_sessions(db, None, {old_plate})
 
         log.info("Event review rejected event_id=%s raw_plate=%s", event_id, ev.raw_plate)
         return jsonify(
@@ -123,3 +137,4 @@ def reject_candidate(event_id: str):
                 "status": ev.match_status.value,
             }
         ), 200
+

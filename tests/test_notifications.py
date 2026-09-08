@@ -283,6 +283,12 @@ def test_routes_notifications():
         assert r_full.status_code == 503
         assert "limitine ulasildi" in r_full.get_json()["error"]
 
+    # ?limit=abc -> 400 donmeli
+    r_bad = c.get("/api/notifications?limit=abc")
+    assert r_bad.status_code == 400
+    assert "gecersiz limit" in r_bad.get_json()["error"]
+
+
 
 
 def test_routes_events_post_commit_and_notify_bypass():

@@ -16,7 +16,9 @@ class Settings(BaseSettings):
     # --- Sunucu ---
     HOST: str = "0.0.0.0"
     PORT: int = 8000
-    DEBUG: bool = False
+    # False ise public read-only demo (onay kuyrugu ve ingest kapali)
+    ENABLE_OPERATOR_ROUTES: bool = True
+
 
     # --- Veritabani ---
     # Postgres; sadece localhost'a bagli (PROJECT_BRIEF S10).

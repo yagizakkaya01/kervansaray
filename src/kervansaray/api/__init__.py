@@ -26,7 +26,11 @@ def create_app() -> Flask:
     app.register_blueprint(events_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(query_bp)
-    app.register_blueprint(review_bp)
+
+    from kervansaray.config import settings
+
+    if settings.ENABLE_OPERATOR_ROUTES:
+        app.register_blueprint(review_bp)
 
     @app.get("/")
     def index():
