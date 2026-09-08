@@ -17,7 +17,7 @@ import dataclasses
 import json
 import queue
 import threading
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
 from typing import Any
 from uuid import uuid4
 
@@ -26,6 +26,10 @@ from sqlalchemy.orm import Session as DbSession
 
 from kervansaray.db.models import Direction, Event, MatchStatus, PersonKind, Session
 from kervansaray.logging import log
+
+# Türkiye yerel saat dilimi (UTC+3)
+TR = timezone(timedelta(hours=3))
+
 
 # Eşikler
 OVERSTAY_SECONDS = 48 * 3600  # 48 saat
@@ -211,7 +215,11 @@ def evaluate_event(db: DbSession, event: Event) -> list[Notification]:
 
     # 5. Gece Girişi (INFO)
     # Türkiye yerel saatine (UTC+3) göre kontrol
-    event_hour = (event.ts.hour + 3) % 24 if event.ts else 0
+    if event.ts:
+        ts_aware = event.ts if event.ts.tzinfo else event.ts.replace(tzinfo=TR)
+        event_hour = ts_aware.astimezone(TR).hour
+    else:
+        event_hour = 0
     if event.direction == Direction.entry and NIGHT_START_HOUR <= event_hour < NIGHT_END_HOUR:
         notifications.append(
             Notification(

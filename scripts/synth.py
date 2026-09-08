@@ -35,6 +35,11 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--vehicles", type=int, default=DEFAULT_SIZE)
     p.add_argument("--out", metavar="PATH", help="olaylari JSONL dosyasina yaz")
     p.add_argument("--post", metavar="URL", help="olaylari ingest API'sine gonder ( or. http://localhost:8000)")
+    p.add_argument(
+        "--no-notify",
+        action="store_true",
+        help="toplu yukleme sirasinda bildirim kural motorunu atla (?notify=false)",
+    )
     p.add_argument("--seed-db", action="store_true", help="populasyonu DB'ye yaz")
     p.add_argument("--reset", action="store_true", help="once tum tablolari TRUNCATE et")
     p.add_argument("--manifest", metavar="PATH", default="synth_manifest.json")
@@ -88,7 +93,12 @@ def main(argv: list[str] | None = None) -> int:
         def _progress(i: int, st) -> None:
             print(f"  ... {i}  created={st.created} dup={st.duplicate} fail={st.failed}")
 
-        stats = post_stream(args.post, sc.payloads(), on_progress=_progress)
+        stats = post_stream(
+            args.post,
+            sc.payloads(),
+            on_progress=_progress,
+            notify=not args.no_notify,
+        )
         print(
             f"post: created={stats.created} duplicate={stats.duplicate} failed={stats.failed}"
         )

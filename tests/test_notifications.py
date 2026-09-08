@@ -1,6 +1,6 @@
-"""Bildirimler ve deterministik kural motoru testleri (ROADMAP Faz 7)."""
-from datetime import UTC, datetime
-from unittest.mock import MagicMock
+from contextlib import contextmanager
+from datetime import UTC, datetime, timedelta, timezone
+from unittest.mock import MagicMock, patch
 
 from kervansaray.db.models import (
     Direction,
@@ -179,9 +179,46 @@ def test_evaluate_event_overstay():
 
 def test_evaluate_event_night_entry():
     db = MagicMock()
-    # UTC 00:30 -> TR saati 03:30 (gece)
-    ev = Event(
-        event_id="ev-night",
+    tr_tz = timezone(timedelta(hours=3))
+
+    # 1. TR saati 03:28 (gerçek gece girişi) -> alarm tetiklenmeli
+    ev_tr_night = Event(
+        event_id="ev-night-1",
+        raw_plate="38 HE 907",
+        canonical_plate="38HE907",
+        direction=Direction.entry,
+        match_status=MatchStatus.exact,
+        camera_id="cam-01",
+        vehicle_id=7,
+        vehicle=Vehicle(id=7, plate="38HE907", is_blacklisted=False),
+        ts=datetime(2026, 4, 15, 3, 28, tzinfo=tr_tz),
+    )
+    notifs1 = evaluate_event(db, ev_tr_night)
+    rules1 = [n.rule for n in notifs1]
+    assert "night_entry" in rules1
+    ne1 = next(n for n in notifs1 if n.rule == "night_entry")
+    assert ne1.severity == "info"
+    assert "Gece Girişi" in ne1.title
+    assert ne1.metadata["hour"] == 3
+
+    # 2. TR saati 22:00 (normal akşam girişi) -> gece alarmı OLMAMALI (3 saat kayma hatası önleme)
+    ev_tr_evening = Event(
+        event_id="ev-night-2",
+        raw_plate="38 HE 907",
+        canonical_plate="38HE907",
+        direction=Direction.entry,
+        match_status=MatchStatus.exact,
+        camera_id="cam-01",
+        vehicle_id=7,
+        vehicle=Vehicle(id=7, plate="38HE907", is_blacklisted=False),
+        ts=datetime(2026, 4, 15, 22, 0, tzinfo=tr_tz),
+    )
+    notifs2 = evaluate_event(db, ev_tr_evening)
+    assert "night_entry" not in [n.rule for n in notifs2]
+
+    # 3. UTC 00:30 -> TR saati 03:30 (gece) -> alarm tetiklenmeli
+    ev_utc = Event(
+        event_id="ev-night-3",
         raw_plate="38 HE 907",
         canonical_plate="38HE907",
         direction=Direction.entry,
@@ -191,13 +228,8 @@ def test_evaluate_event_night_entry():
         vehicle=Vehicle(id=7, plate="38HE907", is_blacklisted=False),
         ts=datetime(2026, 4, 15, 0, 30, tzinfo=UTC),
     )
-
-    notifs = evaluate_event(db, ev)
-    rules = [n.rule for n in notifs]
-    assert "night_entry" in rules
-    ne = next(n for n in notifs if n.rule == "night_entry")
-    assert ne.severity == "info"
-    assert "Gece Girişi" in ne.title
+    notifs3 = evaluate_event(db, ev_utc)
+    assert "night_entry" in [n.rule for n in notifs3]
 
 
 def test_routes_notifications():
@@ -226,3 +258,92 @@ def test_routes_notifications():
     r_stream = c.get("/api/notifications/stream", buffered=False)
     assert r_stream.status_code == 200
     assert "text/event-stream" in r_stream.content_type
+
+
+def test_routes_events_post_commit_and_notify_bypass():
+    from kervansaray.api import create_app
+    from kervansaray.ingest import IngestResult
+    from kervansaray.notifications import broker
+
+    app = create_app()
+    app.config["TESTING"] = True
+    c = app.test_client()
+
+    payload = {
+        "schema_version": "1.0",
+        "event_id": "00000000-0000-0000-0000-000000000099",
+        "device_id": "dev-01",
+        "camera_id": "cam-01",
+        "ts": "2026-04-15T03:28:00+03:00",
+        "plate": "34VIP99",
+        "plate_confidence": 0.95,
+        "direction": "entry",
+        "track_id": 1,
+        "crop_ref": None,
+        "model_version": "v1",
+    }
+
+    mock_ev = Event(
+        id=99,
+        event_id=payload["event_id"],
+        raw_plate="34VIP99",
+        canonical_plate="34VIP99",
+        direction=Direction.entry,
+        match_status=MatchStatus.exact,
+        camera_id="cam-01",
+        vehicle_id=1,
+        vehicle=Vehicle(id=1, plate="34VIP99", is_blacklisted=True),
+        ts=datetime(2026, 4, 15, 3, 28, tzinfo=timezone(timedelta(hours=3))),
+    )
+
+    fake_result = IngestResult(
+        event_row_id=99,
+        event_id=payload["event_id"],
+        duplicate=False,
+        match_status=MatchStatus.exact,
+        vehicle_id=1,
+        session_id=10,
+        session_closed=False,
+    )
+
+    mock_db = MagicMock()
+    mock_db.get.return_value = mock_ev
+
+    @contextmanager
+    def successful_scope():
+        yield mock_db
+
+    # 1. Normal POST -> commit basarili -> bildirim broker'a gitmeli
+    broker.clear()
+    with patch("kervansaray.api.routes_events.session_scope", successful_scope), \
+         patch("kervansaray.api.routes_events.ingest_event", return_value=fake_result):
+        r1 = c.post("/events", json=payload)
+        assert r1.status_code == 201
+        recent = broker.get_recent()
+        assert len(recent) >= 1
+        assert any(n["rule"] == "blacklist" for n in recent)
+
+    # 2. ?notify=false ile POST -> bildirim yayinlanmamali (bulk ingest optimizasyonu)
+    broker.clear()
+    with patch("kervansaray.api.routes_events.session_scope", successful_scope), \
+         patch("kervansaray.api.routes_events.ingest_event", return_value=fake_result):
+        r2 = c.post("/events?notify=false", json=payload)
+        assert r2.status_code == 201
+        assert len(broker.get_recent()) == 0
+
+    # 3. Commit sirasinda DB patlarsa -> phantom bildirim GİTMEMELİ
+    broker.clear()
+
+    @contextmanager
+    def failing_scope():
+        yield mock_db
+        raise RuntimeError("DB connection dropped during commit!")
+
+    with patch("kervansaray.api.routes_events.session_scope", failing_scope), \
+         patch("kervansaray.api.routes_events.ingest_event", return_value=fake_result):
+        try:
+            c.post("/events", json=payload)
+        except RuntimeError:
+            pass
+        assert len(broker.get_recent()) == 0
+

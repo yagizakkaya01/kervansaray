@@ -34,16 +34,26 @@ def post_event():
         detail = exc.errors(include_context=False, include_url=False, include_input=False)
         return jsonify({"error": "sozlesme dogrulamasi basarisiz", "detail": detail}), 422
 
+    notifications_to_publish = []
     with session_scope() as db:
         result = ingest_event(db, payload)
-        if not result.duplicate:
+        # ?notify=false: toplu/sentetik yuklemelerde kural motorunu atlar
+        should_notify = request.args.get("notify", "true").lower() not in ("false", "0", "no")
+        if not result.duplicate and should_notify:
             from kervansaray.db.models import Event
-            from kervansaray.notifications import broker, evaluate_event
+            from kervansaray.notifications import evaluate_event
 
             ev = db.get(Event, result.event_row_id)
             if ev is not None:
-                for notif in evaluate_event(db, ev):
-                    broker.publish(notif)
+                notifications_to_publish = evaluate_event(db, ev)
+
+    # Commit basariyla tamamlandiktan SONRA yayinla (phantom alarm onleme)
+    if notifications_to_publish:
+        from kervansaray.notifications import broker
+
+        for notif in notifications_to_publish:
+            broker.publish(notif)
+
 
     if result.duplicate:
         EVENTS_DUPLICATE.inc()

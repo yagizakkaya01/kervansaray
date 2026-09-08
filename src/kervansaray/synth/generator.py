@@ -257,8 +257,11 @@ def post_stream(
     timeout: float = 10.0,
     on_progress: Callable[[int, PostStats], None] | None = None,
     progress_every: int = 250,
+    notify: bool = True,
 ) -> PostStats:
     url = base_url.rstrip("/") + "/events"
+    if not notify:
+        url += "?notify=false"
     stats = PostStats()
     session = requests.Session()
     for i, ev in enumerate(payloads, start=1):

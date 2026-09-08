@@ -17,6 +17,8 @@ COPY src/ ./src/
 
 RUN mkdir -p logs
 
-# Uygulama giris noktasi (ingest API + panel + tool katmani) henuz yazilmadi.
-# Bkz. docs/PROJECT_BRIEF.md S15.
-CMD ["python", "-c", "import kervansaray; print('kervansaray', kervansaray.__version__, '- giris noktasi bekleniyor')"]
+# WSGI giris noktasi (Faz 7/Faz 8b: gunicorn threaded calisma modu)
+# Tek process + coklu thread: SSE stream baglantilarinin worker kilitlemesini onler
+# ve bellek-ici tekil NotificationBroker ile EventSource abonelerini tek havuzda bulusturur.
+CMD ["gunicorn", "-w", "1", "--threads", "8", "-b", "0.0.0.0:8000", "kervansaray.wsgi:app"]
+
