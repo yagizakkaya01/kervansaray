@@ -8,15 +8,9 @@ from __future__ import annotations
 
 import re
 
-_UPPER_TO_LOWER = {
-    "İ": "i",
-    "I": "ı",
-    "Ğ": "ğ",
-    "Ü": "ü",
-    "Ş": "ş",
-    "Ö": "ö",
-    "Ç": "ç",
-}
+_TR_LOWER = str.maketrans({
+    "İ": "i", "I": "ı", "Ğ": "ğ", "Ü": "ü", "Ş": "ş", "Ö": "ö", "Ç": "ç",
+})
 
 # Aksan/ozel harf -> ASCII (deterministik arama/eslestirme icin)
 _TO_ASCII = str.maketrans({
@@ -27,9 +21,7 @@ _TO_ASCII = str.maketrans({
 
 def turkish_lower(text: str) -> str:
     """Turkce kurallarina gore kucuk harfe cevirir."""
-    for upper, lower in _UPPER_TO_LOWER.items():
-        text = text.replace(upper, lower)
-    return text.lower()
+    return text.translate(_TR_LOWER).lower()
 
 
 def normalize_whitespace(text: str) -> str:

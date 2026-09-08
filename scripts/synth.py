@@ -16,9 +16,14 @@ import argparse
 import sys
 from datetime import date, datetime
 
-from kervansaray.synth import generate
-from kervansaray.synth.loader import dump_manifest, post_stream, write_jsonl
-from kervansaray.synth.scenario import DEFAULT_DAYS, DEFAULT_SIZE
+from kervansaray.synth import (
+    DEFAULT_DAYS,
+    DEFAULT_SIZE,
+    dump_manifest,
+    generate,
+    post_stream,
+    write_jsonl,
+)
 
 
 def _parse_args(argv: list[str]) -> argparse.Namespace:

@@ -39,11 +39,17 @@ def post_event():
 
     if result.duplicate:
         EVENTS_DUPLICATE.inc()
-        log.event(payload.plate, payload.direction, f"{result.match_status} (dup)")
+        log.info(
+            "Event duplicate plate=%s direction=%s status=%s",
+            payload.plate, payload.direction, result.match_status,
+        )
         return jsonify(_result_body(result)), 200
 
     EVENTS_INGESTED.labels(payload.direction, result.match_status).inc()
-    log.event(payload.plate, payload.direction, str(result.match_status))
+    log.info(
+        "Event ingested plate=%s direction=%s status=%s",
+        payload.plate, payload.direction, result.match_status,
+    )
     return jsonify(_result_body(result)), 201
 
 

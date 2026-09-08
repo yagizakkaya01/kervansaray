@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from time import perf_counter
 
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 from .config import settings
 
@@ -32,23 +32,11 @@ EVENTS_INGESTED = Counter(
 EVENTS_DUPLICATE = Counter(
     "events_duplicate_total", "event_id idempotency ile atlanan tekrar olaylar"
 )
-TOOL_CALLS = Counter("tool_calls_total", "Tool cagrilari", ["tool", "outcome"])
-TOOL_LATENCY = Histogram(
-    "tool_call_latency_seconds", "Tool cagri gecikmesi", ["tool"],
-    buckets=(0.005, 0.01, 0.03, 0.1, 0.3, 1, 3),
-)
 LLM_REQUESTS = Counter("llm_requests_total", "LLM saglayici cagrilari", ["provider", "outcome"])
 LLM_LATENCY = Histogram(
     "llm_request_latency_seconds", "LLM cagri gecikmesi", ["provider"],
     buckets=(0.1, 0.3, 1, 3, 10, 30),
 )
-NOTIFICATIONS_FIRED = Counter(
-    "notifications_fired_total", "Kural motorunun tetikledigi bildirimler", ["rule"]
-)
-PLATE_MATCH = Counter(
-    "plate_match_total", "Plaka eslestirme sonuclari", ["status"]  # exact|fuzzy|unmatched|pending
-)
-VEHICLES_ONSITE = Gauge("vehicles_onsite", "Su an sahada oldugu bilinen arac sayisi")
 
 
 def init_metrics(app) -> None:

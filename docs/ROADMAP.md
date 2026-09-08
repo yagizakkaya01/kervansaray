@@ -183,11 +183,14 @@ teslim edilebilir değil (brief §9).
 ## Faz 4 — Tool katmanı · 2 hafta
 
 - 5 tipli tool (brief §3.2): `query_events`, `aggregate_events`,
-  `vehicle_history`, `find_anomalies`, `search_notes`.
+  `vehicle_history`, `find_anomalies`, `occupancy` (notlar Faz 6'da FTS).
+- **Standart Function Calling**: Groq, Gemini ve OpenAI için ortak OpenAI-uyumlu
+  JSON Function şeması (`tools=[{"type": "function", ...}]`).
 - **Modelden önce, deterministik Türkçe çözümleme** (brief §3.5):
-  "dün gece / geçen hafta / bu ay / hafta sonu" → kod içinde mutlak aralığa
-  çevrilir; plaka normalizasyonu lookup öncesi yapılır. Modele tarih aritmetiği
-  yaptırma — sessiz hata üretir.
+  "dün gece / geçen hafta / bu ay / hafta sonu" → Hibrit yaklaşım: Python ön-ayrıştırıcı
+  kalıpları algılar, `CURRENT_TIMESTAMP` referansıyla prompt'a mutlak zaman ipucu enjekte
+  eder; tool'lar yalnızca mutlak ISO 8601 string kabul eder. Modele tarih aritmetiği yaptırılmaz.
+- Plaka normalizasyonu lookup öncesi `text.plates.canonicalize` ile deterministik yapılır.
 - Prompt'a: semantic view + açık sözlük (enum değerleri: `direction`,
   `match_status`, il kodu aralığı) + 10–15 few-shot örneği.
 
@@ -210,13 +213,14 @@ alanı doğrulanabiliyor; kapsam dışı sorular testte reddediliyor.
 
 ---
 
-## Faz 5 — LLM sorgu orkestrasyonu · 1.5 hafta
+## Faz 5 — LLM sorgu orkestrasyonu · 1 hafta
 
-- Router 3 yol (brief §3.6): relational (sayısal/zamansal/kesin), vector
-  (semantik/serbest metin), daily summary (fuzzy zamansal).
-- **Kendini düzelten döngü** (brief §3.4): tool çağrısı hata verir veya sıfır
-  satır dönerse hata modele geri beslenir, 2–3 denemeyle sınırlı retry.
-  Sistemin savunulabilir şekilde *agentic* olduğu nokta burasıdır.
+- **Doğrudan Tipli Tool Calling**: Ayrı bir semantik router katmanı yerine, model doğrudan
+  4 SQL aracından (`query_events`, `aggregate_events`, `vehicle_history`, `find_anomalies`)
+  seçim yapar. Sistem prompt'unda açık enum sözlüğü + 10–15 few-shot örneği.
+- **Sınırlı kendini düzelten döngü** (brief §3.4): parametre veya doğrulama hatasında
+  model en fazla 1 kez hatayla uyarılır (sonsuz/aşırı retry yok).
+- Kapsam dışı sorular (hava durumu vb.) doğrudan `decline` yanıtıyla karşılanır.
 - Şema + few-shot için prompt caching (tekrarlayan maliyetin çoğunu siler).
 - Altın seti çalıştır, hedef doğruluğa iterasyon.
 
@@ -233,20 +237,20 @@ sabitlenmiş.
 
 ---
 
-## Faz 6 — Gerçek RAG'in yeri · 1 hafta
+## Faz 6 — Metin araması ve günlük anomali denetimi · 0.5 hafta
 
-Vektör retrieval yalnızca iki yerde, ikisi de serbest metin (brief §3.6).
-Ham olay satırları üzerinde naive RAG **yok** (brief §12).
+Ponytail sadeleştirmesi (brief §12): pgvector embedding hattı ve prose embedding
+yerine Postgres yerel yetenekleri:
 
-- Aynı Postgres içinde **pgvector** — ikinci servis yok (brief §10).
-- `notes` tablosu + embedding'ler (gece CPU batch; sunucuda GPU yok).
-- **Gece günlük-özet üreticisi**: her günün prose özeti üretilip embed edilir.
-  Fuzzy-zamansal sorular ("geçen ay ne zaman anormallik vardı?") ancak bu
-  sayede retrievable olur — embed edilen şeyi değiştirme numarası.
-  Bu aynı zamanda brief §11'deki otonom gece araştırmacısının tohumudur.
-- `search_notes` gerçek vektör retrieval'a bağlanır.
+- **search_notes**: Az sayıdaki prosedür/vardiya notu için PostgreSQL yerel
+  Full-Text Search (`tsvector`) veya `ILIKE` — sıfır harici embedding bağımlılığı.
+- **Fuzzy-zamansal sorular**: Günlük özet metinleri embed etmek yerine, SQL
+  `aggregate_events` (tarih kırılımlı hareketler ve anomali eşikleri) üzerinden
+  doğrudan ve kesin hesaplanır.
+- **Gece anomali raporu**: Deterministik Python kural tarayıcısı (`find_anomalies`)
+  gece çalışır, yakaladığı olayları tek bir LLM çağrısıyla sabah bültenine dönüştürür.
 
-**Çıkış:** fuzzy-zamansal altın-set soruları geçiyor.
+**Çıkış:** not arama ve anomali soruları altın sette eksiksiz doğrulanıyor.
 
 ---
 
@@ -257,7 +261,9 @@ Ham olay satırları üzerinde naive RAG **yok** (brief §12).
   ve non-determinizm bunu diskalifiye eder.
 - Kurallar: kayıtsız araç, kara liste eşleşmesi, overstay, bilinen misafir
   geliyor.
-- Operatör masaüstüne WebSocket push.
+- **Server-Sent Events (SSE)** ile operatör masaüstüne/tarayıcısına tek yönlü push
+  (`text/event-stream`). WebSocket yerine HTTP-yerel SSE seçildi (sıfır ek kütüphane,
+  tarayıcıda yerleşik `EventSource` ile otomatik yeniden bağlanma).
 
 **Çıkış:** sentetik akışta enjekte edilen anomaliler doğru bildirimi tetikliyor.
 
@@ -292,14 +298,13 @@ Panelin geri kalanı:
 
 Demo'nun üstünde duracağı zemin.
 
-- Postgres, tool API ve panel **tek host** üzerinde, önünde **Caddy** ile gerçek
-  bir domain'de otomatik TLS.
+- Postgres, tool API ve panel **tek host (kullanıcının mevcut VPS'i)** üzerinde,
+  Caddy/Nginx arkasında otomatik TLS ile barındırılır.
+- Kişisel portfolyo sitesi **`https://yagizakkaya.com.tr/urettiklerim.html`** üzerinden
+  trafiğe açılarak doğrudan web sitesi ziyaretçilerine ve LinkedIn ağına sunulur.
 - Postgres yalnızca **localhost**'a bind edilir. Tek public yüzey HTTPS API'dir.
-- Query katmanının dokunduğu her şey için **read-only DB kullanıcısı**
-  (Faz 4'te tanımlanan kullanıcı burada gerçek deployment'ta uygulanır).
-- Secrets env üzerinden. **LLM API anahtarı yalnızca sunucuda bulunur** —
-  repoda, istemcide veya build artefaktında değil.
-- **Günlük otomatik Postgres dump** → host dışı depolamaya.
+- Query katmanının dokunduğu her şey için **read-only DB kullanıcısı**.
+- Secrets env üzerinden. **LLM API anahtarı yalnızca sunucuda bulunur**.
 - Sunucuda GPU yok; hiçbir serviste model inference'ı çalışmaz.
 
 **Çıkış:** temiz bir checkout'tan `docker compose up` stack'i sunucuda
@@ -313,30 +318,22 @@ yeniden üretiyor.
 küratörlü bir alt kümesidir: onay kuyruğu yok, yazma yolu yok, operatör
 aksiyonu yok.
 
-### Etkileşim
-
+### Teknoloji ve Etkileşim
+- **Sıfır Build Adımlı Frontend**: Vanilla HTML5, modern CSS ve saf JavaScript.
+  Node.js/npm derleme adımı yok; Flask doğrudan statik dosyaları sunar veya
+  `yagizakkaya.com.tr` içine hafif bir bileşen/iframe olarak gömülebilir.
 - **8–10 önerilen soru, tıklanabilir chip olarak** = birincil etkileşim.
   Ziyaretçi ne soracağını bilmek zorunda kalmamalı.
-- Serbest metin kutusu vardır ama **ikincildir**.
+- Serbest metin kutusu vardır ama ikincildir.
 - Her cevap Faz 8'deki üç görünümü aynen taşır: prose + tool çağrısı + tablo.
 
-### Dashboard tarafı
-
-- Son olaylar akışı.
-- Anlık doluluk.
-- Bir plaka crop'u.
-- Sentetik bir olay üzerinde tetiklenen kural motoru uyarısı — sistemin
-  yalnızca soru cevaplamadığını gösterir.
-- Görüntü hattı için **önceden render edilmiş annotated klip**. Sunucuda
-  inference yok, olamaz.
-
-### Abuse kontrolleri — public'e çıkmadan önce hepsi zorunlu
-
-- Query endpoint'inde **IP başına rate limit**.
-- LLM API anahtarında **sert aylık harcama tavanı**.
-- **Yanıt başına max token** (Faz 4'ten gelir).
-- **Kapsam sınırlayıcı system prompt** (Faz 4'ten gelir): otopark verisi dışı
-  sorular reddedilir, ve bunun testi vardır. Ziyaretçilerin deneyeceği **ilk
+### Abuse kontrolleri ve Akıllı Hibrit Koruma — public'e çıkmadan önce zorunlu
+- **Hazır Soru Önbelleği (Response Cache)**: 8–10 önerilen chip tıklandığında
+  önceden doğrulanmış sonuç doğrudan döner (0ms gecikme, $0 LLM maliyeti).
+- Serbest metin sorularında **IP başına sıkı rate limit** (dakikada 3, günde 15 soru).
+- LLM API anahtarında **günlük/aylık sert bütçe tavanı**.
+- **Yanıt başına max token** tavanı.
+- **Kapsam sınırlayıcı system prompt**: otopark verisi dışı sorular reddedilir.
   şey** budur; tesadüfe bırakılamaz.
 
 **Çıkış:** tanımadığın biri URL'yi açıyor, önerilen bir soruya tıklıyor ve

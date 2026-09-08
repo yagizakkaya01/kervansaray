@@ -1,14 +1,12 @@
-"""Google Gemini istemcisi.
+"""Google Gemini istemcisi (Function Calling ve Tool desteği ile).
 
 CILEKAI `infra/llm/gemini_client.py`'den tasindi (PROJECT_BRIEF S13).
-CILEKAI'daki dosyaya-yazan debug log kancalari (_dlog) cikarildi;
-fork-safe `requests.Session` + sinirli retry deseni korundu.
-
-Ortak arayuz:  generate(text, system_instruction=None) -> dict
+Fonksiyon cagirma (Function Calling) ve few-shot destegi eklendi.
 """
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import requests
 from requests.adapters import HTTPAdapter, Retry
@@ -39,24 +37,56 @@ def _session() -> requests.Session:
     return s
 
 
-def generate(text: str, system_instruction: str | None = None) -> dict:
+def generate(
+    text: str,
+    system_instruction: str | None = None,
+    *,
+    tools: list[dict[str, Any]] | None = None,
+    few_shots: list[dict[str, Any]] | None = None,
+) -> dict:
+    """Gemini modeline metin gonderir; metin veya function_call yaniti doner."""
     if not settings.GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY eksik")
 
     url = f"{_BASE}/{settings.GEMINI_MODEL}:generateContent?key={settings.GEMINI_API_KEY}"
-    body: dict = {
-        "contents": [{"parts": [{"text": text}]}],
+
+    contents: list[dict[str, Any]] = []
+    if few_shots:
+        for ex in few_shots:
+            contents.append({"role": "user", "parts": [{"text": ex["question"]}]})
+            if "tool_call" in ex:
+                contents.append({
+                    "role": "model",
+                    "parts": [{"functionCall": ex["tool_call"]}],
+                })
+            elif "response" in ex:
+                contents.append({
+                    "role": "model",
+                    "parts": [{"text": ex["response"]}],
+                })
+
+    contents.append({"role": "user", "parts": [{"text": text}]})
+
+    body: dict[str, Any] = {
+        "contents": contents,
         "generationConfig": {
             "temperature": settings.LLM_TEMPERATURE,
             "maxOutputTokens": settings.LLM_MAX_TOKENS,
         },
     }
+
     if system_instruction:
         body["systemInstruction"] = {"parts": [{"text": system_instruction}]}
 
+    if tools:
+        if "function_declarations" not in tools[0]:
+            body["tools"] = [{"function_declarations": tools}]
+        else:
+            body["tools"] = tools
+
     r = _session().post(url, json=body, timeout=settings.LLM_REQUEST_TIMEOUT)
     if r.status_code != 200:
-        raise RuntimeError(f"Gemini {r.status_code}: {r.text[:200]}")
+        raise RuntimeError(f"Gemini {r.status_code}: {r.text[:250]}")
 
     data = r.json()
     candidates = data.get("candidates", [])
@@ -64,5 +94,19 @@ def generate(text: str, system_instruction: str | None = None) -> dict:
         reason = data.get("promptFeedback", {}).get("blockReason", "bilinmiyor")
         raise RuntimeError(f"Gemini bos cevap (sebep: {reason})")
 
-    final_text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-    return {"response": final_text, "provider": PROVIDER}
+    parts = candidates[0].get("content", {}).get("parts", [{}])
+    first_part = parts[0] if parts else {}
+
+    if "functionCall" in first_part:
+        fc = first_part["functionCall"]
+        return {
+            "function_call": {
+                "name": fc.get("name"),
+                "args": fc.get("args", {}),
+            },
+            "response": None,
+            "provider": PROVIDER,
+        }
+
+    final_text = first_part.get("text", "")
+    return {"response": final_text, "function_call": None, "provider": PROVIDER}

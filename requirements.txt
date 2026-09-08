@@ -13,7 +13,6 @@ python-dotenv~=1.1
 
 # --- Web / API iskeleti ---
 Flask==3.1.0
-flask-cors~=5.0
 
 # --- Gozlemlenebilirlik ---
 prometheus-client>=0.20.0

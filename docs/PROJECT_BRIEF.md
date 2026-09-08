@@ -142,22 +142,21 @@ defensibly *agentic* rather than just tool-calling (see §11).
 - **Plate normalisation**: "34 abc 123", "34-ABC-123", "34abc123" → canonical
   form before lookup.
 
-### 3.6 Where genuine RAG lives
+### 3.6 Free-text search and temporal anomaly handling (Ponytail refinement)
 
-Vector retrieval is used in exactly two places, both of them free text:
+Rather than maintaining an expensive and fragile vector embedding pipeline for
+a handful of notes and daily logs, retrieval is kept strictly relational and native:
 
-1. **Unstructured documents** — operating procedures, incident reports, shift
-   handover notes, guest preference notes.
-2. **Nightly natural-language summaries.** A cron job generates a prose summary
-   of each day ("14 March: 87 entries, 3 unregistered vehicles, one stayed 4
-   hours, unusual entry cluster around 02:40, longest stay 6h20m") and embeds
-   *those*. Unlike raw event rows, daily summaries are semantically diverse, so
-   fuzzy temporal questions ("when was there unusual activity last month?")
-   become retrievable. This is the trick that makes vector search work over
-   event data — by changing what gets embedded.
+1. **Unstructured documents & notes**: PostgreSQL's native Full-Text Search
+   (`to_tsvector` / `to_tsquery`) or bounded text match (`ILIKE`) handles the small
+   corpus of operational procedures and shift notes with zero external embedding cost.
+2. **Fuzzy temporal questions** ("when was there unusual activity last month?"):
+   Handled via **SQL aggregates** (`aggregate_events` grouping by day/hour with
+   thresholds or moving averages), NOT by generating and embedding daily prose summaries.
+   SQL is exact, $0 cost, and immune to embedding drift.
 
-The resulting router has three paths: **relational** (numeric / temporal /
-exact), **vector** (semantic / free text), **daily summary** (fuzzy temporal).
+The query layer uses standard **typed tool calling** rather than a complex
+multi-way semantic router.
 
 ### 3.7 Notifications
 
@@ -419,18 +418,14 @@ project's strongest evidence.
 As specified, the query layer is **tool-calling**, not an agent: the control
 flow is fixed and the model chooses a call within it.
 
-It becomes genuinely agentic with two additions, both worth building:
+The system incorporates controlled agentic behavior where it provides measurable value:
+1. **The self-correcting loop** (§3.4) — bounded 1-step feedback retry on validation/parameter errors.
+2. **Nightly anomaly reporter** — a deterministic script runs SQL rule checks (§3.7) to gather
+   anomalies (long stays, recurring unknown vehicles, night entries), and the LLM formats
+   the structured findings into an executive morning briefing.
 
-1. **The self-correcting loop** (§3.4) — a real feedback loop.
-2. **A nightly investigator** — a job that decides on its own what is worth
-   looking into, chains several tool calls, and writes the report. Nobody asks
-   it a question; it forms its own plan. This also produces the daily summaries
-   that §3.6 depends on, so it earns its place twice.
-
-When describing the project, prefer precision over the label. "Tool-calling
-query layer with a self-correcting loop and an autonomous nightly anomaly
-reporter" says considerably more than "agent", and it survives the follow-up
-question "what did it decide autonomously?".
+Avoid unconstrained autonomous planning ("an agent forming its own nocturnal investigation plan"),
+which invites hallucinations and non-deterministic behavior on tabular data.
 
 ---
 
@@ -445,8 +440,11 @@ Each of these was considered and ruled out for a stated reason.
 | **Free-form text-to-SQL** | Loses safety, reliability, testability and the access-control boundary. Typed tools instead. |
 | **Letting the LLM produce numbers** | Counts and aggregates come from SQL. The model narrates. |
 | **LLM as notification trigger** | Latency, cost, non-determinism. Deterministic rules engine fires; the model only phrases. |
+| **Embedding daily prose summaries for temporal search (Ponytail)** | `GROUP BY` and standard deviation aggregates in SQL compute trends and outliers instantly, deterministically and free of charge. Generating and embedding daily prose is unnecessary overhead. |
+| **pgvector for operational notes (Ponytail)** | The corpus is a few dozen notes at most. PostgreSQL Full-Text Search (`tsvector`) or `ILIKE` satisfies all retrieval needs with 0 extra dependencies. |
+| **Complex multi-way semantic router (Ponytail)** | Standard typed tool-calling with prompt enum guardrails handles tool selection directly. |
 | **Forking the CILEKAI repo as a base** | Inheriting its structure bends this problem into a document-retrieval shape. Copy deliberately, file by file, into a new repo instead — every line that comes over should be a decision, not an inheritance. |
-| **CILEKAI's retrieval stack** (BM25 + RRF + cross-encoder reranker, dual Qdrant+FAISS store, mtime/SHA-256 incremental indexing, semantic cache) | Built for thousands of documents and hundreds of users. Here the corpus is a few hundred procedure docs plus daily summaries, and the query volume is tens per day. `pgvector` in the existing Postgres is sufficient. |
+| **CILEKAI's retrieval stack** (BM25 + RRF + cross-encoder reranker, dual Qdrant+FAISS store, mtime/SHA-256 incremental indexing, semantic cache) | Built for thousands of documents and hundreds of users. Not needed here. |
 | **Self-hosting the LLM on a cheap VPS** | CPU inference unusable; GPU VPS is 10–20× API cost at this volume. |
 | **Controlling the barrier in v1** | A read error in a read-only system is a bad log row. In a barrier-controlling system it is a guest stuck at the gate or an unauthorised entry. Run read-only until field accuracy is proven. |
 | **Buying a Jetson before development** | It answers one question (FPS at INT8) that can be estimated; INT8 accuracy loss is measurable on the local GPU. |

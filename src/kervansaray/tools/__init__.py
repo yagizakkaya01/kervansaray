@@ -12,17 +12,14 @@ uzerine eklenir.
 from __future__ import annotations
 
 from .anomalies import RULES, find_anomalies
+from .dispatcher import TOOLS, dispatch_tool
 from .events import aggregate_events, query_events
+from .schemas import (
+    FUNCTION_DECLARATIONS,
+    GEMINI_FUNCTION_DECLARATIONS,
+)
 from .types import MAX_ROWS, ToolResult
 from .vehicles import occupancy, vehicle_history
-
-TOOLS = {
-    "query_events": query_events,
-    "aggregate_events": aggregate_events,
-    "vehicle_history": vehicle_history,
-    "find_anomalies": find_anomalies,
-    "occupancy": occupancy,
-}
 
 __all__ = [
     "TOOLS",
@@ -34,4 +31,7 @@ __all__ = [
     "vehicle_history",
     "find_anomalies",
     "occupancy",
+    "dispatch_tool",
+    "FUNCTION_DECLARATIONS",
+    "GEMINI_FUNCTION_DECLARATIONS",
 ]

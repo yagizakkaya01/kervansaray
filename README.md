@@ -34,17 +34,16 @@ kervansaray/
   Dockerfile / Makefile / .env.example
   src/kervansaray/
     config.py                   pydantic-settings (CILEKAI deseni)
-    logging.py                  yapilandirilmis konsol + dosya logu
+    logging.py                  Python standart konsol + dosya loglamasi
     observability.py            Prometheus metrikleri + Flask entegrasyonu
     events/schema.py            EventV1 - olay sozlesmesi (S6)
     db/                         SQLAlchemy: engine, Base, models (S7)
     ingest/                     reconcile (plaka), sessions (turetme), service
     api/                        Flask app factory + POST/GET /events + /healthz
     wsgi.py                     gunicorn girisi
-    synth/                      deterministik sentetik uretici: populasyon +
-                                ritim + kir/anomali enjeksiyonu (S8)
+    synth/                      deterministik sentetik uretici: generator + population + dirt (S8)
     llm/                        saglayici fallback zinciri (groq/gemini/openai)
-    text/                       turkish_lower, plaka kanoniklestirme (S4.1),
+    text/                       turkish_lower (stdlib), plaka kanoniklestirme (S4.1),
                                 bounded fuzzy - edit-distance 1 asla oto-kabul (S3.8)
   scripts/synth.py              sentetik veri CLI (--seed-db / --post / --out)
 ```
