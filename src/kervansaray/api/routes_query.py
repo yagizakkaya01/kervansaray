@@ -9,8 +9,10 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 
+from kervansaray.api.rate_limit import limiter
 from kervansaray.db import session_scope
-from kervansaray.query_pipeline import run_query
+from kervansaray.query_pipeline import query_cache, run_query
+from kervansaray.text.turkish import to_ascii
 
 bp = Blueprint("query", __name__, url_prefix="/api")
 
@@ -44,6 +46,20 @@ def post_query():
             return jsonify({"error": f"Geçersiz 'as_of' ISO formatı: {as_of_raw}"}), 400
 
     use_cache = bool(body.get("use_cache", True))
+
+    # Önbellekte bulunan (hazır çip/senaryo) sorgular kota harcamaz (0ms, $0 maliyet).
+    cache_ref = as_of.isoformat() if as_of else "now"
+    cache_key = f"{to_ascii(query_text.lower())}:{cache_ref}"
+    is_cached = use_cache and (query_cache.get(cache_key) is not None)
+
+    if not is_cached:
+        raw_ip = request.headers.get(
+            "X-Forwarded-For", request.headers.get("X-Real-IP", request.remote_addr or "127.0.0.1")
+        )
+        client_ip = raw_ip.split(",")[0].strip()
+        allowed, err_msg = limiter.is_allowed(client_ip)
+        if not allowed:
+            return jsonify({"error": err_msg}), 429
 
     with session_scope() as db:
         res = run_query(query_text, db, as_of=as_of, use_cache=use_cache)
