@@ -34,6 +34,9 @@ def test_gemini_text_response():
         assert res["response"] == "Otoparkta su an 12 arac var."
         assert res["function_call"] is None
         assert res["provider"] == "gemini"
+        call_args = mock_session.post.call_args
+        assert call_args.kwargs["headers"]["x-goog-api-key"] == "test-key"
+        assert "key=" not in call_args.args[0]
 
 
 def test_gemini_function_call_response():
@@ -68,3 +71,6 @@ def test_gemini_function_call_response():
         assert res["response"] is None
         assert res["function_call"] == {"name": "occupancy", "args": {}}
         assert res["provider"] == "gemini"
+        call_args = mock_session.post.call_args
+        assert call_args.kwargs["headers"]["x-goog-api-key"] == "test-key"
+        assert "key=" not in call_args.args[0]

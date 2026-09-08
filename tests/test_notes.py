@@ -48,6 +48,21 @@ def test_search_notes_sql_building():
     assert params["limit"] == 5
 
 
+def test_search_notes_wildcard_escaping():
+    mock_db = MagicMock()
+    mock_result = MagicMock()
+    mock_result.mappings.return_value.all.return_value = []
+    mock_db.execute.return_value = mock_result
+
+    search_notes(mock_db, query="100%_guvenlik\\test", author="admin_%")
+    call_args = mock_db.execute.call_args
+    assert call_args is not None
+    _, params = call_args[0]
+    assert params["term"] == r"%100\%\_guvenlik\\test%"
+    assert params["author"] == r"%admin\_\%%"
+
+
+
 def test_dispatch_search_notes():
     mock_db = MagicMock()
     # 1. Başarılı dispatch

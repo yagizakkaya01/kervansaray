@@ -15,6 +15,9 @@ from kervansaray.query_pipeline import run_query
 bp = Blueprint("query", __name__, url_prefix="/api")
 
 
+MAX_QUERY_LENGTH = 500
+
+
 @bp.post("/query")
 def post_query():
     body = request.get_json(silent=True)
@@ -24,6 +27,13 @@ def post_query():
     query_text = (body.get("query") or "").strip()
     if not query_text:
         return jsonify({"error": "Sorgu metni ('query') boş olamaz."}), 400
+    if len(query_text) > MAX_QUERY_LENGTH:
+        return jsonify({
+            "error": (
+                f"Sorgu metni çok uzun (en fazla {MAX_QUERY_LENGTH} "
+                f"karakter, gelen: {len(query_text)})."
+            )
+        }), 400
 
     as_of = None
     as_of_raw = body.get("as_of")

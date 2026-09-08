@@ -14,6 +14,11 @@ DEFAULT_LIMIT = 10
 MAX_LIMIT = 50
 
 
+def _escape_ilike(val: str) -> str:
+    """Postgres ILIKE özel karakterlerini (\\, %, _) kaçırır."""
+    return val.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 def search_notes(
     db: DbSession,
     *,
@@ -26,11 +31,11 @@ def search_notes(
     limit_val = min(max(1, limit), MAX_LIMIT)
 
     clauses = ["(body ILIKE :term OR author ILIKE :term)"]
-    params: dict[str, object] = {"term": f"%{clean_q}%", "limit": limit_val}
+    params: dict[str, object] = {"term": f"%{_escape_ilike(clean_q)}%", "limit": limit_val}
 
     if author and author.strip():
         clauses.append("author ILIKE :author")
-        params["author"] = f"%{author.strip()}%"
+        params["author"] = f"%{_escape_ilike(author.strip())}%"
 
     where_sql = " AND ".join(clauses)
     sql = text(

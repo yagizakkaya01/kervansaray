@@ -48,7 +48,8 @@ def generate(
     if not settings.GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY eksik")
 
-    url = f"{_BASE}/{settings.GEMINI_MODEL}:generateContent?key={settings.GEMINI_API_KEY}"
+    url = f"{_BASE}/{settings.GEMINI_MODEL}:generateContent"
+    headers = {"x-goog-api-key": settings.GEMINI_API_KEY}
 
     full_instruction = system_instruction or ""
     if few_shots and "ÖRNEKLER:" not in full_instruction:
@@ -80,7 +81,7 @@ def generate(
         else:
             body["tools"] = tools
 
-    r = _session().post(url, json=body, timeout=settings.LLM_REQUEST_TIMEOUT)
+    r = _session().post(url, headers=headers, json=body, timeout=settings.LLM_REQUEST_TIMEOUT)
     if r.status_code != 200:
         raise RuntimeError(f"Gemini {r.status_code}: {r.text[:250]}")
 

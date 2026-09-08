@@ -12,8 +12,6 @@ from eval import runner
 from eval.gold import GOLD, categories
 
 from kervansaray.db.views import rebuild_schema
-from kervansaray.ingest import ingest_event
-from kervansaray.synth.population import persist
 
 
 def test_gold_set_is_wellformed():
@@ -45,16 +43,9 @@ def test_checked_in_gold_set_matches_rebuild():
 def loaded_eval_db(engine):
     rebuild_schema(engine)
     from kervansaray.db import sessionmaker_for
-    from tests._helpers import seed_notes
 
-    scenario = gold_build.build_scenario()
     s = sessionmaker_for(engine)()
-    persist(s, scenario.population)
-    s.flush()
-    for payload in scenario.payloads():
-        ingest_event(s, payload)
-    seed_notes(s)
-    s.commit()
+    gold_build.seed_eval_db(s)
     try:
         yield s
     finally:

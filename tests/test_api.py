@@ -121,3 +121,18 @@ def test_get_index_serves_frontend():
     assert "query-input" in r.get_data(as_text=True)
 
 
+def test_post_query_length_limit():
+    from kervansaray.api import create_app
+
+    app = create_app()
+    app.config["TESTING"] = True
+    c = app.test_client()
+
+    # 501 karakterlik asiri uzun sorgu -> 400
+    long_query = "a" * 501
+    r = c.post("/api/query", json={"query": long_query})
+    assert r.status_code == 400
+    assert "çok uzun" in r.get_json()["error"]
+
+
+

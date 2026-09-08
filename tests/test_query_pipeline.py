@@ -127,7 +127,7 @@ def test_llm_exception_handled():
 
     res = run_query("Dün kaç araç girdi?", db, client=mock_client)
     assert res["status"] == "error"
-    assert "API baglanti hatasi" in res["narrative"]
+    assert "Dil modeli sorguyu işlerken bir servis veya bağlantı hatası oluştu" in res["narrative"]
     assert res["tool_call"] is None
 
 
@@ -243,3 +243,18 @@ def test_search_notes_pipeline_flow():
         assert res["status"] == "success"
         assert res["tool_call"]["name"] == "search_notes"
         assert "'VIP' ile ilgili 1 adet not bulundu" in res["narrative"]
+
+
+def test_query_pipeline_error_does_not_leak_internals():
+    db = MagicMock()
+    mock_client = MagicMock()
+    mock_client.generate.side_effect = RuntimeError(
+        "ConnectionError: https://generativelanguage.googleapis.com/...key=SECRET_LEAK"
+    )
+
+    res = run_query("Otoparkta kaç araç var?", db, client=mock_client)
+    assert res["status"] == "error"
+    assert "SECRET_LEAK" not in res["narrative"]
+    assert "ConnectionError" not in res["narrative"]
+    assert "Dil modeli sorguyu işlerken bir servis veya bağlantı hatası oluştu" in res["narrative"]
+

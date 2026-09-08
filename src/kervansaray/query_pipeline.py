@@ -221,7 +221,10 @@ def run_query(
             "provider": prov_name,
             "tool_call": None,
             "tool_result": None,
-            "narrative": f"Dil modeli sorguyu işleyemedi: {exc}",
+            "narrative": (
+                "Dil modeli sorguyu işlerken bir servis veya bağlantı hatası oluştu. "
+                "Lütfen tekrar deneyin."
+            ),
             "cached": False,
             "elapsed_seconds": round(perf_counter() - t0, 3),
         }

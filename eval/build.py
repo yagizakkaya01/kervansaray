@@ -25,6 +25,25 @@ def build_scenario() -> Scenario:
     return generate(seed=GOLD_SEED, start=GOLD_START, days=GOLD_DAYS, size=GOLD_SIZE)
 
 
+def seed_eval_db(session, scenario: Scenario | None = None) -> Scenario:
+    """Altın set ve eval değerlendirmesi için veritabanını sabit sentetik verilerle doldurur."""
+    from kervansaray.db.models import Note
+    from kervansaray.ingest import ingest_event
+    from kervansaray.synth.notes import get_synthetic_notes
+    from kervansaray.synth.population import persist
+
+    if scenario is None:
+        scenario = build_scenario()
+    persist(session, scenario.population)
+    session.flush()
+    for payload in scenario.payloads():
+        ingest_event(session, payload)
+    notes = [Note(**n) for n in get_synthetic_notes()]
+    session.add_all(notes)
+    session.commit()
+    return scenario
+
+
 def _resolve_plate(scenario: Scenario, ref: str) -> str:
     kind, _, rest = ref.partition(":")
     if kind == "manifest":

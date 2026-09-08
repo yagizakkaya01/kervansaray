@@ -1,6 +1,6 @@
 """LLM istemci katmanı.
 
-Aktif sağlayıcı: Gemini 2.0 Flash (`gemini_client`).
+Aktif sağlayıcı: Google Gemini Flash (`gemini_client`, varsayılan model: `gemini-3.8-flash`).
 OpenAI/Groq Function Calling istemcileri ilgili API anahtarları tanımlandığında
 `OPENAI_TOOLS` şeması üzerinden bağlanacaktır.
 """

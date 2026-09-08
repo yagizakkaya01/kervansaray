@@ -16,8 +16,6 @@ from sqlalchemy.exc import OperationalError
 
 from kervansaray.db import get_engine, sessionmaker_for
 from kervansaray.db.views import rebuild_schema
-from kervansaray.ingest import ingest_event
-from kervansaray.synth.population import persist
 
 from . import build as gold_build
 from . import runner
@@ -37,14 +35,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     rebuild_schema(engine)
-    scenario = gold_build.build_scenario()
     session = sessionmaker_for(engine)()
     try:
-        persist(session, scenario.population)
-        session.flush()
-        for payload in scenario.payloads():
-            ingest_event(session, payload)
-        session.commit()
+        gold_build.seed_eval_db(session)
         with_llm = "--llm" in argv
         result = runner.run(session, with_llm=with_llm)
     finally:
