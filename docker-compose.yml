@@ -26,6 +26,12 @@ services:
       - ./alembic:/app/alembic
       - ./scripts:/app/scripts
       - ./logs:/app/logs
+    networks:
+      # default: kervansaray_app <-> kervansaray_db
+      - default
+      # portfolio_default: portfolio-caddy-1 bu agdan kervansaray_app:8000'e
+      # ters proxy yapiyor (ayri subdomain/DNS yok, ayni domain path bazli).
+      - portfolio_default
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/healthz || exit 1"]
       interval: 10s
@@ -57,3 +63,8 @@ services:
 
 volumes:
   kervansaray_db:
+
+networks:
+  # portfolio projesinin (docker-compose) olusturdugu ag; Caddy burada.
+  portfolio_default:
+    external: true
