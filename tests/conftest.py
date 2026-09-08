@@ -70,3 +70,12 @@ def client(engine):
     app.config.update(TESTING=True)
     with app.test_client() as c:
         yield c
+
+
+@pytest.fixture(autouse=True)
+def enable_operator_routes_for_tests(monkeypatch):
+    """Testlerde varsayılan olarak operatör ve yazma rotalarını etkinleştirir."""
+    from kervansaray.config import settings
+
+    monkeypatch.setattr(settings, "ENABLE_OPERATOR_ROUTES", True)
+

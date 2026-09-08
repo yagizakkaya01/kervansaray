@@ -11,6 +11,7 @@ from __future__ import annotations
 from flask import Blueprint, jsonify, request
 from sqlalchemy import select
 
+from kervansaray.api.helpers import parse_limit
 from kervansaray.db import session_scope
 from kervansaray.db.models import Event, MatchStatus
 from kervansaray.logging import log
@@ -18,20 +19,11 @@ from kervansaray.logging import log
 bp = Blueprint("review", __name__, url_prefix="/api/review")
 
 
-def _parse_limit(raw: str | None, default: int = 50, max_limit: int = 100) -> int:
-    if raw is None:
-        return default
-    val = int(raw)
-    if val <= 0:
-        raise ValueError("limit must be positive")
-    return min(val, max_limit)
-
-
 @bp.get("")
 def list_pending():
     """Operatör onayı bekleyen bulanık plaka olaylarını listeler."""
     try:
-        limit = _parse_limit(request.args.get("limit"))
+        limit = parse_limit(request.args.get("limit"))
     except ValueError:
         return jsonify({"error": "gecersiz limit parametresi"}), 400
     with session_scope() as db:

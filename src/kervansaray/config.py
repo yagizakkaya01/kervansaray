@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     # --- Sunucu ---
     HOST: str = "0.0.0.0"
     PORT: int = 8000
-    # False ise public read-only demo (onay kuyrugu ve ingest kapali)
-    ENABLE_OPERATOR_ROUTES: bool = True
+    # False ise public read-only demo (onay kuyrugu ve ingest kapali, fail-closed)
+    ENABLE_OPERATOR_ROUTES: bool = False
 
 
     # --- Veritabani ---

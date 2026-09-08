@@ -10,25 +10,17 @@ import queue
 
 from flask import Blueprint, Response, jsonify, request
 
+from kervansaray.api.helpers import parse_limit
 from kervansaray.notifications import broker
 
 bp = Blueprint("notifications", __name__, url_prefix="/api/notifications")
-
-
-def _parse_limit(raw: str | None, default: int = 50, max_limit: int = 100) -> int:
-    if raw is None:
-        return default
-    val = int(raw)
-    if val <= 0:
-        raise ValueError("limit must be positive")
-    return min(val, max_limit)
 
 
 @bp.get("")
 def list_notifications():
     """Son bildirimlerin listesini JSON olarak döner."""
     try:
-        limit = _parse_limit(request.args.get("limit"))
+        limit = parse_limit(request.args.get("limit"))
     except ValueError:
         return jsonify({"error": "gecersiz limit parametresi"}), 400
     items = broker.get_recent(limit=limit)
