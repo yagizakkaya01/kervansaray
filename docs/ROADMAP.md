@@ -379,10 +379,11 @@ aksiyonu yok.
   önceden doğrulanmış sonuç doğrudan döner (0ms gecikme, $0 LLM maliyeti).
 - Serbest metin sorularında **IP başına sıkı rate limit** (dakikada 3, günde 15 soru).
 - LLM API anahtarında **günlük/aylık sert bütçe tavanı**.
-- **Yanıt başına max token** tavanı.
-- **Kapsam sınırlayıcı system prompt**: otopark verisi dışı sorular reddedilir.
-- **Açık Takip Notu (Rate Limit & Harcama Tavanı)**: Uzunluk tavanı (500 karakter) ve response cache devrededir; IP başına katı rate limit ve LLM harcama tavanı endpoint public erişime açılmadan önce devreye alınacaktır.
+- **Yanıt başına max token** tavanı (Faz 4'ten gelir).
+- **Kapsam sınırlayıcı system prompt** (Faz 4'ten gelir): otopark verisi dışı
+  sorular reddedilir, ve bunun testi vardır. Ziyaretçilerin deneyeceği **ilk
   şey** budur; tesadüfe bırakılamaz.
+- **Açık Takip Notu (Rate Limit & Harcama Tavanı)**: Uzunluk tavanı (500 karakter) ve response cache devrededir; IP başına katı rate limit ve LLM harcama tavanı endpoint public erişime açılmadan önce devreye alınacaktır.
 
 **Çıkış:** tanımadığın biri URL'yi açıyor, önerilen bir soruya tıklıyor ve
 cevabı, tool çağrısını ve sonuç tablosunu görüyor.
