@@ -23,7 +23,7 @@ def test_gold_set_is_wellformed():
     tools = {q.tool for q in GOLD}
     assert tools == {
         "aggregate_events", "query_events", "vehicle_history",
-        "find_anomalies", "occupancy", "decline",
+        "find_anomalies", "occupancy", "decline", "search_notes",
     }
     cats = categories()
     assert cats["decline"] >= 3  # guardrail sorulari
@@ -45,6 +45,7 @@ def test_checked_in_gold_set_matches_rebuild():
 def loaded_eval_db(engine):
     rebuild_schema(engine)
     from kervansaray.db import sessionmaker_for
+    from tests._helpers import seed_notes
 
     scenario = gold_build.build_scenario()
     s = sessionmaker_for(engine)()
@@ -52,6 +53,7 @@ def loaded_eval_db(engine):
     s.flush()
     for payload in scenario.payloads():
         ingest_event(s, payload)
+    seed_notes(s)
     s.commit()
     try:
         yield s

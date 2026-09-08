@@ -37,6 +37,7 @@ from .generator import (
     unique_plates,
     write_jsonl,
 )
+from .notes import OPERATIONAL_NOTES, get_synthetic_notes
 from .population import (
     GUEST_SHARE,
     N_SYNTHETIC,
@@ -76,6 +77,8 @@ __all__ = [
     "GenEvent",
     "MODEL_VERSION",
     "N_SYNTHETIC",
+    "OPERATIONAL_NOTES",
+    "get_synthetic_notes",
     "PLATE_LETTERS",
     "Population",
     "PostStats",

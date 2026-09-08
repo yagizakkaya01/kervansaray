@@ -283,6 +283,14 @@ yerine Postgres yerel yetenekleri:
 
 **Çıkış:** not arama ve anomali soruları altın sette eksiksiz doğrulanıyor.
 
+**Durum (2026-09-08):** ✅ tamamlandı.
+- `src/kervansaray/tools/notes.py`: `search_notes` aracı eklendi (PostgreSQL yerel `ILIKE` ile serbest metin ve yazar araması, sıfır harici embedding bağımlılığı).
+- `src/kervansaray/synth/notes.py`: 15 adet yüksek sinyalli deterministik operasyonel ve prosedür notu eklendi.
+- `src/kervansaray/reports/bulletin.py`: `generate_nightly_bulletin` gece anomali tarayıcısı ve sabah güvenlik bülteni üreteci eklendi (`find_anomalies` + Gemini / Ponytail deterministik fallback).
+- **Entegrasyon**: `schemas.py` (6 fonksiyon), `dispatcher.py`, `prompts.py` (kural 6 + few-shots), `query_pipeline.py` ve web arayüzü (`index.html`) çipi bağlandı.
+- **Teknik Borç Temizliği**: `pgvector` bağımlılığı tamamen kaldırıldı, `DailySummary` ORM tablosu silindi, Docker imajı `postgres:16-alpine` yapıldı.
+- Testler: Toplam 75 test yeşil (`test_notes`, `test_bulletin`, `test_tool_schemas`, `test_gold_set` güncel), ruff sıfır hata.
+
 ---
 
 ## Faz 7 — Bildirimler · 1 hafta

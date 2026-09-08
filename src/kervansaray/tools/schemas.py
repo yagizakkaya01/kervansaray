@@ -194,6 +194,34 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
             },
         },
     },
+    {
+        "name": "search_notes",
+        "description": (
+            "Vardiya notları, güvenlik raporları, teknik arızalar, VIP protokolleri "
+            "ve operasyonel prosedür metinlerinde serbest metin araması yapar."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": (
+                        "Aranacak anahtar kelime veya serbest metin "
+                        "(örn: 'bariyer', 'VIP', 'arıza', '38HE907')."
+                    ),
+                },
+                "author": {
+                    "type": "string",
+                    "description": "İsteğe bağlı: notu yazan kişi/rol (örn: 'güvenlik', 'teknik').",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maksimum sonuç sayısı (1-50 arası, varsayılan 10).",
+                },
+            },
+            "required": ["query"],
+        },
+    },
 ]
 
 # Gemini formatı: {"function_declarations": [...]}

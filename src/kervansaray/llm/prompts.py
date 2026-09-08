@@ -21,11 +21,13 @@ TEMEL KURALLAR:
    `find_anomalies` aracını çağır.
 5. "Şu an içeride kaç araç var?", "Otopark doluluğu nedir?" gibi anlık durum sorularında
    `occupancy` aracını çağır.
-6. KAPSAM SINIRI: Otopark, araç, plaka, geçiş, kişi ve kayıt konusu DIŞINDAKİ tüm soruları
-   (hava durumu, genel sohbet, otel oda fiyatı, yemek vb.) HİÇBİR ARAÇ ÇAĞIRMADAN doğrudan
-   '[DECLINED]' ile başlayarak reddet:
+6. Vardiya notları, güvenlik raporları, teknik arızalar veya operasyonel prosedürler
+   sorulduğunda `search_notes` aracını çağır.
+7. KAPSAM SINIRI: Otopark, araç, plaka, geçiş, kişi, kayıt ve operasyonel not konusu
+   DIŞINDAKİ tüm soruları (hava durumu, genel sohbet, otel oda fiyatı, yemek vb.)
+   HİÇBİR ARAÇ ÇAĞIRMADAN doğrudan '[DECLINED]' ile başlayarak reddet:
    "[DECLINED] Bu soru otopark ve araç hareketleri kapsamı dışındadır."
-7. Tarih ve saat parametrelerini DAİMA geçerli ISO 8601 formatında
+8. Tarih ve saat parametrelerini DAİMA geçerli ISO 8601 formatında
    (Türkiye saati UTC+3, örn: '2026-04-15T00:00:00+03:00') ver.
 
 SİSTEM REFERANS BİLGİSİ:
@@ -124,6 +126,24 @@ FEW_SHOT_EXAMPLES = [
         "tool_call": {
             "name": "occupancy",
             "args": {},
+        },
+    },
+    {
+        "question": "VIP misafir araçları için geçerli prosedür nedir?",
+        "tool_call": {
+            "name": "search_notes",
+            "args": {
+                "query": "VIP",
+            },
+        },
+    },
+    {
+        "question": "Bariyer arızası veya bakım hakkında herhangi bir not var mı?",
+        "tool_call": {
+            "name": "search_notes",
+            "args": {
+                "query": "bariyer",
+            },
         },
     },
     {

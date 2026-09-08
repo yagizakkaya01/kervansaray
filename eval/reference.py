@@ -216,6 +216,18 @@ def _replay_occupancy(scenario: Scenario, *, as_of: datetime | None) -> int:
     return len(inside)
 
 
+def _search_notes(scenario, p):
+    from kervansaray.synth.notes import get_synthetic_notes
+
+    q = p["query"].lower()
+    matches = [
+        n
+        for n in get_synthetic_notes()
+        if q in str(n["body"]).lower() or q in str(n["author"]).lower()
+    ]
+    return {"count": len(matches)}
+
+
 _DISPATCH = {
     "count": _count,
     "count_registered": _count_registered,
@@ -231,4 +243,5 @@ _DISPATCH = {
     "occupancy_now": _occupancy_now,
     "occupancy_asof": _occupancy_asof,
     "decline": _decline,
+    "search_notes": _search_notes,
 }

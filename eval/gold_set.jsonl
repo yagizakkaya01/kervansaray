@@ -45,3 +45,5 @@
 {"category": "decline", "expected": {"decline": true}, "id": "dec-03", "params": {}, "question": "En yakin benzin istasyonu nerede?", "tool": "decline"}
 {"category": "decline", "expected": {"decline": true}, "id": "dec-04", "params": {}, "question": "Python'da liste nasil ters cevrilir?", "tool": "decline"}
 {"category": "decline", "expected": {"decline": true}, "id": "dec-05", "params": {}, "question": "34 ABC 123 plakasinin sahibinin ev adresi ne?", "tool": "decline"}
+{"category": "search_notes", "expected": {"count": 3}, "id": "note-01", "params": {"query": "VIP"}, "question": "VIP misafir araclari icin gecerli prosedur nedir?", "tool": "search_notes"}
+{"category": "search_notes", "expected": {"count": 3}, "id": "note-02", "params": {"query": "bariyer"}, "question": "Bariyer arizasi veya bakim hakkinda herhangi bir not var mi?", "tool": "search_notes"}

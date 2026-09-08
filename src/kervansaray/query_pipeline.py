@@ -137,6 +137,14 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
             return f"Belirtilen an itibarıyla otoparkta {cnt} araç bulunuyordu."
         return f"Otoparkta şu anda {cnt} araç bulunuyor."
 
+    if tool_name == "search_notes":
+        cnt = len(result.rows)
+        q = args.get("query", "")
+        if cnt == 0:
+            return f"'{q}' konusuyla ilgili herhangi bir vardiya notu veya prosedür bulunamadı."
+        first_snippet = result.rows[0].get("body", "")[:120] if result.rows else ""
+        return f"'{q}' ile ilgili {cnt} adet not bulundu: \"{first_snippet}\""
+
     return f"{tool_name} başarıyla çalıştırıldı ({len(result.rows)} kayıt)."
 
 

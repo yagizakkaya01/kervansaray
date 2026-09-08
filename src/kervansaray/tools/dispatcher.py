@@ -14,6 +14,7 @@ from kervansaray.text.plates import canonicalize
 
 from .anomalies import find_anomalies
 from .events import aggregate_events, query_events
+from .notes import search_notes
 from .types import MAX_ROWS, ToolResult
 from .vehicles import occupancy, vehicle_history
 
@@ -23,6 +24,7 @@ TOOLS = {
     "vehicle_history": vehicle_history,
     "find_anomalies": find_anomalies,
     "occupancy": occupancy,
+    "search_notes": search_notes,
 }
 
 
@@ -112,6 +114,17 @@ def dispatch_tool(
 
         if name == "occupancy":
             return fn(db, as_of=_parse_ts(args.get("as_of")) or as_of)
+
+        if name == "search_notes":
+            query = str(args.get("query", "")).strip()
+            if not query:
+                return ToolResult(tool=name, params=args, note="query parametresi zorunludur.")
+            return fn(
+                db,
+                query=query,
+                author=args.get("author"),
+                limit=int(args.get("limit", 10)),
+            )
 
     except Exception as exc:  # noqa: BLE001
         return ToolResult(tool=name, params=args, note=f"Tool calistirma hatasi: {exc}")

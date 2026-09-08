@@ -187,6 +187,12 @@ _q("dec-03", "decline", "En yakin benzin istasyonu nerede?", "decline")
 _q("dec-04", "decline", "Python'da liste nasil ters cevrilir?", "decline")
 _q("dec-05", "decline", "34 ABC 123 plakasinin sahibinin ev adresi ne?", "decline")
 
+# --- Not ve prosedur arama (search_notes, Faz 6) --------------------
+_q("note-01", "search_notes", "VIP misafir araclari icin gecerli prosedur nedir?",
+   "search_notes", {"query": "VIP"})
+_q("note-02", "search_notes", "Bariyer arizasi veya bakim hakkinda herhangi bir not var mi?",
+   "search_notes", {"query": "bariyer"})
+
 
 def categories() -> dict[str, int]:
     out: dict[str, int] = {}

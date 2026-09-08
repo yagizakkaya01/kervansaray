@@ -214,3 +214,32 @@ def test_run_query_caching_integration():
         )
         assert res3["cached"] is False
         assert mock_client.generate.call_count == 2
+
+
+def test_search_notes_pipeline_flow():
+    db = MagicMock()
+    mock_client = MagicMock()
+    mock_client.generate.return_value = {
+        "function_call": {
+            "name": "search_notes",
+            "args": {"query": "VIP"},
+        },
+        "response": None,
+        "provider": "gemini",
+    }
+
+    with patch("kervansaray.query_pipeline.dispatch_tool") as mock_dispatch:
+        mock_dispatch.return_value = ToolResult(
+            tool="search_notes",
+            params={"query": "VIP"},
+            rows=[{
+                "id": 1,
+                "author": "Yönetim",
+                "body": "VIP misafir araçları Doğu Otoparkına alınır.",
+            }],
+        )
+
+        res = run_query("VIP araç prosedürü nedir?", db, client=mock_client)
+        assert res["status"] == "success"
+        assert res["tool_call"]["name"] == "search_notes"
+        assert "'VIP' ile ilgili 1 adet not bulundu" in res["narrative"]

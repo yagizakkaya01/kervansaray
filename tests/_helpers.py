@@ -101,3 +101,14 @@ def load_scenario(db, scenario) -> None:
     for payload in scenario.payloads():
         ingest_event(db, payload)
     db.commit()
+
+
+def seed_notes(db) -> list:
+    """Sentetik operasyonel notlari DB'ye yukler."""
+    from kervansaray.db.models import Note
+    from kervansaray.synth.notes import get_synthetic_notes
+
+    notes = [Note(**n) for n in get_synthetic_notes()]
+    db.add_all(notes)
+    db.commit()
+    return notes

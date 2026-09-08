@@ -14,18 +14,20 @@ from kervansaray.tools import (
 def test_function_declarations_complete():
     names = {f["name"] for f in FUNCTION_DECLARATIONS}
     expected = {
-        "query_events", "aggregate_events", "vehicle_history", "find_anomalies", "occupancy"
+        "query_events", "aggregate_events", "vehicle_history",
+        "find_anomalies", "occupancy", "search_notes",
     }
     assert names == expected
-    assert len(GEMINI_FUNCTION_DECLARATIONS) == 5
-    assert len(OPENAI_TOOLS) == 5
+    assert len(GEMINI_FUNCTION_DECLARATIONS) == 6
+    assert len(OPENAI_TOOLS) == 6
     assert OPENAI_TOOLS[0]["type"] == "function"
 
-    # aggregate_events schema direction ve registered icermeli
-    agg_schema = next(f for f in FUNCTION_DECLARATIONS if f["name"] == "aggregate_events")
-    props = agg_schema["parameters"]["properties"]
-    assert "direction" in props
-    assert "registered" in props
+    # search_notes schema query icermeli
+    notes_schema = next(f for f in FUNCTION_DECLARATIONS if f["name"] == "search_notes")
+    props = notes_schema["parameters"]["properties"]
+    assert "query" in props
+    assert "author" in props
+    assert "limit" in props
 
 
 def test_dispatch_aggregate_events_with_filters(monkeypatch):

@@ -14,6 +14,7 @@ from __future__ import annotations
 from .anomalies import RULES, find_anomalies
 from .dispatcher import TOOLS, dispatch_tool
 from .events import aggregate_events, query_events
+from .notes import search_notes
 from .schemas import (
     FUNCTION_DECLARATIONS,
     GEMINI_FUNCTION_DECLARATIONS,
@@ -32,6 +33,7 @@ __all__ = [
     "vehicle_history",
     "find_anomalies",
     "occupancy",
+    "search_notes",
     "dispatch_tool",
     "FUNCTION_DECLARATIONS",
     "GEMINI_FUNCTION_DECLARATIONS",

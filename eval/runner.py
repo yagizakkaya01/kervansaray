@@ -93,6 +93,8 @@ def _normalise(category: str, expected: dict, result) -> tuple:
     if category == "overstay":
         act_plates = {row["plate"] for row in r.rows}
         return expected["contains_plate"] in act_plates, True
+    if category == "search_notes":
+        return expected["count"], len(r.rows)
     raise ValueError(f"normalise: bilinmeyen kategori {category}")
 
 
