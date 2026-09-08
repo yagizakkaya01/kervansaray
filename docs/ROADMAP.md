@@ -261,7 +261,8 @@ belirlendi; `eval/gold_set.jsonl`'deki tüm sorular (kapsam dışı ret dahil) y
 - `eval/runner.py` & `eval/__main__.py`: `--llm` bayrağı eklendi; modelin tool seçimi ve 5 guardrail ret (`decline`) sorusu değerlendirme döngüsüne bağlandı.
 - **Ponytail Temizliği**: Kullanılmayan text-only `groq_client.py` ve `openai_client.py` ile `generate_with_fallback` silindi. `requirements.txt`'den `groq` ve `openai` kaldırıldı. `logging.py` içindeki hayalet logger'lar temizlendi.
 - **Gözlemlenebilirlik**: `LLM_REQUESTS` ve `LLM_LATENCY` sayaçları `query_pipeline.py`'deki gerçek `llm.generate` çağrısına bağlandı.
-- Testler: Toplam 75 test yeşil (36 db-bağımlı test skip), ruff sıfır hata.
+- **Açık Takip Notu (Decline / Canlı Karşılaştırma)**: `eval/runner --llm` altyapısı ve decline tespiti hazır; CI ortamında dış API anahtarı tutulmadığından canlı model değerlendirmesi ve sağlayıcı doğruluk karşılaştırması yerel/manuel tetikleme olarak takip listesinde.
+- Testler: Toplam 78 test yeşil (36 db-bağımlı test skip), ruff sıfır hata.
 
 ---
 
@@ -345,6 +346,7 @@ Demo'nun üstünde duracağı zemin.
 - Query katmanının dokunduğu her şey için **read-only DB kullanıcısı**.
 - Secrets env üzerinden. **LLM API anahtarı yalnızca sunucuda bulunur**.
 - Sunucuda GPU yok; hiçbir serviste model inference'ı çalışmaz.
+- **Açık Takip Notu (Migration Disiplini)**: İlk şema VPS'e kurulduktan sonra `0001_initial_schema`'nın yerinde düzenlenmesi yolu kesin olarak kapanır; sonraki her şema adımı için sıralı `0002_*` Alembic migration disiplinine geçilecektir.
 
 **Çıkış:** temiz bir checkout'tan `docker compose up` stack'i sunucuda
 yeniden üretiyor.
@@ -379,6 +381,7 @@ aksiyonu yok.
 - LLM API anahtarında **günlük/aylık sert bütçe tavanı**.
 - **Yanıt başına max token** tavanı.
 - **Kapsam sınırlayıcı system prompt**: otopark verisi dışı sorular reddedilir.
+- **Açık Takip Notu (Rate Limit & Harcama Tavanı)**: Uzunluk tavanı (500 karakter) ve response cache devrededir; IP başına katı rate limit ve LLM harcama tavanı endpoint public erişime açılmadan önce devreye alınacaktır.
   şey** budur; tesadüfe bırakılamaz.
 
 **Çıkış:** tanımadığın biri URL'yi açıyor, önerilen bir soruya tıklıyor ve
