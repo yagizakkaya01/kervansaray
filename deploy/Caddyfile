@@ -1,0 +1,37 @@
+# ============================================================
+# Kervansaray - Caddy Reverse Proxy & Otomatik TLS Yapılandırması
+# ============================================================
+#
+# Kullanım:
+#   Bu dosyayı /etc/caddy/Caddyfile içine yerleştirin veya Caddyfile'ınıza import edin.
+#   systemctl reload caddy
+# ============================================================
+
+kervansaray.yagizakkaya.com.tr {
+    # 1. Güvenlik: /metrics ucunu dış dünyaya 403 ile kapat
+    respond /metrics "Forbidden" 403
+
+    # 2. Temel Güvenlik Başlıkları
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # 3. WSGI Uygulamasına Ters Proxy (127.0.0.1:8000)
+    reverse_proxy 127.0.0.1:8000 {
+        # SSE (Server-Sent Events) akışlarının gecikmesiz iletimi için tamponlamayı devre dışı bırak
+        flush_interval -1
+    }
+
+    # 4. Sıkıştırma (Gzip & Zstandard)
+    encode zstd gzip
+
+    # 5. Erişim Logları
+    log {
+        output file /var/log/caddy/kervansaray_access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+    }
+}

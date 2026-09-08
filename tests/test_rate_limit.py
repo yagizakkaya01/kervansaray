@@ -109,3 +109,44 @@ def test_cached_query_bypasses_rate_limit():
     assert r_cached.status_code == 200
     assert r_cached.get_json()["cached"] is True
     assert r_cached.get_json()["narrative"] == "Hazir yanit"
+
+
+def test_spoofed_x_forwarded_for_cannot_bypass_rate_limit():
+    """ProxyFix(x_for=1) sayesinde saldirganin sol tarafa sahte IP eklemesi engellenir."""
+    limiter.clear()
+    app = create_app()
+    app.config["TESTING"] = True
+    c = app.test_client()
+
+    fake_result = {
+        "status": "success",
+        "provider": "gemini",
+        "narrative": "Test",
+        "tool_calls": [],
+        "table": {"columns": [], "rows": []},
+        "row_count": 0,
+        "scalar_value": None,
+        "elapsed_seconds": 0.05,
+        "cached": False,
+    }
+
+    with patch("kervansaray.api.routes_query.run_query", return_value=fake_result):
+        # Saldirgan her istekte farkli bir sahte sol IP gonderir
+        for i in range(5):
+            spoofed_header = f"1.2.3.{i}, 198.51.100.55"
+            r = c.post(
+                "/api/query",
+                json={"query": f"Soru {i}"},
+                headers={"X-Forwarded-For": spoofed_header},
+            )
+            assert r.status_code == 200
+
+        # 6. istekte farkli bir sol IP gonderilse dahi gerçek IP kotayi astigi icin 429 almali
+        r_blocked = c.post(
+            "/api/query",
+            json={"query": "Soru 6"},
+            headers={"X-Forwarded-For": "9.9.9.9, 198.51.100.55"},
+        )
+        assert r_blocked.status_code == 429
+        assert "Dakikalık soru limitine" in r_blocked.get_json()["error"]
+

@@ -19,11 +19,19 @@ services:
       - path: .env
         required: false
     environment:
-      - DATABASE_URL=postgresql://kervansaray:kervansaray@db:5432/kervansaray
+      - DATABASE_URL=postgresql://kervansaray:${POSTGRES_PASSWORD:-kervansaray}@db:5432/kervansaray
       - PORT=8000
     volumes:
       - ./src:/app/src
+      - ./alembic:/app/alembic
+      - ./scripts:/app/scripts
       - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
     depends_on:
       db:
         condition: service_healthy
@@ -35,14 +43,14 @@ services:
     restart: unless-stopped
     environment:
       - POSTGRES_USER=kervansaray
-      - POSTGRES_PASSWORD=kervansaray
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-kervansaray}
       - POSTGRES_DB=kervansaray
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
       - kervansaray_db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kervansaray"]
+      test: ["CMD-SHELL", "pg_isready -U kervansaray -d kervansaray"]
       interval: 5s
       timeout: 5s
       retries: 10

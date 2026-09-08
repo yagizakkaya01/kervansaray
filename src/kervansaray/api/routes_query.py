@@ -53,10 +53,7 @@ def post_query():
     is_cached = use_cache and (query_cache.get(cache_key) is not None)
 
     if not is_cached:
-        raw_ip = request.headers.get(
-            "X-Forwarded-For", request.headers.get("X-Real-IP", request.remote_addr or "127.0.0.1")
-        )
-        client_ip = raw_ip.split(",")[0].strip()
+        client_ip = request.remote_addr or "127.0.0.1"
         allowed, err_msg = limiter.is_allowed(client_ip)
         if not allowed:
             return jsonify({"error": err_msg}), 429

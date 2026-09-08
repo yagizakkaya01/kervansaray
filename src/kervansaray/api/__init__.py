@@ -22,6 +22,9 @@ def create_app() -> Flask:
     setup_logging()
     app = Flask(__name__, static_folder="static")
 
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
     init_metrics(app)
     app.register_blueprint(events_bp)
     app.register_blueprint(notifications_bp)
