@@ -36,6 +36,14 @@ def post_event():
 
     with session_scope() as db:
         result = ingest_event(db, payload)
+        if not result.duplicate:
+            from kervansaray.db.models import Event
+            from kervansaray.notifications import broker, evaluate_event
+
+            ev = db.get(Event, result.event_row_id)
+            if ev is not None:
+                for notif in evaluate_event(db, ev):
+                    broker.publish(notif)
 
     if result.duplicate:
         EVENTS_DUPLICATE.inc()

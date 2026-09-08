@@ -1,0 +1,53 @@
+"""Bildirim API uçları: REST okuma ve SSE canlı akışı (ROADMAP Faz 7).
+
+Ponytail:
+  - WebSocket yerine HTTP-yerel Server-Sent Events (SSE: text/event-stream).
+  - Sıfır ek kütüphane; Flask Response generator'ı + broker queue.
+"""
+from __future__ import annotations
+
+import queue
+
+from flask import Blueprint, Response, jsonify, request
+
+from kervansaray.notifications import broker
+
+bp = Blueprint("notifications", __name__, url_prefix="/api/notifications")
+
+
+@bp.get("")
+def list_notifications():
+    """Son bildirimlerin listesini JSON olarak döner."""
+    limit = min(int(request.args.get("limit", 50)), 100)
+    items = broker.get_recent(limit=limit)
+    return jsonify({"count": len(items), "notifications": items}), 200
+
+
+@bp.get("/stream")
+def stream_notifications():
+    """Server-Sent Events (SSE) ile canlı bildirim akışı."""
+    def event_stream():
+        q = broker.subscribe()
+        try:
+            # İstemciye ilk bağlantı onayını gönder
+            yield "event: connected\ndata: {\"status\": \"ok\"}\n\n"
+            while True:
+                try:
+                    # Yeni bildirim bekle (15 sn zaman aşımı ile)
+                    notification = q.get(timeout=15.0)
+                    yield notification.to_sse_data()
+                except queue.Empty:
+                    # Tarayıcı veya proxy zaman aşımını engellemek için keepalive yorumu
+                    yield ": keepalive\n\n"
+        finally:
+            broker.unsubscribe(q)
+
+    return Response(
+        event_stream(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )

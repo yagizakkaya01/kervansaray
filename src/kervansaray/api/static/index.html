@@ -82,6 +82,9 @@
 </head>
 <body class="bg-[#faf8fb] text-[#111318] font-sans antialiased min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
 
+  <!-- Canlı Bildirim / Toast Konteyneri (SSE) -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"></div>
+
   <!-- Üst Navigasyon Çubuğu (Global Header - urettiklerim.html tarzı) -->
   <header class="sticky top-0 z-50 bg-[#faf8fb]/90 backdrop-blur-md border-b border-zinc-200/80 transition-all">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -1038,13 +1041,36 @@
       }
     }
 
-    function showToast(msg) {
-      const toast = document.getElementById('form-toast');
-      toast.innerText = '✓ ' + msg;
-      toast.classList.remove('hidden');
+    function showToast(msg, severity = 'info', title = null) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const el = document.createElement('div');
+      const sClass = severity === 'critical'
+        ? 'bg-red-950/95 text-red-200 border-red-800 ring-1 ring-red-600/30'
+        : (severity === 'warning'
+          ? 'bg-amber-950/95 text-amber-200 border-amber-800 ring-1 ring-amber-600/30'
+          : 'bg-zinc-900/95 text-zinc-100 border-zinc-700');
+      const dotColor = severity === 'critical' ? 'bg-red-500 animate-ping' : (severity === 'warning' ? 'bg-amber-400' : 'bg-emerald-400');
+
+      el.className = `pointer-events-auto p-3.5 rounded-xl border shadow-xl text-xs font-mono backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 flex flex-col gap-1 ${sClass}`;
+      el.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div class="font-bold flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+            <span>${title || 'SİSTEM BİLDİRİMİ'}</span>
+          </div>
+          <span class="text-[10px] opacity-60">${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+        </div>
+        <div class="text-[11px] opacity-90 leading-relaxed mt-0.5">${msg}</div>
+      `;
+      container.appendChild(el);
+      requestAnimationFrame(() => {
+        el.classList.remove('translate-y-2', 'opacity-0');
+      });
       setTimeout(() => {
-        toast.classList.add('hidden');
-      }, 3000);
+        el.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => el.remove(), 350);
+      }, 5000);
     }
 
     // --- 5. Gemini 3.8 Flash Doğal Dil Sorgu Hattı ---
@@ -1167,6 +1193,30 @@
         });
       }
     }
+
+    // --- 6. Canlı Server-Sent Events (SSE) Dinleyicisi ---
+    function initSSE() {
+      if (!window.EventSource) return;
+      const es = new EventSource('/api/notifications/stream');
+      es.onmessage = function(e) {
+        try {
+          const data = JSON.parse(e.data);
+          if (data && data.rule) {
+            showToast(data.message, data.severity, data.title);
+            const curPlate = (document.getElementById('plate-input-val')?.value || '').replace(/\s+/g, '');
+            if (curPlate && data.plate && curPlate === data.plate.replace(/\s+/g, '')) {
+              updateStatusBadge(
+                data.rule === 'blacklist' ? 'blacklist' : (data.rule === 'unregistered' ? 'unregistered' : 'vip'),
+                data.message,
+                data.title
+              );
+            }
+          }
+        } catch (_) {}
+      };
+    }
+
+    window.addEventListener('DOMContentLoaded', initSSE);
   </script>
 </body>
 </html>

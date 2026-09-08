@@ -307,6 +307,20 @@ yerine Postgres yerel yetenekleri:
 
 **Çıkış:** sentetik akışta enjekte edilen anomaliler doğru bildirimi tetikliyor.
 
+**Durum (2026-09-08):** ✅ tamamlandı.
+- `src/kervansaray/notifications.py`: Tek dosyada toplanan yalın Ponytail mimarisi (`Notification` dataclass'ı, in-memory `NotificationBroker` [halka bellek `deque(maxlen=100)` + `queue.Queue` abonelikleri] ve %100 deterministik `evaluate_event` kural motoru).
+- **Desteklenen Kurallar**:
+  - `blacklist`: Kara listedeki araç girişi/çıkışı (CRITICAL alarm)
+  - `unregistered`: Kayıtsız araç girişi (WARNING uyarı)
+  - `pending_review`: Operatör onayı bekleyen bulanık plaka (WARNING)
+  - `guest_arrival`: Kayıtlı misafir / VIP girişi (INFO karşılama)
+  - `overstay`: 48 saati aşan uzun otopark konaklaması (WARNING)
+  - `night_entry`: 00:00 – 05:00 gece girişi (INFO izleme)
+- `src/kervansaray/api/routes_notifications.py`: `GET /api/notifications` (JSON geçmişi) ve `GET /api/notifications/stream` (`text/event-stream` SSE akışı, 15s keepalive).
+- `src/kervansaray/api/routes_events.py`: `POST /events` ile kaydedilen her yeni olayda otomatik kural değerlendirme ve bildirim yayını.
+- `src/kervansaray/api/static/index.html`: Yerel `EventSource` dinleyicisi (`initSSE`), sağ üstte renk kodlu hareketli bildirim toast'ları ve anlık karar kartı güncellemesi.
+- Testler: Toplam 86 test yeşil (`test_notifications` 8 birim/entegrasyon testi), ruff sıfır hata.
+
 ---
 
 ## Faz 8 — Operatör paneli · 1.5 hafta
