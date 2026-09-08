@@ -419,6 +419,13 @@ aksiyonu yok.
 **Çıkış:** tanımadığın biri URL'yi açıyor, önerilen bir soruya tıklıyor ve
 cevabı, tool çağrısını ve sonuç tablosunu görüyor.
 
+**Durum (2026-09-08):** ✅ tamamlandı.
+- `src/kervansaray/api/rate_limit.py`: In-memory thread-safe sliding window IP rate limiter (Python standart kütüphanesi, dakikada 5 / günde 20 istek tavanı; aşımda 429 Too Many Requests).
+- `src/kervansaray/api/routes_query.py`: `POST /api/query` ucunda `query_cache` isabetlerinde rate limit bypass (0ms gecikme, $0 maliyet).
+- `src/kervansaray/api/static/index.html`: 6 ALPR arketip senaryo kartı (Personel, VIP, Kayıtsız, Kara Liste, Gece Girişi, 48h Overstay), lazer tarama HUD animasyonu, 10 tıklanabilir soru çipi, Salt-Okunur Araç Tescil Künyesi ve 429 UI toast bildirimleri.
+- **NVIDIA NIM & Çoklu Sağlayıcı Fallback (`src/kervansaray/llm/nvidia_client.py`)**: `nvidia/nemotron-3.5-lightning-30b-a3b` modeli `requests` ile OpenAI uyumlu hafif istemci olarak eklendi. `LLM_PROVIDER_ORDER=nvidia,gemini` ile Gemini 429 kota darboğazı çözüldü; sağlayıcılar arası otomatik hata toleransı sağlandı.
+- Testler: `test_rate_limit` (3), `test_nvidia_client` (4), `test_query_pipeline` (11) — toplam 102 test yeşil, Ruff 0 hata.
+
 ---
 
 ## Faz 10 — Track A: görüntü hattı
