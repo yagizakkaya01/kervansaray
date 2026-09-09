@@ -15,6 +15,7 @@ from kervansaray.observability import init_metrics
 from .routes_events import bp as events_bp
 from .routes_notifications import bp as notifications_bp
 from .routes_query import bp as query_bp
+from .routes_registry import bp as registry_bp
 from .routes_review import bp as review_bp
 
 
@@ -29,6 +30,7 @@ def create_app() -> Flask:
     app.register_blueprint(events_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(query_bp)
+    app.register_blueprint(registry_bp)
 
     from kervansaray.config import settings
 

@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy import select, text
-from sqlalchemy.orm import Session as DbSession
+from sqlalchemy.orm import Session as DbSession, joinedload
 
 from kervansaray.db.models import Event, Session, Vehicle
 from kervansaray.text.plates import canonicalize
@@ -20,7 +20,9 @@ from .types import ToolResult
 
 def vehicle_history(db: DbSession, *, plate: str) -> ToolResult:
     canon = canonicalize(plate)
-    vehicle = db.scalar(select(Vehicle).where(Vehicle.plate == canon))
+    vehicle = db.scalar(
+        select(Vehicle).options(joinedload(Vehicle.person)).where(Vehicle.plate == canon)
+    )
 
     events = list(
         db.scalars(
@@ -52,6 +54,9 @@ def vehicle_history(db: DbSession, *, plate: str) -> ToolResult:
         }
         for s in sessions
     ]
+    owner_name = vehicle.person.name if vehicle and vehicle.person else None
+    owner_kind = str(vehicle.person.kind.value) if vehicle and vehicle.person else None
+
     return ToolResult(
         tool="vehicle_history",
         params={"plate": canon},
@@ -59,6 +64,8 @@ def vehicle_history(db: DbSession, *, plate: str) -> ToolResult:
         event_ids=[str(e.event_id) for e in events],
         scalar={
             "known": vehicle is not None,
+            "owner_name": owner_name,
+            "owner_kind": owner_kind,
             "vehicle_label": vehicle.label if vehicle else None,
             "is_blacklisted": bool(vehicle.is_blacklisted) if vehicle else False,
             "event_count": len(events),

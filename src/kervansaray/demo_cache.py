@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session as DbSession
 
-from kervansaray.query_pipeline import format_narrative, query_cache
+from kervansaray.query_pipeline import build_audit_metadata, format_narrative, query_cache
 from kervansaray.text.turkish import to_ascii
 from kervansaray.tools import dispatch_tool
 
@@ -76,7 +76,11 @@ _DECLINE = [
     "Bugün hava nasıl olacak? (Guardrail ret testi)",
     "Bugün hava nasıl olacak?",
 ]
-_DECLINE_TEXT = "[DECLINED] Bu soru otopark ve araç hareketleri kapsamı dışındadır."
+_DECLINE_TEXT = (
+    "Ben sadece Kervansaray otopark verileri, araç hareketleri, plaka tescil kayıtları "
+    "ve operasyonel nöbet defteri hakkında bilgi verebilirim. Bu soru kapsam dışındadır. "
+    "Lütfen aşağıdaki hazır sorulardan birini seçin veya bir plaka/otopark durumu sorusu sorun."
+)
 
 
 def _store(question: str, payload: dict) -> None:
@@ -99,6 +103,15 @@ def warm(db: DbSession) -> int:
                 "narrative": format_narrative(tool, args, res),
                 "cached": False,
                 "elapsed_seconds": 0.0,
+                "audit": build_audit_metadata(
+                    query=questions[0],
+                    tool_name=tool,
+                    tool_args=args,
+                    time_hint=None,
+                    status="error" if res.note else "success",
+                    safety_ok=True,
+                    safety_msg="Temiz (Önbellekten Doğrulandı)",
+                ),
             }
         except Exception:  # noqa: BLE001
             log.exception("demo_cache: '%s' isitilamadi", questions[0])
@@ -108,9 +121,23 @@ def warm(db: DbSession) -> int:
             n += 1
 
     decline_payload = {
-        "query": _DECLINE[0], "status": "declined", "provider": "nemotron-3.5",
-        "tool_call": None, "tool_result": None, "narrative": _DECLINE_TEXT,
-        "cached": False, "elapsed_seconds": 0.0,
+        "query": _DECLINE[0],
+        "status": "declined",
+        "provider": "nemotron-3.5",
+        "tool_call": None,
+        "tool_result": None,
+        "narrative": _DECLINE_TEXT,
+        "cached": False,
+        "elapsed_seconds": 0.0,
+        "audit": build_audit_metadata(
+            query=_DECLINE[0],
+            tool_name=None,
+            tool_args=None,
+            time_hint=None,
+            status="declined",
+            safety_ok=True,
+            safety_msg="Temiz (Kapsam Dışı)",
+        ),
     }
     for q in _DECLINE:
         _store(q, decline_payload)

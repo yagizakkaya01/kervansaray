@@ -105,8 +105,8 @@
 </head>
 <body class="bg-[#faf8fb] text-[#111318] font-sans antialiased min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
 
-  <!-- Canlı Bildirim / Toast Konteyneri (SSE) -->
-  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"></div>
+  <!-- Canlı Bildirim / Toast Konteyneri (SSE & Sistem Bildirimleri) -->
+  <div id="toast-container" class="fixed top-20 right-4 sm:right-6 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"></div>
 
   <!-- Üst Navigasyon Çubuğu (Global Header - urettiklerim.html tarzı) -->
   <header class="sticky top-0 z-50 bg-[#faf8fb]/90 backdrop-blur-md border-b border-zinc-200/80 transition-all">
@@ -243,7 +243,7 @@
             <span class="text-[11px] text-zinc-400">Karta tıkla • plaka okunur, künye ve soru hazırlanır</span>
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div id="scenario-cards-container" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <!-- 1. Güvenlik Müdürü -->
             <button onclick="loadScenario('26abc2626')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-emerald-50 hover:border-emerald-300 transition-all text-left group shadow-xs">
               <div class="flex items-center justify-between mb-1">
@@ -392,11 +392,15 @@
         </div>
 
         <!-- Hızlı Eylem Butonları -->
-        <div class="flex items-center gap-2 pt-2 border-t border-zinc-100">
-          <button onclick="fillFormFromPlate()" class="flex-1 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl transition-colors">
+        <div class="flex items-center gap-2 pt-2 border-t border-zinc-100 flex-wrap">
+          <button onclick="fillFormFromPlate()" class="flex-1 py-2 px-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl transition-colors cursor-pointer text-center">
             Plaka Kayıtlarını Göster
           </button>
-          <button onclick="askGeminiForPlate()" class="flex-1 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-xl border border-red-200 transition-colors flex items-center justify-center gap-1.5">
+          <button onclick="openRegisterModal(document.getElementById('plate-input-val').value)" class="py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Kaydı Düzenle / Tescil Et</span>
+          </button>
+          <button onclick="askGeminiForPlate()" class="flex-1 py-2 px-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-xl border border-red-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
             <svg class="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
             <span>Yapay Zekâ'ya Sor</span>
           </button>
@@ -407,27 +411,37 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- BENTO MODÜL 2: ARAÇ VE TESCİL KÜNYESİ (READ-ONLY DOSSIER)               -->
+    <!-- BENTO MODÜL 2: ARAÇ VE TESCİL KÜNYESİ (YÖNETİM & DÜZENLEME)              -->
     <!-- ========================================================================= -->
     <div class="bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm flex flex-col gap-5">
       
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-100 pb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-4">
         <div>
           <div class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-zinc-800">
             <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-            Araç & Kişi Tescil Künyesi (Sistem Kaydı)
+            Araç & Kişi Tescil Yönetimi (Veritabanı Kaydı)
           </div>
-          <p class="text-xs text-zinc-400 mt-0.5">
-            Otopark güvenlik veri tabanında eşleşen tescil künyesi ve yetki durumu (Read-Only).
+          <p class="text-xs text-zinc-500 mt-0.5">
+            Otopark güvenlik veri tabanında tescilli araçlar, sürücü künyesi ve yetki durumu.
           </p>
         </div>
 
-        <div id="dossier-match-badge" class="px-3 py-1 bg-zinc-100 border border-zinc-200 text-zinc-700 rounded-lg text-xs font-mono font-semibold">
-          Eşleşme: <span id="dossier-match-status" class="text-zinc-900">Kayıtsız Ziyaretçi</span>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="openRegisterModal()" class="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>+ Araç Kaydet / Düzenle</span>
+          </button>
+          <button onclick="confirmResetDemo()" id="btn-reset-demo" class="px-3 py-1.5 bg-zinc-100 hover:bg-red-50 hover:border-red-200 hover:text-red-700 text-zinc-700 border border-zinc-200 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span>Demoyu Sıfırla</span>
+          </button>
+          <div id="dossier-match-badge" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl text-xs font-mono font-semibold">
+            Eşleşme: <span id="dossier-match-status" class="text-zinc-900">Kayıtsız Ziyaretçi</span>
+          </div>
         </div>
       </div>
 
-      <!-- Salt-Okunur Künye Kartları -->
+      <!-- Künye Kartları -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
         <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200/70">
           <span class="text-[11px] text-zinc-400 block mb-0.5">Plaka</span>
@@ -449,10 +463,15 @@
 
       <!-- Tescil Tablosu (Sistemdeki Örnek Araçlar) -->
       <div id="registry-section" class="flex flex-col gap-2 pt-2 scroll-mt-24">
-        <span class="text-xs font-mono text-zinc-400 font-semibold uppercase tracking-wider">
-          Sistemde Tanımlı Örnek Araçlar & Tescil Veritabanı
-        </span>
-        <div class="overflow-x-auto rounded-xl border border-zinc-200">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-zinc-500 font-semibold uppercase tracking-wider">
+            Sistemde Tanımlı Araçlar & Tescil Veritabanı
+          </span>
+          <span class="text-[11px] font-mono text-zinc-400">
+            Satıra tıklayarak vizöre alabilir veya "Düzenle" ile güncelleyebilirsiniz.
+          </span>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
           <table class="w-full text-left text-xs font-mono border-collapse">
             <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-600">
               <tr>
@@ -462,6 +481,7 @@
                 <th class="py-2.5 px-3">Kayıt Türü</th>
                 <th class="py-2.5 px-3">Birim / Konum</th>
                 <th class="py-2.5 px-3">İletişim</th>
+                <th class="py-2.5 px-3 text-right">İşlem</th>
               </tr>
             </thead>
             <tbody id="registry-table-body" class="divide-y divide-zinc-100 text-zinc-800">
@@ -529,6 +549,9 @@
           <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
             Bugün hava nasıl olacak? (Guardrail ret testi)
           </button>
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-rose-50/70 border border-rose-200 rounded-full text-xs text-rose-700 hover:border-rose-500 hover:text-rose-800 hover:shadow-sm transition-all font-medium">
+            26 ABC 2626; DROP TABLE events; -- (Guardrail SQL güvenlik testi)
+          </button>
         </div>
       </div>
 
@@ -583,6 +606,27 @@
           <p id="narrative-text" class="text-base text-zinc-800 leading-relaxed font-medium">
             —
           </p>
+
+          <!-- Kapsam Dışı / Nazik Ret Durumunda Hızlı Yönlendirme Çipleri -->
+          <div id="decline-suggestions" class="hidden mt-3 pt-3 border-t border-zinc-200/80 flex flex-col gap-2">
+            <div class="flex items-center gap-1.5 text-xs font-medium text-amber-800">
+              <svg class="w-3.5 h-3.5 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Şu geçerli otopark istihbarat sorularından birini deneyebilirsiniz:</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="askChip(this.innerText)" class="px-3 py-1.5 text-xs font-mono bg-white hover:bg-amber-50 hover:text-amber-900 border border-zinc-200 hover:border-amber-300 rounded-xl text-zinc-700 transition-colors cursor-pointer shadow-2xs">
+                15 Nisan 2026'da toplam kaç araç hareketi oldu?
+              </button>
+              <button type="button" onclick="askChip(this.innerText)" class="px-3 py-1.5 text-xs font-mono bg-white hover:bg-amber-50 hover:text-amber-900 border border-zinc-200 hover:border-amber-300 rounded-xl text-zinc-700 transition-colors cursor-pointer shadow-2xs">
+                Şu an sahada kaç araç var?
+              </button>
+              <button type="button" onclick="askChip(this.innerText)" class="px-3 py-1.5 text-xs font-mono bg-white hover:bg-amber-50 hover:text-amber-900 border border-zinc-200 hover:border-amber-300 rounded-xl text-zinc-700 transition-colors cursor-pointer shadow-2xs">
+                48 saatten uzun süredir otoparkta kalan araç var mı?
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- 2 & 3. GÖRÜNÜMLER: TOOL ÇAĞRISI VE SONUÇ TABLOSU -->
@@ -619,8 +663,17 @@
             <!-- Skalar / Özet Bilgi Alanı -->
             <div id="scalar-container" class="hidden p-3.5 bg-white border border-zinc-200/80 rounded-xl shadow-2xs transition-all"></div>
 
+            <!-- Geçmiş Hareketler Aç/Kapa Butonu (vehicle_history için) -->
+            <button id="toggle-history-btn" type="button" onclick="const tc=document.getElementById('result-table-container'); const isH=tc.classList.toggle('hidden'); this.querySelector('.arrow').innerText=isH?'↓':'↑';" class="hidden w-full py-2 px-3 text-xs font-mono font-medium rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-600 flex items-center justify-between transition-colors shadow-2xs cursor-pointer">
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span id="toggle-history-label">Geçmiş Hareket Kayıtlarını İncele</span>
+              </span>
+              <span class="arrow text-zinc-400 font-bold">↓</span>
+            </button>
+
             <!-- Tablo Alanı -->
-            <div class="overflow-x-auto max-h-80 overflow-y-auto rounded-xl border border-zinc-200 bg-white">
+            <div id="result-table-container" class="overflow-x-auto max-h-80 overflow-y-auto rounded-xl border border-zinc-200 bg-white">
               <table id="result-table" class="w-full text-left text-xs border-collapse font-mono">
                 <thead class="bg-zinc-50 sticky top-0 border-b border-zinc-200 text-zinc-600">
                   <tr id="table-head"></tr>
@@ -642,6 +695,126 @@
             </div>
           </div>
 
+        </div>
+
+        <!-- 4. GÖRÜNÜM: MODEL GÜVENLİK & KARAR KÜNYESİ (ÖZEL JS AKORDİYONU) -->
+        <div class="bg-white rounded-2xl border border-zinc-200/80 shadow-sm overflow-hidden transition-all">
+          <!-- Akordiyon Başlığı (Header Button) -->
+          <button
+            id="audit-accordion-toggle"
+            type="button"
+            onclick="toggleAuditAccordion()"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleAuditAccordion();}"
+            aria-expanded="false"
+            aria-controls="audit-accordion-content"
+            class="w-full px-5 py-3.5 bg-zinc-50/70 hover:bg-zinc-100/90 text-left flex items-center justify-between gap-3 cursor-pointer transition-colors border-b border-transparent focus:outline-none focus:ring-2 focus:ring-zinc-900/10"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-lg bg-zinc-900 text-white flex items-center justify-center flex-shrink-0 shadow-2xs">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2.5">
+                <span class="text-xs font-mono font-bold text-zinc-800 uppercase tracking-wider">
+                  Model Güvenlik & Karar Künyesi
+                </span>
+                <span id="audit-status-badge" class="px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200/60 inline-flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Temiz (Doğrulandı)
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-zinc-400 text-xs font-mono hidden sm:inline">İstihbarat Künyesi</span>
+              <svg id="audit-accordion-chevron" class="w-4 h-4 text-zinc-500 transform transition-transform duration-300 rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          <!-- Akordiyon Gövdesi (Collapsible Content) -->
+          <div
+            id="audit-accordion-content"
+            class="max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-in-out bg-zinc-50/50"
+          >
+            <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-zinc-200/60 font-mono text-xs">
+              
+              <!-- 1. KART: Güvenlik & Enjeksiyon Taraması -->
+              <div class="p-4 rounded-xl bg-white border border-zinc-200/80 shadow-2xs flex flex-col gap-2 hover:border-zinc-300 transition-colors">
+                <div class="flex items-center justify-between text-zinc-400 pb-1 border-b border-zinc-100">
+                  <span class="flex items-center gap-1.5 font-bold text-zinc-700">
+                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    1. Güvenlik & Enjeksiyon Taraması
+                  </span>
+                  <span id="audit-card1-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">KORUMALI</span>
+                </div>
+                <div class="mt-1 flex flex-col gap-1">
+                  <span class="text-zinc-500 text-[11px]">Tarama Durumu:</span>
+                  <div id="audit-safety-val" class="font-bold text-zinc-900 text-sm">Temiz (Doğrulandı)</div>
+                </div>
+                <p class="text-[11px] text-zinc-500 leading-normal mt-1">
+                  Sorgu metni SQL DDL/DML, UNION enjeksiyonu ve sistem talimatı müdahalesine karşı pre-flight guardrail ile denetlendi.
+                </p>
+              </div>
+
+              <!-- 2. KART: Zaman İpucu Analizi -->
+              <div class="p-4 rounded-xl bg-white border border-zinc-200/80 shadow-2xs flex flex-col gap-2 hover:border-zinc-300 transition-colors">
+                <div class="flex items-center justify-between text-zinc-400 pb-1 border-b border-zinc-100">
+                  <span class="flex items-center gap-1.5 font-bold text-zinc-700">
+                    <svg class="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    2. Zaman İpucu Analizi (Time-Hint)
+                  </span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">ZAMAN</span>
+                </div>
+                <div class="mt-1 flex flex-col gap-1">
+                  <span class="text-zinc-500 text-[11px]">Çözümlenen Aralık / Referans:</span>
+                  <div id="audit-time-val" class="font-bold text-zinc-900 text-xs break-words">Tüm Tarihsel Dönem</div>
+                </div>
+                <p class="text-[11px] text-zinc-500 leading-normal mt-1">
+                  Doğal dil ifadesindeki tarih terimleri (ör. 15 Nisan, şu an) model sistem talimatına deterministik zaman parametresi olarak enjekte edilir.
+                </p>
+              </div>
+
+              <!-- 3. KART: Model Araç Seçimi & Gerekçe -->
+              <div class="p-4 rounded-xl bg-white border border-zinc-200/80 shadow-2xs flex flex-col gap-2 hover:border-zinc-300 transition-colors">
+                <div class="flex items-center justify-between text-zinc-400 pb-1 border-b border-zinc-100">
+                  <span class="flex items-center gap-1.5 font-bold text-zinc-700">
+                    <svg class="w-3.5 h-3.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    3. Model Araç Seçimi & Karar
+                  </span>
+                  <span id="audit-tool-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">TOOL</span>
+                </div>
+                <div class="mt-1 flex flex-col gap-1">
+                  <span class="text-zinc-500 text-[11px]">Seçilen Fonksiyon:</span>
+                  <div id="audit-tool-val" class="font-bold text-zinc-900 text-xs">Yok (Doğrudan)</div>
+                </div>
+                <div class="mt-1 flex flex-col gap-1">
+                  <span class="text-zinc-500 text-[11px]">Seçim Gerekçesi:</span>
+                  <div id="audit-justification-val" class="text-[11px] text-zinc-700 font-sans leading-relaxed">Doğrudan model yanıtı üretildi.</div>
+                </div>
+              </div>
+
+              <!-- 4. KART: Hedef Veritabanı Yüzeyi -->
+              <div class="p-4 rounded-xl bg-white border border-zinc-200/80 shadow-2xs flex flex-col gap-2 hover:border-zinc-300 transition-colors">
+                <div class="flex items-center justify-between text-zinc-400 pb-1 border-b border-zinc-100">
+                  <span class="flex items-center gap-1.5 font-bold text-zinc-700">
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                    4. Hedef Veritabanı Yüzeyi
+                  </span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">READ-ONLY</span>
+                </div>
+                <div class="mt-1 flex flex-col gap-1">
+                  <span class="text-zinc-500 text-[11px]">Erişilen Veri Katmanı:</span>
+                  <div id="audit-surface-val" class="font-bold text-zinc-900 text-xs">v_events (Denormalize View)</div>
+                </div>
+                <p class="text-[11px] text-zinc-500 leading-normal mt-1">
+                  Doğal dil motorunun ham tablolara doğrudan yazma veya DDL yetkisi yoktur; veriler salt-okunur görünüm ve parametrik SQLAlchemy sorguları ile korunur.
+                </p>
+              </div>
+
+            </div>
+          </div>
         </div>
 
       </div>
@@ -693,8 +866,76 @@
       <!-- Modal Alt Çubuğu -->
       <div class="px-5 py-3 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500 font-mono">
         <span>Otomatik onaylanmaz, insan teyidi zorunludur.</span>
-        <button onclick="fetchReviewQueue()" class="text-zinc-800 hover:underline font-semibold">Yenile</button>
+        <button onclick="fetchReviewQueue()" class="text-zinc-800 hover:underline font-semibold cursor-pointer">Yenile</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Araç Tescil & Düzenleme Modalı -->
+  <div id="registry-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-zinc-200 shadow-2xl max-w-md w-full flex flex-col overflow-hidden">
+      <!-- Modal Başlığı -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100 bg-zinc-50/80">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-zinc-900" id="reg-modal-title">Araç Tescil & Künye Formu</h3>
+            <p class="text-[11px] text-zinc-500 font-mono">Veritabanına anında yazılır ve sorgulara yansır</p>
+          </div>
+        </div>
+        <button onclick="closeRegistryModal()" class="w-7 h-7 rounded-lg hover:bg-zinc-200 text-zinc-400 hover:text-zinc-700 flex items-center justify-center transition-colors cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Form Alanları -->
+      <form id="reg-form" onsubmit="handleRegistrySubmit(event)" class="p-5 flex flex-col gap-3 text-xs font-mono">
+        <div>
+          <label class="block text-[11px] font-bold text-zinc-700 mb-1">Plaka Numarası</label>
+          <input type="text" id="reg-input-plate" required placeholder="Örn: 26 XYZ 413" class="w-full px-3 py-2 rounded-xl border border-zinc-300 focus:border-zinc-900 focus:outline-none font-mono uppercase font-bold text-sm bg-zinc-50 focus:bg-white" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-zinc-700 mb-1">Sürücü / İsim</label>
+          <input type="text" id="reg-input-name" required placeholder="Örn: Ahmet Yılmaz" class="w-full px-3 py-2 rounded-xl border border-zinc-300 focus:border-zinc-900 focus:outline-none bg-zinc-50 focus:bg-white" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-zinc-700 mb-1">Kayıt / Yetki Türü</label>
+          <select id="reg-input-kind" class="w-full px-3 py-2 rounded-xl border border-zinc-300 focus:border-zinc-900 focus:outline-none bg-zinc-50 focus:bg-white">
+            <option value="guest">Kayıtlı Misafir (guest)</option>
+            <option value="manager">Güvenlik / Tesis Yöneticisi (manager)</option>
+            <option value="vip">VIP Protokol Misafiri (vip)</option>
+            <option value="staff">Personel / Çalışan (staff)</option>
+            <option value="warning">Şüpheli / Anomali İşaretli (warning)</option>
+            <option value="blacklist">Kara Liste - Giriş Yasağı (blacklist)</option>
+            <option value="unregistered">Kayıtsız Ziyaretçi (unregistered)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-zinc-700 mb-1">Tahsis Birimi / Adres / Not</label>
+          <input type="text" id="reg-input-address" placeholder="Örn: Kargo / Tedarik • B Blok" class="w-full px-3 py-2 rounded-xl border border-zinc-300 focus:border-zinc-900 focus:outline-none bg-zinc-50 focus:bg-white" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-zinc-700 mb-1">İletişim (Telefon / E-posta)</label>
+          <input type="text" id="reg-input-contact" placeholder="Örn: (0532) 999 88 77" class="w-full px-3 py-2 rounded-xl border border-zinc-300 focus:border-zinc-900 focus:outline-none bg-zinc-50 focus:bg-white" />
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-2 border-t border-zinc-100">
+          <button type="button" onclick="closeRegistryModal()" class="px-4 py-2 rounded-xl border border-zinc-200 text-zinc-600 hover:bg-zinc-100 transition-all cursor-pointer">
+            Vazgeç
+          </button>
+          <button type="submit" id="reg-submit-btn" class="px-5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
+            <span>Kaydet & DB'ye Yaz</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -807,11 +1048,15 @@
       { id: 6, plate: '34 VIP 99', name: 'Yasaklı Araç', kind: 'blacklist', address: 'Hukuk Birimi (Hacizli)', contact: 'guvenlik@kervansaray.com' }
     ];
 
+    const DEFAULT_SCENARIOS = JSON.parse(JSON.stringify(SCENARIOS));
+
     let isCameraActive = true;
 
     // --- 2. Sayfa Yüklendiğinde Başlatma ---
     window.addEventListener('DOMContentLoaded', () => {
       renderRegistryTable();
+      renderScenarioCards();
+      fetchRegistry();
       // Ilk senaryoyu sessizce yerlestir (tarama/sorgu tetiklemeden) —
       // statik HTML varsayilanlariyla tutarli kalsin.
       applyScenario(SCENARIOS['26abc2626'], { silent: true });
@@ -833,6 +1078,7 @@
       setPlateDisplays(s.plate);
       updateStatusBadge(s.statusType, s.statusText, s.statusAction);
       if (s.prompt) document.getElementById('query-input').value = s.prompt;
+      renderScenarioCards();
       if (!silent) {
         triggerPlateScan(false);
         showToast(`Senaryo seçildi: ${s.plate} — soru hazır, "Sorgula" ile çalıştır`);
@@ -842,6 +1088,71 @@
     // --- 3. Senaryo Değiştirici & ALPR Tetikleyici ---
     function loadScenario(key) {
       applyScenario(SCENARIOS[key]);
+    }
+
+    // --- 3.1 Canlı ALPR 6 Senaryo Kartını Dinamik Render Etme (Faz 8c + DB Sync) ---
+    function renderScenarioCards() {
+      const container = document.getElementById('scenario-cards-container');
+      if (!container) return;
+
+      const currentPlate = (document.getElementById('plate-input-val')?.value || '').replace(/\s+/g, '').toUpperCase();
+      const keys = ['26abc2626', '06ak0052', '34kay44', '26xyz413', '06xyz01', '34vip99'];
+
+      container.innerHTML = keys.map(k => {
+        const s = SCENARIOS[k];
+        if (!s) return '';
+        const isSelected = currentPlate === (s.plate || '').replace(/\s+/g, '').toUpperCase();
+        const activeRing = isSelected ? 'ring-2 ring-zinc-900 ring-offset-1 shadow-md scale-[1.02]' : 'shadow-xs';
+
+        let badgeText = 'KAYITLI MİSAFİR';
+        let badgeClass = 'bg-sky-100 text-sky-800';
+        let cardTheme = 'border-zinc-200 bg-zinc-50 hover:bg-sky-50 hover:border-sky-300 text-zinc-900 group-hover:text-sky-700';
+        let rightLabel = esc(s.name || '');
+        let subText = esc(s.address || '—');
+        let subColor = 'text-zinc-500';
+
+        if (s.statusType === 'manager') {
+          badgeText = 'GÜV. MÜDÜRÜ';
+          badgeClass = 'bg-emerald-100 text-emerald-800';
+          cardTheme = 'border-zinc-200 bg-zinc-50 hover:bg-emerald-50 hover:border-emerald-300 text-zinc-900 group-hover:text-emerald-700';
+        } else if (s.statusType === 'vip') {
+          badgeText = 'VIP MİSAFİR';
+          badgeClass = 'bg-blue-100 text-blue-800';
+          cardTheme = 'border-zinc-200 bg-zinc-50 hover:bg-blue-50 hover:border-blue-300 text-zinc-900 group-hover:text-blue-700';
+        } else if (s.statusType === 'unregistered') {
+          badgeText = 'KAYITSIZ';
+          badgeClass = 'bg-amber-100 text-amber-800';
+          cardTheme = 'border-zinc-200 bg-zinc-50 hover:bg-amber-50 hover:border-amber-300 text-zinc-900 group-hover:text-amber-700';
+          rightLabel = (s.name && s.name !== 'Kayıt Yok' && !s.name.includes('Kayıt Yok')) ? esc(s.name) : 'Kargo';
+        } else if (s.statusType === 'warning') {
+          badgeText = 'OVERSTAY';
+          badgeClass = 'bg-orange-100 text-orange-800';
+          cardTheme = 'border-zinc-200 bg-zinc-50 hover:bg-orange-50 hover:border-orange-300 text-zinc-900 group-hover:text-orange-700';
+          rightLabel = (s.name && s.name !== 'Bilinmeyen Sürücü' && s.name !== 'Terk Araç Şüphesi') ? esc(s.name) : '>48s';
+        } else if (s.statusType === 'blacklist') {
+          badgeText = 'KARA LİSTE';
+          badgeClass = 'bg-red-600 text-white animate-pulse';
+          cardTheme = 'border-red-200 bg-red-50/50 hover:bg-red-100 hover:border-red-400 text-red-900 group-hover:text-red-700';
+          rightLabel = (s.name && s.name !== 'Yasaklı Araç')
+            ? `<span class="text-[10px] font-mono text-red-600 font-bold truncate max-w-[80px]" title="${esc(s.name)}">${esc(s.name)}</span>`
+            : '<span class="text-[10px] font-mono text-red-600 font-bold">ALARM</span>';
+          subColor = 'text-red-600 font-medium';
+        }
+
+        const cardBorderAndBg = cardTheme.split(' ').slice(0, 4).join(' ');
+        const plateTextClass = cardTheme.split(' ').slice(4).join(' ');
+
+        return `
+          <button onclick="loadScenario('${k}')" class="p-2.5 rounded-xl border ${cardBorderAndBg} ${activeRing} transition-all text-left group cursor-pointer">
+            <div class="flex items-center justify-between mb-1 gap-1">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold shrink-0 ${badgeClass}">${badgeText}</span>
+              <span class="text-[10px] font-mono text-zinc-500 truncate max-w-[85px] text-right font-medium" title="${esc(s.name)}">${rightLabel}</span>
+            </div>
+            <div class="font-mono font-bold text-xs ${plateTextClass}">${esc(s.plate)}</div>
+            <div class="text-[10px] ${subColor} truncate" title="${subText}">${subText}</div>
+          </button>
+        `;
+      }).join('');
     }
 
     // ALPR kirpma onizlemesindeki plaka metnini senaryoya gore gunceller.
@@ -979,22 +1290,83 @@
       submitQuery();
     }
 
+    async function fetchRegistry() {
+      try {
+        const res = await fetch('/api/registry');
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.registry)) {
+          REGISTRY_DATA = data.registry;
+          renderRegistryTable();
+
+          // 6 senaryo arketipini de DB'deki güncel isim ve yetkilerle senkronize et
+          REGISTRY_DATA.forEach(r => {
+            const canon = r.plate.replace(/\s+/g, '').toLowerCase();
+            if (SCENARIOS[canon]) {
+              SCENARIOS[canon].name = r.name;
+              SCENARIOS[canon].address = r.address || SCENARIOS[canon].address;
+              if (r.kind === 'blacklist') {
+                SCENARIOS[canon].statusType = 'blacklist';
+                SCENARIOS[canon].statusAction = 'GİRİŞ YASAĞI';
+                SCENARIOS[canon].kind = 'Kara Liste / Giriş Yasağı';
+              } else if (r.kind === 'manager') {
+                SCENARIOS[canon].statusType = 'manager';
+                SCENARIOS[canon].statusAction = 'BARİYER AÇILDI';
+                SCENARIOS[canon].kind = 'Güvenlik Müdürü';
+              } else if (r.kind === 'vip') {
+                SCENARIOS[canon].statusType = 'vip';
+                SCENARIOS[canon].statusAction = 'VALE & PROTOKOL';
+                SCENARIOS[canon].kind = 'VIP Misafir';
+              } else if (r.kind === 'warning') {
+                SCENARIOS[canon].statusType = 'warning';
+                SCENARIOS[canon].statusAction = 'DİKKAT / İNCELEME';
+                SCENARIOS[canon].kind = 'Şüpheli Araç';
+              } else if (r.kind === 'unregistered') {
+                SCENARIOS[canon].statusType = 'unregistered';
+                SCENARIOS[canon].statusAction = 'GİRİŞ İZNİ BEKLENİYOR';
+                SCENARIOS[canon].kind = 'Kayıtsız Ziyaretçi';
+              } else {
+                SCENARIOS[canon].statusType = 'guest';
+                SCENARIOS[canon].statusAction = 'GEÇİŞ ONAYLANDI';
+                SCENARIOS[canon].kind = 'Kayıtlı Misafir';
+              }
+            }
+          });
+          renderScenarioCards();
+
+          // Aktif senaryonun künyesini senkronize et
+          const activePlate = (document.getElementById('plate-input-val')?.value || '').replace(/\s+/g, '').toUpperCase();
+          const match = REGISTRY_DATA.find(x => x.plate.replace(/\s+/g, '').toUpperCase() === activePlate);
+          if (match) {
+            document.getElementById('dossier-name').innerText = match.name;
+            document.getElementById('dossier-kind').innerText = match.kind.toUpperCase();
+            document.getElementById('dossier-address').innerText = match.address || '—';
+          }
+        }
+      } catch (_) {}
+    }
+
     function renderRegistryTable() {
       const tbody = document.getElementById('registry-table-body');
+      if (!tbody) return;
       tbody.innerHTML = '';
       REGISTRY_DATA.forEach((r, idx) => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-zinc-50/80 cursor-pointer transition-colors';
+        tr.className = 'hover:bg-zinc-50/80 cursor-pointer transition-colors group';
         tr.onclick = () => selectRegistryRow(r);
-        const KIND_BADGE = { blacklist: 'text-red-700 bg-red-50', manager: 'text-emerald-700 bg-emerald-50', guest: 'text-sky-700 bg-sky-50', vip: 'text-blue-700 bg-blue-50', warning: 'text-amber-700 bg-amber-50', unregistered: 'text-zinc-700 bg-zinc-100' };
+        const KIND_BADGE = { blacklist: 'text-red-700 bg-red-50', manager: 'text-emerald-700 bg-emerald-50', guest: 'text-sky-700 bg-sky-50', vip: 'text-blue-700 bg-blue-50', warning: 'text-amber-700 bg-amber-50', staff: 'text-indigo-700 bg-indigo-50', unregistered: 'text-zinc-700 bg-zinc-100' };
         const badgeColor = KIND_BADGE[r.kind] || 'text-zinc-700 bg-zinc-100';
         tr.innerHTML = `
           <td class="py-2.5 px-3 font-semibold text-zinc-400">${idx + 1}</td>
-          <td class="py-2.5 px-3 font-bold text-zinc-900">${r.plate}</td>
+          <td class="py-2.5 px-3 font-bold text-zinc-900 group-hover:text-red-600 transition-colors">${r.plate}</td>
           <td class="py-2.5 px-3">${r.name}</td>
-          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeColor}">${r.kind.toUpperCase()}</span></td>
+          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeColor}">${(r.kind || '').toUpperCase()}</span></td>
           <td class="py-2.5 px-3 text-zinc-500">${r.address || '—'}</td>
           <td class="py-2.5 px-3 text-zinc-500">${r.contact || '—'}</td>
+          <td class="py-2.5 px-3 text-right">
+            <button onclick="event.stopPropagation(); openRegisterModal('${r.plate}')" class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded bg-zinc-100 hover:bg-zinc-900 hover:text-white text-zinc-700 transition-colors cursor-pointer">
+              Düzenle
+            </button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
@@ -1004,32 +1376,160 @@
       document.getElementById('plate-input-val').value = r.plate;
       document.getElementById('dossier-plate').innerText = r.plate;
       document.getElementById('dossier-name').innerText = r.name;
-      document.getElementById('dossier-kind').innerText = r.kind.toUpperCase();
-      document.getElementById('dossier-address').innerText = r.address;
+      document.getElementById('dossier-kind').innerText = (r.kind || '').toUpperCase();
+      document.getElementById('dossier-address').innerText = r.address || '—';
       verifyPlateAction();
+      renderScenarioCards();
+    }
+
+    function openRegisterModal(defaultPlate = null) {
+      const plate = (defaultPlate || document.getElementById('plate-input-val')?.value || '').trim().toUpperCase();
+      const match = REGISTRY_DATA.find(x => x.plate.replace(/\s+/g, '').toUpperCase() === plate.replace(/\s+/g, '').toUpperCase());
+
+      document.getElementById('reg-input-plate').value = plate || (match ? match.plate : '');
+      document.getElementById('reg-input-name').value = match ? match.name : '';
+      document.getElementById('reg-input-kind').value = match ? match.kind : 'guest';
+      document.getElementById('reg-input-address').value = match ? (match.address || '') : '';
+      document.getElementById('reg-input-contact').value = match ? (match.contact || '') : '';
+
+      document.getElementById('reg-modal-title').innerText = match
+        ? `Araç Tescilini Düzenle: ${match.plate}`
+        : (plate ? `Yeni Tescil Kaydı: ${plate}` : 'Yeni Araç / Tescil Kaydet');
+
+      document.getElementById('registry-modal')?.classList.remove('hidden');
+    }
+
+    function closeRegistryModal() {
+      document.getElementById('registry-modal')?.classList.add('hidden');
+    }
+
+    async function handleRegistrySubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('reg-submit-btn');
+      const plate = document.getElementById('reg-input-plate').value.trim().toUpperCase();
+      const name = document.getElementById('reg-input-name').value.trim();
+      const kind = document.getElementById('reg-input-kind').value;
+      const address = document.getElementById('reg-input-address').value.trim();
+      const contact = document.getElementById('reg-input-contact').value.trim();
+
+      btn.disabled = true;
+      btn.innerText = 'Kaydediliyor...';
+
+      try {
+        const res = await fetch('/api/registry/upsert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plate, name, kind, address, contact })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast(`✓ ${plate} tescili veritabanına kaydedildi!`, 'success');
+          closeRegistryModal();
+
+          // Yerel listeyi ve senaryoları anında güncelle
+          await fetchRegistry();
+
+          // Eşleşen senaryo varsa güncelle
+          const canon = plate.replace(/\s+/g, '').toLowerCase();
+          Object.keys(SCENARIOS).forEach(k => {
+            if (SCENARIOS[k].plate.replace(/\s+/g, '').toLowerCase() === canon) {
+              SCENARIOS[k].name = name;
+              SCENARIOS[k].kind = kind === 'manager' ? 'Güvenlik Müdürü' : (kind === 'vip' ? 'VIP Misafir' : (kind === 'blacklist' ? 'Giriş Yasağı' : 'Kayıtlı Misafir'));
+              SCENARIOS[k].address = address;
+              SCENARIOS[k].statusType = kind;
+              SCENARIOS[k].statusAction = kind === 'manager' ? 'BARİYER AÇILDI' : (kind === 'vip' ? 'VALE & PROTOKOL' : (kind === 'blacklist' ? 'GİRİŞ İZNİ VERME' : 'GEÇİŞ ONAYLANDI'));
+              SCENARIOS[k].statusText = `${name} (${address || kind}) için tescil devrededir.`;
+            }
+          });
+
+          // Eğer şu an ekrandaki plaka düzenlendiyse vizörü yenile
+          const curP = (document.getElementById('plate-input-val')?.value || '').replace(/\s+/g, '').toUpperCase();
+          if (curP === plate.replace(/\s+/g, '').toUpperCase()) {
+            verifyPlateAction();
+          }
+        } else {
+          showToast(`Kayıt hatası: ${data.error || 'Bilinmeyen hata'}`, 'critical');
+        }
+      } catch (err) {
+        showToast('Sunucu bağlantı hatası', 'critical');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Kaydet & DB\'ye Yaz';
+      }
+    }
+
+    async function confirmResetDemo() {
+      if (!confirm('Tüm demo veritabanı, 6 senaryo ve tesciller fabrika ayarlarına sıfırlansın mı?')) {
+        return;
+      }
+      const btn = document.getElementById('btn-reset-demo');
+      btn.disabled = true;
+      const oldHtml = btn.innerHTML;
+      btn.innerText = 'Sıfırlanıyor...';
+
+      try {
+        const res = await fetch('/api/demo/reset', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('✓ Demo veritabanı fabrika ayarlarına sıfırlandı!', 'success');
+          // Senaryoları geri yükle
+          for (const k in DEFAULT_SCENARIOS) {
+            SCENARIOS[k] = JSON.parse(JSON.stringify(DEFAULT_SCENARIOS[k]));
+          }
+          renderScenarioCards();
+          await fetchRegistry();
+          loadScenario('26abc2626');
+        } else {
+          showToast(`Sıfırlama hatası: ${data.error}`, 'critical');
+        }
+      } catch (err) {
+        showToast('Bağlantı hatası', 'critical');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+      }
     }
 
     function showToast(msg, severity = 'info', title = null) {
       const container = document.getElementById('toast-container');
       if (!container) return;
       const el = document.createElement('div');
-      const sClass = severity === 'critical'
-        ? 'bg-red-950/95 text-red-200 border-red-800 ring-1 ring-red-600/30'
-        : (severity === 'warning'
-          ? 'bg-amber-950/95 text-amber-200 border-amber-800 ring-1 ring-amber-600/30'
-          : 'bg-zinc-900/95 text-zinc-100 border-zinc-700');
-      const dotColor = severity === 'critical' ? 'bg-red-500 animate-ping' : (severity === 'warning' ? 'bg-amber-400' : 'bg-emerald-400');
 
-      el.className = `pointer-events-auto p-3.5 rounded-xl border shadow-xl text-xs font-mono backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 flex flex-col gap-1 ${sClass}`;
+      let sClass = 'bg-zinc-950 text-white border-zinc-700 ring-1 ring-zinc-700/60';
+      let dotColor = 'bg-emerald-400';
+      let defaultTitle = 'SİSTEM BİLDİRİMİ';
+      let bodyColor = 'text-zinc-100';
+
+      if (severity === 'critical' || severity === 'error') {
+        sClass = 'bg-red-950 text-white border-red-600 ring-1 ring-red-500/60';
+        dotColor = 'bg-red-500 animate-ping';
+        defaultTitle = 'HATA BİLDİRİMİ';
+        bodyColor = 'text-red-50';
+      } else if (severity === 'warning') {
+        sClass = 'bg-amber-950 text-white border-amber-600 ring-1 ring-amber-500/60';
+        dotColor = 'bg-amber-400';
+        defaultTitle = 'DİKKAT / UYARI';
+        bodyColor = 'text-amber-50';
+      } else if (severity === 'success') {
+        sClass = 'bg-emerald-950 text-white border-emerald-600 ring-1 ring-emerald-500/60';
+        dotColor = 'bg-emerald-400';
+        defaultTitle = 'BAŞARILI';
+        bodyColor = 'text-emerald-50';
+      }
+
+      el.className = `pointer-events-auto p-3.5 rounded-xl border shadow-2xl text-xs font-mono backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 flex flex-col gap-1.5 ${sClass}`;
       el.innerHTML = `
-        <div class="flex items-center justify-between">
-          <div class="font-bold flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full ${dotColor}"></span>
-            <span>${title || 'SİSTEM BİLDİRİMİ'}</span>
+        <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-1.5">
+          <div class="font-bold flex items-center gap-2 text-white">
+            <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
+            <span class="tracking-wide">${title || defaultTitle}</span>
           </div>
-          <span class="text-[10px] opacity-60">${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-zinc-400 font-mono">${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+            <button onclick="this.closest('div.pointer-events-auto').remove()" class="text-zinc-400 hover:text-white text-xs px-1 hover:bg-white/10 rounded transition-colors cursor-pointer" title="Kapat">✕</button>
+          </div>
         </div>
-        <div class="text-[11px] opacity-90 leading-relaxed mt-0.5">${msg}</div>
+        <div class="text-[11px] ${bodyColor} leading-relaxed font-sans font-medium">${msg}</div>
       `;
       container.appendChild(el);
       requestAnimationFrame(() => {
@@ -1038,7 +1538,7 @@
       setTimeout(() => {
         el.classList.add('opacity-0', 'translate-y-2');
         setTimeout(() => el.remove(), 350);
-      }, 5000);
+      }, 5500);
     }
 
     // --- 5. NVIDIA Nemotron Doğal Dil Sorgu Hattı ---
@@ -1136,6 +1636,9 @@
 
       const tr = data.tool_result;
       const scalarContainer = document.getElementById('scalar-container');
+      const tableContainer = document.getElementById('result-table-container');
+      const toggleBtn = document.getElementById('toggle-history-btn');
+      const toggleLabel = document.getElementById('toggle-history-label');
       const tableHead = document.getElementById('table-head');
       const tableBody = document.getElementById('table-body');
       const rowCountBadge = document.getElementById('row-count-badge');
@@ -1143,58 +1646,97 @@
 
       tableHead.innerHTML = '';
       tableBody.innerHTML = '';
+      if (toggleBtn) toggleBtn.classList.add('hidden');
 
-      if (tr && tr.scalar !== null && tr.scalar !== undefined) {
+      const hasScalar = tr && tr.scalar !== null && tr.scalar !== undefined;
+
+      if (hasScalar) {
         scalarContainer.classList.remove('hidden');
         if (typeof tr.scalar === 'object') {
           const s = tr.scalar;
-          const chips = [];
-          if (s.vehicle_label) {
-            chips.push(`<span class="px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-zinc-100 text-zinc-800 border border-zinc-200 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>${esc(s.vehicle_label)}</span>`);
-          }
-          if (s.is_blacklisted) {
-            chips.push(`<span class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-red-100 text-red-800 border border-red-200 flex items-center gap-1">⛔ KARA LİSTEDE</span>`);
-          } else if (s.known !== undefined) {
-            chips.push(s.known
-              ? `<span class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">✓ Kayıtlı Araç</span>`
-              : `<span class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">? Kayıtsız / Misafir</span>`);
-          }
-          if (s.event_count !== undefined) {
-            chips.push(`<span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-zinc-50 border border-zinc-200 text-zinc-600"><strong class="text-zinc-900 text-sm font-bold">${s.event_count}</strong> Hareket</span>`);
-          }
-          if (s.session_count !== undefined) {
-            chips.push(`<span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-zinc-50 border border-zinc-200 text-zinc-600"><strong class="text-zinc-900 text-sm font-bold">${s.session_count}</strong> Ziyaret</span>`);
-          }
-          Object.entries(s).forEach(([k, v]) => {
-            if (['vehicle_label', 'is_blacklisted', 'known', 'event_count', 'session_count', 'sessions'].includes(k)) return;
-            if (typeof v === 'object' && v !== null) return;
-            const label = k.replace(/_/g, ' ');
-            const valStr = typeof v === 'boolean' ? (v ? 'Evet' : 'Hayır') : esc(String(v));
-            chips.push(`<span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-zinc-50 border border-zinc-200 text-zinc-600">${label}: <strong class="text-zinc-900">${valStr}</strong></span>`);
-          });
+          const isVh = tr.tool === 'vehicle_history';
+          const isInside = (s.sessions || []).some(x => x.currently_inside);
 
-          scalarContainer.innerHTML = `
-            <div class="flex flex-col gap-2">
-              <div class="flex items-center justify-between text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
-                <span class="flex items-center gap-1.5 font-semibold text-zinc-600">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  Özet Künye & Bilgi
-                </span>
-                <button type="button" onclick="document.getElementById('scalar-raw-json')?.classList.toggle('hidden')" class="text-zinc-500 hover:text-zinc-800 hover:underline text-[10px] cursor-pointer">
-                  Ham JSON
-                </button>
+          if (isVh) {
+            const rawP = (tr.params?.plate || data.query || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+            const regMatch = REGISTRY_DATA.find(x => x.plate.replace(/[^A-Z0-9]/g, '') === rawP);
+            const ownerDisplayName = (regMatch && regMatch.name) || s.owner_name || s.vehicle_label || 'Tanımsız / Tescil Yok';
+            const roleSubtext = s.vehicle_label || (regMatch && regMatch.address) || '';
+
+            const statusTag = s.is_blacklisted
+              ? `<span class="px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-red-100 text-red-800 border border-red-200">⛔ KARA LİSTEDE</span>`
+              : (s.known
+                ? `<span class="px-2 py-0.5 rounded-md text-xs font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">✓ Kayıtlı Araç</span>`
+                : `<span class="px-2 py-0.5 rounded-md text-xs font-mono font-semibold bg-amber-50 text-amber-800 border border-amber-200">? Kayıtsız / Misafir</span>`);
+
+            const insideTag = isInside
+              ? `<span class="px-2 py-0.5 rounded-md text-xs font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Şu Anda Otoparkta</span>`
+              : `<span class="px-2 py-0.5 rounded-md text-xs font-mono font-medium bg-zinc-100 text-zinc-600 border border-zinc-200 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>Dışarıda</span>`;
+
+            scalarContainer.innerHTML = `
+              <div class="flex flex-col gap-2.5 font-mono">
+                <div class="flex items-center justify-between border-b border-zinc-100 pb-1.5 text-[11px] text-zinc-400 uppercase tracking-wider">
+                  <span class="flex items-center gap-1.5 font-bold text-zinc-700">
+                    <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                    Araç Tescil & Künye Bilgisi
+                  </span>
+                  <button type="button" onclick="document.getElementById('scalar-raw-json')?.classList.toggle('hidden')" class="text-zinc-500 hover:text-zinc-800 hover:underline text-[10px] cursor-pointer">
+                    Ham JSON
+                  </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div class="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200/70 flex flex-col">
+                    <span class="text-[10px] text-zinc-400 uppercase font-semibold">Araç Sahibi</span>
+                    <span class="text-sm font-bold text-zinc-900 mt-0.5">${esc(ownerDisplayName)}</span>
+                    ${roleSubtext && roleSubtext !== ownerDisplayName ? `<span class="text-[11px] text-zinc-500 font-mono mt-0.5">${esc(roleSubtext)}</span>` : ''}
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-zinc-50 border border-zinc-200/70 flex flex-col">
+                    <span class="text-[10px] text-zinc-400 uppercase font-semibold">Tescil & Güvenlik</span>
+                    <div class="mt-1 flex items-center gap-1.5 flex-wrap">
+                      ${statusTag}
+                    </div>
+                  </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                  ${insideTag}
+                  <span class="px-2.5 py-0.5 rounded-lg text-xs bg-zinc-50 border border-zinc-200 text-zinc-600"><strong class="text-zinc-900">${s.event_count ?? 0}</strong> Hareket</span>
+                  <span class="px-2.5 py-0.5 rounded-lg text-xs bg-zinc-50 border border-zinc-200 text-zinc-600"><strong class="text-zinc-900">${s.session_count ?? 0}</strong> Ziyaret</span>
+                </div>
+                <pre id="scalar-raw-json" class="hidden mt-1 p-2.5 bg-zinc-900 text-emerald-400 rounded-lg text-[11px] overflow-x-auto max-h-40 leading-relaxed">${esc(JSON.stringify(s, null, 2))}</pre>
               </div>
-              <div class="flex flex-wrap items-center gap-2">
-                ${chips.join('')}
+            `;
+          } else {
+            const chips = [];
+            Object.entries(s).forEach(([k, v]) => {
+              if (typeof v === 'object' && v !== null) return;
+              const label = k.replace(/_/g, ' ');
+              const valStr = typeof v === 'boolean' ? (v ? 'Evet' : 'Hayır') : esc(String(v));
+              chips.push(`<span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-zinc-50 border border-zinc-200 text-zinc-600">${label}: <strong class="text-zinc-900">${valStr}</strong></span>`);
+            });
+            scalarContainer.innerHTML = `
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center justify-between text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
+                  <span class="flex items-center gap-1.5 font-semibold text-zinc-600">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Özet Bilgi
+                  </span>
+                  <button type="button" onclick="document.getElementById('scalar-raw-json')?.classList.toggle('hidden')" class="text-zinc-500 hover:text-zinc-800 hover:underline text-[10px] cursor-pointer">
+                    Ham JSON
+                  </button>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">${chips.join('')}</div>
+                <pre id="scalar-raw-json" class="hidden mt-1 p-2.5 bg-zinc-900 text-emerald-400 rounded-lg text-[11px] font-mono overflow-x-auto max-h-40 leading-relaxed">${esc(JSON.stringify(s, null, 2))}</pre>
               </div>
-              <pre id="scalar-raw-json" class="hidden mt-1 p-2.5 bg-zinc-900 text-emerald-400 rounded-lg text-[11px] font-mono overflow-x-auto max-h-40 leading-relaxed">${esc(JSON.stringify(s, null, 2))}</pre>
-            </div>
-          `;
+            `;
+          }
         } else {
           scalarContainer.innerHTML = `
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-mono text-zinc-500 font-medium uppercase tracking-wider">Hesaplanan Değer / Sayı:</span>
-              <span class="text-xl sm:text-2xl font-bold font-mono text-zinc-900">${esc(String(tr.scalar))}</span>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-1">
+              <div>
+                <span class="text-xs font-mono text-zinc-400 uppercase tracking-wider block">Hesaplanan Değer / Sayı</span>
+                <span class="text-xs text-zinc-500 font-mono">Veritabanı aggregate fonksiyonu (SQL Gerçeği)</span>
+              </div>
+              <span class="text-3xl sm:text-4xl font-extrabold font-mono text-zinc-900">${esc(String(tr.scalar))}</span>
             </div>
           `;
         }
@@ -1204,12 +1746,37 @@
       }
 
       const rows = (tr && Array.isArray(tr.rows)) ? tr.rows : [];
-      rowCountBadge.innerText = rows.length + ' Satır';
+      const q = (data.query || '').toLowerCase();
+      const isListRequest = /listele|hareket|gecmis|geçmiş|giris.*cikis|giriş.*çıkış|seans|tum|tüm|tablo|dok|dök/i.test(q);
 
       if (rows.length === 0) {
-        emptyMsg.classList.remove('hidden');
+        if (hasScalar) {
+          if (tableContainer) tableContainer.classList.add('hidden');
+          rowCountBadge.innerText = 'Tekil Değer';
+        } else {
+          if (tableContainer) tableContainer.classList.remove('hidden');
+          emptyMsg.classList.remove('hidden');
+          emptyMsg.innerHTML = '<span class="text-zinc-400">Sorgu kriterlerine uyan kayıt bulunamadı.</span>';
+          rowCountBadge.innerText = '0 Satır';
+        }
       } else {
         emptyMsg.classList.add('hidden');
+
+        if (tr && tr.tool === 'vehicle_history' && !isListRequest) {
+          // Kullanıcı hareket listesi istemedi (ör: "aracı kime ait"), sadece künye sordu:
+          // Tabloyu gizli tut, isteğe bağlı açılır buton göster.
+          if (tableContainer) tableContainer.classList.add('hidden');
+          if (toggleBtn) {
+            toggleBtn.classList.remove('hidden');
+            if (toggleLabel) toggleLabel.innerText = `Geçmiş Hareket Kayıtlarını İncele (${rows.length} Kayıt)`;
+            toggleBtn.querySelector('.arrow').innerText = '↓';
+          }
+          rowCountBadge.innerText = 'Araç Künyesi';
+        } else {
+          if (tableContainer) tableContainer.classList.remove('hidden');
+          if (toggleBtn) toggleBtn.classList.add('hidden');
+          rowCountBadge.innerText = rows.length + ' Satır';
+        }
         // Koken panelinde kullanilan / gurultu olan alanlar tablodan gizlenir
         // (satir nesnesinde kalir, tikla-koken hala calisir).
         const HIDDEN = new Set(['event_id', 'event_row_id', 'camera_id', 'device_id',
@@ -1252,6 +1819,99 @@
           trElem.onclick = () => showProvenance(r);
           tableBody.appendChild(trElem);
         });
+      }
+
+      // 4. Kapsam dışı / nazik ret durumunda kurtarma çipleri
+      const declineContainer = document.getElementById('decline-suggestions');
+      if (declineContainer) {
+        if (data.status === 'declined') {
+          declineContainer.classList.remove('hidden');
+        } else {
+          declineContainer.classList.add('hidden');
+        }
+      }
+
+      // 5. Güvenlik & Karar Künyesi (Audit Accordion) Verilerini Doldur
+      const audit = data.audit || {
+        safety_ok: data.status !== 'error',
+        safety_label: data.status === 'declined' ? 'Kapsam Dışı Soru' : 'Temiz (Doğrulandı)',
+        time_hint: 'Tüm Tarihsel Dönem',
+        tool_name: (data.tool_call && data.tool_call.name) || 'Yok (Doğrudan)',
+        db_surface: (data.tool_call && data.tool_call.name) ? "v_events (Denormalize Olay View'ı • Read-Only)" : "SQL Çağrısı Yapılmadı",
+        justification: data.status === 'declined'
+          ? "Kapsam dışı soru: Veritabanı sorgusu tetiklenmeden nazik rehberlik sağlandı."
+          : (data.tool_call && data.tool_call.name ? "İlgili analitik aracı çağrıldı." : "Doğrudan model yanıtı üretildi.")
+      };
+
+      const auditBadge = document.getElementById('audit-status-badge');
+      const card1Badge = document.getElementById('audit-card1-badge');
+      const safetyVal = document.getElementById('audit-safety-val');
+      const timeVal = document.getElementById('audit-time-val');
+      const toolVal = document.getElementById('audit-tool-val');
+      const justVal = document.getElementById('audit-justification-val');
+      const surfaceVal = document.getElementById('audit-surface-val');
+
+      if (audit.safety_ok) {
+        if (auditBadge) {
+          auditBadge.className = 'px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200/60 inline-flex items-center gap-1';
+          auditBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>' + esc(audit.safety_label || 'Temiz (Doğrulandı)');
+        }
+        if (card1Badge) {
+          card1Badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+          card1Badge.innerText = 'KORUMALI';
+        }
+        if (safetyVal) {
+          safetyVal.className = 'font-bold text-emerald-800 text-sm';
+          safetyVal.innerText = audit.safety_label || 'Temiz (Doğrulandı)';
+        }
+      } else {
+        if (auditBadge) {
+          auditBadge.className = 'px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1';
+          auditBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>' + esc(audit.safety_label || 'Güvenlik Engeli');
+        }
+        if (card1Badge) {
+          card1Badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200';
+          card1Badge.innerText = 'ENGELENDİ';
+        }
+        if (safetyVal) {
+          safetyVal.className = 'font-bold text-rose-700 text-sm';
+          safetyVal.innerText = '⚠️ ' + (audit.safety_label || 'Enjeksiyon Tehdidi');
+        }
+      }
+
+      if (timeVal) timeVal.innerText = audit.time_hint || 'Belirtilmedi';
+      if (toolVal) toolVal.innerText = audit.tool_name || 'Yok (Doğrudan)';
+      if (justVal) justVal.innerText = audit.justification || '—';
+      if (surfaceVal) surfaceVal.innerText = audit.db_surface || '—';
+
+      // Eğer akordiyon açıksa yüksekliğini yeniden hesapla
+      const auditBtn = document.getElementById('audit-accordion-toggle');
+      const auditContent = document.getElementById('audit-accordion-content');
+      if (auditBtn && auditBtn.getAttribute('aria-expanded') === 'true' && auditContent) {
+        auditContent.style.maxHeight = (auditContent.scrollHeight + 32) + 'px';
+      }
+    }
+
+    // Özel JS Akordiyonu Aç/Kapa Mantığı
+    function toggleAuditAccordion() {
+      const content = document.getElementById('audit-accordion-content');
+      const chevron = document.getElementById('audit-accordion-chevron');
+      const btn = document.getElementById('audit-accordion-toggle');
+      if (!content || !chevron || !btn) return;
+
+      const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+      if (isExpanded) {
+        btn.setAttribute('aria-expanded', 'false');
+        chevron.classList.remove('rotate-180');
+        content.style.maxHeight = '0px';
+        content.classList.remove('opacity-100');
+        content.classList.add('opacity-0');
+      } else {
+        btn.setAttribute('aria-expanded', 'true');
+        chevron.classList.add('rotate-180');
+        content.style.maxHeight = (content.scrollHeight + 32) + 'px';
+        content.classList.remove('opacity-0');
+        content.classList.add('opacity-100');
       }
     }
 

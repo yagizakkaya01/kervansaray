@@ -6,6 +6,7 @@ Kullanici sorusunu alir -> Zaman ipuclarini cozer -> LLM'e gonderir (Function Ca
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime
 from time import monotonic, perf_counter
 from typing import Any
@@ -122,18 +123,34 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
         cnt = len(result.rows)
         if cnt == 0:
             return f"{plate} plakasına ait sistemde herhangi bir geçiş kaydı bulunamadı."
-        sessions = (
-            result.scalar.get("sessions", [])
-            if isinstance(result.scalar, dict)
-            else []
-        )
+        scalar_dict = result.scalar if isinstance(result.scalar, dict) else {}
+        sessions = scalar_dict.get("sessions", [])
         is_inside = (
-            bool(result.scalar.get("is_inside"))
-            if isinstance(result.scalar, dict) and "is_inside" in result.scalar
+            bool(scalar_dict.get("is_inside"))
+            if "is_inside" in scalar_dict
             else any(s.get("currently_inside") for s in sessions)
         )
         inside_str = "Araç şu anda otoparkta." if is_inside else "Araç şu anda dışarıda."
-        return f"{plate} plakalı araca ait {cnt} hareket kaydı bulundu. {inside_str}"
+
+        label = scalar_dict.get("vehicle_label")
+        owner = scalar_dict.get("owner_name")
+        known = scalar_dict.get("known", False)
+        is_bl = scalar_dict.get("is_blacklisted", False)
+
+        if is_bl:
+            ident_str = f"Araç KARA LİSTEDEDİR ({owner or label or 'Giriş Yasağı'})."
+        elif owner and label:
+            ident_str = f"Araç, {owner} ({label}) adına kayıtlıdır."
+        elif owner:
+            ident_str = f"Araç, {owner} adına kayıtlıdır."
+        elif label:
+            ident_str = f"Araç, '{label}' olarak kayıtlıdır."
+        elif known:
+            ident_str = "Araç sistemde kayıtlıdır."
+        else:
+            ident_str = "Sistemde araç sahibi / tescil kaydı bulunmamaktadır (misafir/kayıtsız araç)."
+
+        return f"{plate} plakalı araç: {ident_str} {inside_str} (Sistemde {cnt} hareket kaydı mevcut)."
 
     if tool_name == "find_anomalies":
         cnt = len(result.rows)
@@ -158,6 +175,88 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
         return f"'{q}' ile ilgili {cnt} adet not bulundu: \"{first_snippet}\""
 
     return f"{tool_name} başarıyla çalıştırıldı ({len(result.rows)} kayıt)."
+
+
+def check_query_safety(query: str) -> tuple[bool, str]:
+    """Sorgu metninde SQL enjeksiyonu veya zararlı komut kalıplarını denetler."""
+    q_lower = query.lower()
+    sql_patterns = [
+        r"\b(drop|truncate|alter)\s+(table|database|schema|view)\b",
+        r"\bdelete\s+from\b",
+        r"\bupdate\s+\w+\s+set\b",
+        r"\binsert\s+into\b",
+        r"\bunion\s+(all\s+)?select\b",
+        r"--\s*",
+        r"/\*.*?\*/",
+    ]
+    for pattern in sql_patterns:
+        if re.search(pattern, q_lower):
+            return False, "SQL Manipülasyon Komutu Engellendi"
+
+    injection_patterns = [
+        r"\b(ignore|unut)\b.*\b(previous|onceki|talimat)\b",
+        r"\b(system\s*prompt|sistem\s*talimat)\b",
+        r"\bjailbreak\b",
+    ]
+    for pattern in injection_patterns:
+        if re.search(pattern, q_lower):
+            return False, "Sistem Talimatı Müdahalesi Engellendi"
+
+    return True, "Temiz (Doğrulandı)"
+
+
+def build_audit_metadata(
+    query: str,
+    tool_name: str | None,
+    tool_args: dict[str, Any] | None,
+    time_hint: Any,
+    status: str,
+    safety_ok: bool,
+    safety_msg: str,
+) -> dict[str, Any]:
+    """Model akıl yürütmesi ve güvenlik künyesini üretir."""
+    if time_hint:
+        if isinstance(time_hint, tuple) and len(time_hint) == 2:
+            t_start, t_end = time_hint
+            time_str = f"{t_start.strftime('%d.%m.%Y %H:%M')} - {t_end.strftime('%d.%m.%Y %H:%M')} (Pencere Çözümlendi)"
+        else:
+            time_str = str(time_hint)
+    else:
+        clean_q = query.lower()
+        if any(w in clean_q for w in ("su an", "şu an", "canli", "canlı", "anlik", "anlık")):
+            time_str = "Canlı / Anlık Durum (Şu an)"
+        else:
+            time_str = "Tüm Tarihsel Dönem (Zaman Kısıtı Yok)"
+
+    if tool_name == "search_notes":
+        surface = "notes (Güvenlik Vardiya & Prosedür Notları)"
+    elif tool_name in ("vehicle_history", "aggregate_events", "find_anomalies", "occupancy"):
+        surface = "v_events (Denormalize Olay View'ı • Read-Only)"
+    else:
+        surface = "SQL Çağrısı Yapılmadı (Doğrudan Çözümleme)"
+
+    intent_map = {
+        "vehicle_history": "Plaka bazlı hareket geçmişi, oturumlar ve sürücü tescil künyesi sorgulandı.",
+        "aggregate_events": "Belirtilen tarih ve filtre kriterlerine göre toplam araç hareketi istatistiği hesaplandı.",
+        "find_anomalies": "48 saat üzeri sahada kalma (overstay) veya gece 03:00 anomalisi tarandı.",
+        "occupancy": "Tesis içindeki anlık araç sayısı ve doluluk durumu analiz edildi.",
+        "search_notes": "Vardiya amirliği prosedürleri ve operasyonel nöbet defteri tarandı.",
+    }
+    justification = intent_map.get(
+        tool_name,
+        "Kapsam dışı veya genel soru: Veritabanı sorgusu tetiklenmeden nazik rehberlik sağlandı."
+        if status == "declined"
+        else "Doğrudan model yanıtı üretildi."
+    )
+
+    return {
+        "safety_ok": safety_ok,
+        "safety_label": safety_msg,
+        "time_hint": time_str,
+        "tool_name": tool_name or "Yok (Doğrudan)",
+        "db_surface": surface,
+        "justification": justification,
+    }
 
 
 def run_query(
@@ -196,7 +295,35 @@ def run_query(
             "elapsed_seconds": 0.0,
         }
 
-    # 0. Onbellek kontrolu
+    # 0. Güvenlik & Enjeksiyon Taraması (Pre-flight Guardrail)
+    safety_ok, safety_msg = check_query_safety(clean_query)
+    if not safety_ok:
+        audit = build_audit_metadata(
+            clean_query,
+            tool_name=None,
+            tool_args=None,
+            time_hint=None,
+            status="declined",
+            safety_ok=False,
+            safety_msg=safety_msg,
+        )
+        return {
+            "query": user_text,
+            "status": "declined",
+            "provider": "kervansaray-guardrail",
+            "tool_call": None,
+            "tool_result": None,
+            "narrative": (
+                "Güvenlik Uyarısı: Girilen sorguda SQL manipülasyonu veya yetkisiz komut kalıbı "
+                "tespit edildi. Kervansaray Doğal Dil Motoru yalnızca güvenli otopark istihbarat "
+                "sorgularını işler."
+            ),
+            "audit": audit,
+            "cached": False,
+            "elapsed_seconds": round(perf_counter() - t0, 3),
+        }
+
+    # 1. Onbellek kontrolu
     cache_ref = as_of.isoformat() if as_of else "now"
     cache_key = f"{to_ascii(clean_query.lower())}:{cache_ref}"
     if use_cache:
@@ -206,11 +333,11 @@ def run_query(
             cached_entry["elapsed_seconds"] = round(perf_counter() - t0, 3)
             return cached_entry
 
-    # 1. Calisma zamani ipuclari ve sistem talimati
+    # 2. Calisma zamani ipuclari ve sistem talimati
     time_hint = extract_time_hint(clean_query, as_of=as_of)
     system_instruction = build_system_prompt(as_of=as_of, time_hint=time_hint)
 
-    # 2. LLM cagir (aktif saglayicilar sirasiyla denenir; fallback destekli)
+    # 3. LLM cagir (aktif saglayicilar sirasiyla denenir; fallback destekli)
     if client:
         candidates = [client]
     else:
@@ -283,7 +410,7 @@ def run_query(
     prov_name = getattr(used_client, "PROVIDER", "unknown")
     provider = llm_out.get("provider", prov_name)
 
-    # 3. Model direkt metin mi dondu (ornek: kapsam disi ret)?
+    # 4. Model direkt metin mi dondu (ornek: kapsam disi ret)?
     fc = llm_out.get("function_call")
     if not fc:
         resp_text = llm_out.get("response") or ""
@@ -294,13 +421,35 @@ def run_query(
             or "ilgili degil" in clean_resp
         )
         status = "declined" if is_dec else "direct_response"
+
+        # Nazik ve rehberlik eden Türkçe mesaj (Sessiz Düzeltme & Yönlendirme)
+        if status == "declined":
+            narrative = (
+                "Ben sadece Kervansaray otopark hareketlerini, araç tescillerini, vardiya "
+                "prosedürlerini ve güvenlik anomalilerini analiz edebilen bir istihbarat motoruyum. "
+                "Lütfen yukarıdaki hazır sorulardan birini seçin veya bir plaka/otopark durumu sorusu sorun."
+            )
+        else:
+            narrative = resp_text or "Yanıt üretilemedi."
+
+        audit = build_audit_metadata(
+            clean_query,
+            tool_name=None,
+            tool_args=None,
+            time_hint=time_hint,
+            status=status,
+            safety_ok=True,
+            safety_msg="Temiz (Kapsam Denetlendi)",
+        )
+
         out = {
             "query": user_text,
             "status": status,
             "provider": provider,
             "tool_call": None,
             "tool_result": None,
-            "narrative": resp_text or "Yanıt üretilemedi.",
+            "narrative": narrative,
+            "audit": audit,
             "cached": False,
             "elapsed_seconds": round(perf_counter() - t0, 3),
         }
@@ -308,13 +457,23 @@ def run_query(
             query_cache.set(cache_key, out, is_dynamic=False)
         return out
 
-    # 4. Tool calistir
+    # 5. Tool calistir
     tool_name = fc.get("name", "")
     tool_args = fc.get("args", {})
     tool_res = dispatch_tool(db, tool_name, tool_args, as_of=as_of)
 
     status = "error" if tool_res.note else "success"
     narrative = format_narrative(tool_name, tool_args, tool_res)
+
+    audit = build_audit_metadata(
+        clean_query,
+        tool_name=tool_name,
+        tool_args=tool_args,
+        time_hint=time_hint,
+        status=status,
+        safety_ok=True,
+        safety_msg="Temiz (Doğrulandı)",
+    )
 
     result_payload = {
         "query": user_text,
@@ -323,6 +482,7 @@ def run_query(
         "tool_call": {"name": tool_name, "args": tool_args},
         "tool_result": tool_res.to_dict(),
         "narrative": narrative,
+        "audit": audit,
         "cached": False,
         "elapsed_seconds": round(perf_counter() - t0, 3),
     }

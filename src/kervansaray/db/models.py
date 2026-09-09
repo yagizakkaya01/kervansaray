@@ -63,6 +63,7 @@ class Person(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     kind: Mapped[PersonKind] = mapped_column(_pg_enum(PersonKind, "person_kind"), nullable=False)
     room_no: Mapped[str | None] = mapped_column(String(32))
+    contact: Mapped[str | None] = mapped_column(String(255))
 
     vehicles: Mapped[list[Vehicle]] = relationship(back_populates="person")
 
