@@ -133,7 +133,7 @@ def _weekday_series(start, end, weekdays, hour, minute=0):
 
 def seed_scenarios(sess):
     # 1) 26 ABC 2626 - Guvenlik Muduru: sik giren, su an sahada
-    p = _mk_person(sess, "H. Aydin", PersonKind.staff, contact="guvenlik.amiri@kervansaray.local")
+    p = _mk_person(sess, "Tarık Akkaya", PersonKind.staff, contact="guvenlik.amiri@kervansaray.local")
     v = _mk_vehicle(sess, "26 ABC 2626", p, "Guvenlik Muduru - Nizamiye",
                     reg_from=NOW - timedelta(days=400), reg_to=None)
     # Nisan 15 + Haziran/Temmuz seyrek + son 4 hafta Pzt/Car/Cum

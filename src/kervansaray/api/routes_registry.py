@@ -57,7 +57,7 @@ def _clean_text(val: str | None, maxlen: int) -> str:
 
 # 6 Demo Senaryo Plakası
 DEMO_SCENARIO_PLATES = [
-    {"plate": "26 ABC 2626", "default_name": "H. Aydın (Güvenlik Müdürü)", "default_kind": "manager", "default_addr": "Güvenlik Amirliği", "default_contact": "guvenlik.amiri@kervansaray.local"},
+    {"plate": "26 ABC 2626", "default_name": "Tarık Akkaya (Güvenlik Müdürü)", "default_kind": "manager", "default_addr": "Güvenlik Amirliği", "default_contact": "guvenlik.amiri@kervansaray.local"},
     {"plate": "06 AK 0052", "default_name": "Can Öztürk", "default_kind": "guest", "default_addr": "İş Ortağı • Doğu Otoparkı", "default_contact": "(0532) 111 22 33"},
     {"plate": "34 KAY 44", "default_name": "Sayın Kaya", "default_kind": "vip", "default_addr": "Başkanlık Süiti", "default_contact": "kaya@holding.com.tr"},
     {"plate": "26 XYZ 413", "default_name": "Kayıt Yok (Kargo / Tedarik)", "default_kind": "unregistered", "default_addr": "Geçici Misafir", "default_contact": "—"},
