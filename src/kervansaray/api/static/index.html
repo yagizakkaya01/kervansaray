@@ -162,46 +162,48 @@
       <div>
         <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-red-50 border border-red-100 text-red-600 text-xs font-mono font-medium mb-3">
           <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
-          // 02 • ÇALIŞMALAR // KERVANSARAY ALPR & İSTİHBARAT TERMİNALİ
+          // 02 • ÇALIŞMALAR // KERVANSARAY
         </div>
         <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-900">
-          Kervansaray
+          Kervansaray — Akıllı Kapı Güvenliği
         </h1>
         <p class="mt-2 text-sm sm:text-base text-zinc-500 max-w-2xl leading-relaxed">
-          Plaka tanıma vizörü, güvenlik nizamiyesi araç tescil künyesi ve NVIDIA Nemotron destekli doğal dil SQL istihbarat motoru.
+          Kapıya gelen aracın plakasını okur, kim olduğunu hatırlar; güvenlik
+          görevlisi Türkçe sorduğunda saniyeler içinde cevaplar.
         </p>
       </div>
 
-      <!-- Canlı Sistem İndikatörleri -->
-      <div class="flex items-center gap-2 font-mono text-xs">
-        <span class="px-2.5 py-1 bg-white border border-zinc-200 rounded-lg text-zinc-600 shadow-sm flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-          CAM-01: Aktif
+      <!-- Sistem künyesi (mühendis katmanı) -->
+      <div class="flex items-center gap-2 font-mono text-[11px] text-zinc-500">
+        <span class="px-2.5 py-1 bg-white border border-zinc-200 rounded-lg shadow-sm flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          Kamera bağlı
         </span>
-        <span class="px-2.5 py-1 bg-white border border-zinc-200 rounded-lg text-zinc-600 shadow-sm">
-          Model: nemotron-3.5
+        <span class="px-2.5 py-1 bg-white border border-zinc-200 rounded-lg shadow-sm">
+          nemotron-3.5
         </span>
       </div>
     </div>
 
     <!-- ========================================================================= -->
-    <!-- ONBOARDING: "Nedir & 3 Adımda Nasıl Denenir" (UI_PONYTAIL_PLAN §3.A)     -->
+    <!-- HERO: Bu ne? (UI_DESIGN_V2_PLAN §2)                                      -->
     <!-- ========================================================================= -->
     <div class="bg-white rounded-2xl border border-zinc-200/80 p-5 sm:p-6 shadow-sm flex flex-col gap-5">
-      <div class="flex flex-col gap-2">
-        <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-red-600">
-          // 01 • AKILLI TESİS GÜVENLİĞİ & OTOPARK İSTİHBARAT MOTORU
-        </div>
-        <p class="text-sm sm:text-[15px] text-zinc-700 leading-relaxed max-w-3xl">
-          Giriş-çıkış yapan araçları kamera vizöründe otomatik tanıyan (ALPR) ve
-          güvenlik operatörünün Türkçe sorularını SQL'e çevirip veritabanından
-          anında raporlayan bir yapay zeka istihbarat motoru.
+      <div class="flex flex-col gap-3">
+        <p class="text-base sm:text-lg text-zinc-800 leading-relaxed max-w-3xl">
+          Kervansaray, bir tesisin giriş kapısındaki kamerayı <strong class="font-semibold text-zinc-900">gözü</strong>,
+          araç kayıt defterini <strong class="font-semibold text-zinc-900">hafızası</strong> ve yapay zekayı
+          <strong class="font-semibold text-zinc-900">aklı</strong> yapan bir güvenlik asistanıdır.
         </p>
-        <div class="flex flex-wrap gap-1.5 pt-1 font-mono text-[11px] text-zinc-700">
-          <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">0 ms önbellek / ~5–15 sn canlı model · NVIDIA Nemotron 3.5 (30B)</span>
-          <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">Pre-flight SQL kalkanı</span>
-          <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">Sorgular salt-okunur · sentetik veri, her an fabrika sıfırlama</span>
-          <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">220 sentetik test olayı</span>
+        <p class="text-sm text-zinc-500 leading-relaxed max-w-3xl">
+          Kapıya gelen her aracın plakasını okur, kim olduğunu hatırlar ve güvenlik görevlisi
+          Türkçe soru sorduğunda — <em class="text-zinc-600 not-italic">“bu ay kaç kez geldi?”</em>,
+          <em class="text-zinc-600 not-italic">“girişi yasaklı biri geçti mi?”</em> — saniyeler içinde cevap verir.
+        </p>
+        <div class="flex flex-wrap gap-1.5 pt-1 font-mono text-[10px] text-zinc-400">
+          <span class="px-2 py-1 rounded-lg bg-zinc-50 border border-zinc-200">Plaka okuma (ALPR)</span>
+          <span class="px-2 py-1 rounded-lg bg-zinc-50 border border-zinc-200">Doğal dil → SQL · NVIDIA Nemotron 3.5</span>
+          <span class="px-2 py-1 rounded-lg bg-zinc-50 border border-zinc-200">Sentetik veri · 0 gerçek kişi</span>
         </div>
       </div>
 
@@ -209,43 +211,51 @@
         <div class="flex gap-3">
           <span class="shrink-0 w-6 h-6 rounded-lg bg-zinc-900 text-white text-xs font-bold flex items-center justify-center">1</span>
           <div>
-            <div class="text-xs font-bold text-zinc-900">Senaryo seç</div>
-            <p class="text-[11px] text-zinc-500 leading-snug mt-0.5">Aşağıdaki 6 hazır güvenlik senaryosundan birine tıkla (ör. <span class="text-red-600 font-medium">Kara Liste Alarmı</span>).</p>
+            <div class="text-xs font-bold text-zinc-900">Bir olay seç</div>
+            <p class="text-[11px] text-zinc-500 leading-snug mt-0.5">Aşağıdaki 6 durumdan birine tıkla — ör. <span class="text-red-600 font-medium">girişi yasaklı araç kapıda</span>.</p>
           </div>
         </div>
         <div class="flex gap-3">
           <span class="shrink-0 w-6 h-6 rounded-lg bg-zinc-900 text-white text-xs font-bold flex items-center justify-center">2</span>
           <div>
-            <div class="text-xs font-bold text-zinc-900">Kamerayı izle</div>
-            <p class="text-[11px] text-zinc-500 leading-snug mt-0.5">Vizörde plakanın okunmasını ve bariyer kararının anında verilmesini gör.</p>
+            <div class="text-xs font-bold text-zinc-900">Kapıda ne oluyor, gör</div>
+            <p class="text-[11px] text-zinc-500 leading-snug mt-0.5">Kamera plakayı okur, kayıt defterinde arar, bariyer kararını verir.</p>
           </div>
         </div>
         <div class="flex gap-3">
           <span class="shrink-0 w-6 h-6 rounded-lg bg-zinc-900 text-white text-xs font-bold flex items-center justify-center">3</span>
           <div>
-            <div class="text-xs font-bold text-zinc-900">Terminale sor</div>
-            <p class="text-[11px] text-zinc-500 leading-snug mt-0.5">Hazır soru çiplerine tıkla ya da Türkçe serbest sor; getirilen SQL sonucunu incele.</p>
+            <div class="text-xs font-bold text-zinc-900">Güvenliğe sor</div>
+            <p class="text-[11px] text-zinc-500 leading-snug mt-0.5">Hazır soruya tıkla ya da kendi sorunu Türkçe yaz; cevabın kaynağını da gör.</p>
           </div>
         </div>
       </div>
     </div>
 
     <!-- ========================================================================= -->
-    <!-- BENTO MODÜL 1: PLAKA TANIMA SİSTEMİ (Kamera Vizörü + Plaka Sonucu)      -->
+    <!-- 1. BİR OLAY SEÇ — kartlar kameranın üstünde (UI_DESIGN_V2_PLAN §4, §5.3) -->
+    <!-- ========================================================================= -->
+    <div class="bg-white rounded-2xl border border-zinc-200/80 p-5 shadow-sm flex flex-col gap-3">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-1">
+        <h2 class="text-base font-bold text-zinc-900">Bir olay seç, ne olacağını gör</h2>
+        <span class="text-xs text-zinc-400">Kapıya gelebilecek 6 tipik durum</span>
+      </div>
+      <div id="scenario-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5"></div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 2. KAPIDA NE OLDU — kamera + okuma sonucu                                -->
     <!-- ========================================================================= -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      
-      <!-- Sol Panel: Araç / Plaka Görseli & Kamera Vizörü (7 Sütun) -->
+
+      <!-- Sol Panel: Kapı kamerası (7 Sütun) -->
       <div class="lg:col-span-7 bg-white rounded-2xl border border-zinc-200/80 p-5 shadow-sm flex flex-col gap-4">
-        
-        <!-- Vizör Üst Başlık -->
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-zinc-800">
-            <span class="w-2 h-2 rounded-full bg-red-600"></span>
-            Araç / Plaka Görseli (Kamera Girişi)
-          </div>
-          <span id="cam-status-badge" class="px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-100 text-zinc-600 border border-zinc-200">
-            ● CANLI AKIŞ: NİZAMİYE GİRİŞ
+
+        <!-- Kamera Üst Başlık -->
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-base font-bold text-zinc-900">Kameranın gördüğü</h2>
+          <span id="cam-status-badge" class="px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-100 text-zinc-500 border border-zinc-200">
+            Giriş Kapısı · Kamera 1
           </span>
         </div>
 
@@ -261,144 +271,83 @@
             class="w-full h-full object-cover select-none transition-transform duration-300"
           />
 
-          <!-- Plaka Hedefleme Kutusu (Bounding Box) — 6 senaryonun plaka
-               konumu benzer: on plaka, kadraj ortasi, ~%70 yukseklik -->
-          <div id="plate-bounding-box" class="absolute left-1/2 top-[70%] -translate-x-1/2 -translate-y-1/2 w-36 h-10 border-2 border-emerald-400 bg-emerald-400/10 rounded flex items-center justify-center transition-all pointer-events-none">
-            <span class="absolute -top-4 left-1 text-[9px] bg-emerald-500 text-black px-1 font-bold rounded">
-              ALPR OCR: 98.4%
+          <!-- Plaka Hedefleme Kutusu — 6 senaryonun plaka konumu benzer:
+               on plaka, kadraj ortasi, ~%70 yukseklik -->
+          <div id="plate-bounding-box" class="absolute left-1/2 top-[70%] -translate-x-1/2 -translate-y-1/2 w-36 h-10 border-2 border-emerald-400 bg-emerald-400/10 rounded flex items-center justify-center transition-all pointer-events-none opacity-0">
+            <span class="absolute -top-4 left-1 text-[9px] bg-emerald-500 text-black px-1.5 py-px font-bold rounded">
+              Plaka bulundu
             </span>
             <!-- Dinamik Lazer Tarama Çizgisi -->
             <div id="laser-scan" class="scanner-line hidden"></div>
           </div>
 
-          <!-- Görsel Yok Uyarısı -->
+          <!-- Boş durum ipucu (§7.2) — ilk senaryo seçilene kadar görünür -->
+          <div id="camera-hint" class="absolute inset-0 bg-zinc-900/95 flex flex-col items-center justify-center gap-3 text-center px-6 transition-opacity duration-500">
+            <span class="text-2xl text-zinc-500 animate-bounce">▲</span>
+            <span class="text-sm text-zinc-300 font-medium max-w-xs leading-relaxed">
+              Yukarıdan bir olay seçerek kapı simülasyonunu başlatın
+            </span>
+            <span class="text-[11px] text-zinc-500 font-mono">kamera bekliyor</span>
+          </div>
+
+          <!-- Görsel Yok Uyarısı (kamera durdurulduğunda) -->
           <div id="empty-img-placeholder" class="hidden absolute inset-0 bg-zinc-900 flex flex-col items-center justify-center gap-2 text-zinc-500">
             <svg class="w-8 h-8 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            <span class="text-xs font-mono">Görsel seçilmedi veya kamera kapalı</span>
+            <span class="text-xs font-mono">Kamera durduruldu</span>
           </div>
 
         </div>
 
-        <!-- Canlı Geçiş / ALPR Simülatörü: 6 Hedefli Senaryo Kartı -->
-        <div class="flex flex-col gap-2 pt-1 border-t border-zinc-100">
-          <div class="flex items-center justify-between text-xs font-mono text-zinc-500">
-            <span class="font-semibold text-zinc-700 uppercase tracking-wider">// CANLI KAMERA AKIŞI & OTOMATİK PLAKA OKUMA (ALPR)</span>
-            <span class="text-[11px] text-zinc-400">Karta tıkla • plaka okunur, künye ve soru hazırlanır</span>
-          </div>
+        <!-- Sakin süreç akışı (§7.3) — toast yerine tek satır -->
+        <div id="scenario-flow" class="hidden flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-zinc-500 min-h-[20px]"></div>
 
-          <div id="scenario-cards-container" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <!-- 1. Güvenlik Müdürü -->
-            <button onclick="loadScenario('26abc2626')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-emerald-50 hover:border-emerald-300 transition-all text-left group shadow-xs">
-              <div class="flex items-center justify-between mb-1">
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800">GÜV. MÜDÜRÜ</span>
-                <span class="text-[10px] font-mono text-zinc-400">H. Aydın</span>
-              </div>
-              <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-emerald-700">26 ABC 2626</div>
-              <div class="text-[10px] text-zinc-500 truncate">Güvenlik Amirliği • Daimi</div>
-            </button>
-
-            <!-- 2. Kayıtlı Misafir -->
-            <button onclick="loadScenario('06ak0052')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-sky-50 hover:border-sky-300 transition-all text-left group shadow-xs">
-              <div class="flex items-center justify-between mb-1">
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-100 text-sky-800">KAYITLI MİSAFİR</span>
-                <span class="text-[10px] font-mono text-zinc-400">Can Ö.</span>
-              </div>
-              <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-sky-700">06 AK 0052</div>
-              <div class="text-[10px] text-zinc-500 truncate">İş Ortağı • Ön Onaylı</div>
-            </button>
-
-            <!-- 3. VIP Misafir -->
-            <button onclick="loadScenario('34kay44')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-blue-50 hover:border-blue-300 transition-all text-left group shadow-xs">
-              <div class="flex items-center justify-between mb-1">
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 text-blue-800">VIP MİSAFİR</span>
-                <span class="text-[10px] font-mono text-zinc-400">S. Kaya</span>
-              </div>
-              <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-blue-700">34 KAY 44</div>
-              <div class="text-[10px] text-zinc-500 truncate">Doğu Otoparkı • Protokol</div>
-            </button>
-
-            <!-- 4. Kayıtsız Ziyaretçi -->
-            <button onclick="loadScenario('26xyz413')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-amber-50 hover:border-amber-300 transition-all text-left group shadow-xs">
-              <div class="flex items-center justify-between mb-1">
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 text-amber-800">KAYITSIZ</span>
-                <span class="text-[10px] font-mono text-zinc-400">Kargo</span>
-              </div>
-              <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-amber-700">26 XYZ 413</div>
-              <div class="text-[10px] text-zinc-500 truncate">Kargo/Tedarik • Geçici</div>
-            </button>
-
-            <!-- 5. 48h Overstay -->
-            <button onclick="loadScenario('06xyz01')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-orange-50 hover:border-orange-300 transition-all text-left group shadow-xs">
-              <div class="flex items-center justify-between mb-1">
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-orange-100 text-orange-800">OVERSTAY</span>
-                <span class="text-[10px] font-mono text-zinc-400">&gt;48s</span>
-              </div>
-              <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-orange-700">06 XYZ 01</div>
-              <div class="text-[10px] text-zinc-500 truncate">B Blok • Terk Araç Şüphesi</div>
-            </button>
-
-            <!-- 6. Kara Liste Alarmı -->
-            <button onclick="loadScenario('34vip99')" class="p-2.5 rounded-xl border border-red-200 bg-red-50/50 hover:bg-red-100 hover:border-red-400 transition-all text-left group shadow-xs">
-              <div class="flex items-center justify-between mb-1">
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-red-600 text-white animate-pulse">KARA LİSTE</span>
-                <span class="text-[10px] font-mono text-red-600 font-bold">ALARM</span>
-              </div>
-              <div class="font-mono font-bold text-xs text-red-900 group-hover:text-red-700">34 VIP 99</div>
-              <div class="text-[10px] text-red-600 truncate font-medium">İcralık • Giriş Yasağı</div>
-            </button>
-          </div>
-        </div>
-
-        <!-- Vizör Eylem Kontrolleri -->
-        <div class="flex items-center gap-2 pt-2 border-t border-zinc-100">
+        <!-- Kamera eylemleri -->
+        <div class="flex items-center gap-2 pt-2 border-t border-zinc-100 flex-wrap">
           <button id="btn-scan" onclick="triggerPlateScan()" class="flex-1 px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            <span>Plaka Okuma Başlat</span>
+            <span>Plakayı tekrar oku</span>
           </button>
 
           <button id="btn-cam-toggle" onclick="toggleCamera()" class="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span id="cam-btn-text">Kamera Durdur</span>
+            <span id="cam-btn-text">Kamerayı durdur</span>
           </button>
 
           <button onclick="checkPlateHistory()" class="px-4 py-2.5 bg-white hover:bg-zinc-50 text-zinc-900 text-xs font-semibold rounded-xl border border-zinc-200 transition-colors flex items-center justify-center gap-1.5">
-            <span>Hareketleri Getir</span>
+            <span>Geçmişini sor</span>
             <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </button>
         </div>
 
       </div>
 
-      <!-- Sağ Panel: Plaka Sonucu & Hızlı Karar Kartı (5 Sütun) -->
+      <!-- Sağ Panel: Okuma sonucu & karar (5 Sütun) -->
       <div id="plate-result-panel" class="lg:col-span-5 bg-white rounded-2xl border border-zinc-200/80 p-5 shadow-sm flex flex-col gap-4">
-        
-        <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
-          <div class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-zinc-800">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            Plaka Sonucu (ALPR Çıktısı)
-          </div>
-          <span class="text-xs font-mono text-zinc-400">Güven: <strong class="text-zinc-700">0.98</strong></span>
+
+        <div class="flex items-center justify-between border-b border-zinc-100 pb-3 gap-2">
+          <h2 class="text-base font-bold text-zinc-900">Sistem ne okudu?</h2>
+          <span class="text-[10px] font-mono text-zinc-400">OCR güven 0.98</span>
         </div>
 
-        <!-- Kırpılmış Plaka Görseli (Plate Crop) -->
+        <!-- Okunan plaka -->
         <div class="flex flex-col gap-1.5">
-          <span class="text-xs font-mono text-zinc-400">Algılanan Plaka Görseli (Kırpma):</span>
+          <span class="text-xs text-zinc-500">Okunan plaka</span>
           <div class="w-full h-20 bg-zinc-100 rounded-xl border border-zinc-200 overflow-hidden flex items-center justify-center p-2 shadow-inner">
             <div id="plate-crop-display" class="tr-plate" role="img" aria-label="Algılanan plaka">
               <div class="tr-plate-blue"><span>TR</span></div>
-              <div class="tr-plate-chars" id="plate-crop-chars">14 EV 669</div>
+              <div class="tr-plate-chars" id="plate-crop-chars" style="color:#d4d4d8">—</div>
             </div>
           </div>
-          <span class="text-[11px] font-mono text-zinc-400 self-end" id="plate-crop-sub">Tescil ili: Bolu · sentetik kırpma</span>
+          <span class="text-[11px] font-mono text-zinc-400 self-end" id="plate-crop-sub">henüz okuma yok</span>
         </div>
 
         <!-- Düzenlenebilir Plaka Girdisi & Kontrol Et -->
         <div class="flex flex-col gap-1.5">
-          <label for="plate-input-val" class="text-xs text-zinc-500 italic">
-            Plakayı düzenlemek için aşağıdaki metin kutusuna tıklayın:
+          <label for="plate-input-val" class="text-xs text-zinc-500">
+            Başka bir plakayı denemek için buraya yazabilirsiniz
           </label>
           <div class="flex items-center gap-2">
             <!-- Mavi TR Şeritli Plaka -->
@@ -409,7 +358,8 @@
               <input
                 type="text"
                 id="plate-input-val"
-                value="14 EV 669"
+                value=""
+                placeholder="34 ABC 123"
                 class="w-full px-3 text-lg font-bold text-zinc-900 bg-transparent tracking-widest focus:outline-none uppercase"
               />
             </div>
@@ -418,21 +368,21 @@
               onclick="verifyPlateAction()"
               class="px-4 h-12 bg-zinc-900 hover:bg-red-600 text-white text-xs font-semibold rounded-xl transition-colors shrink-0 flex items-center gap-1.5"
             >
-              <span>Plakayı Kontrol Et</span>
+              <span>Kontrol et</span>
             </button>
           </div>
         </div>
 
         <!-- Akıllı Durum Bildirim Kutusu -->
         <div class="flex flex-col gap-1.5">
-          <span class="text-xs font-mono text-zinc-400">Güvenlik & Kayıt Durumu:</span>
-          <div id="plate-status-box" class="p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between bg-amber-50 border-amber-200 text-amber-800">
+          <span class="text-xs text-zinc-500">Durum</span>
+          <div id="plate-status-box" class="p-3.5 rounded-xl border font-mono text-xs flex items-center justify-between bg-zinc-50 border-zinc-200 text-zinc-600">
             <div class="flex items-center gap-2 font-semibold">
-              <span id="status-dot" class="w-2 h-2 rounded-full bg-amber-500"></span>
-              <span id="status-message">Araç kayıtlı değil (Yabancı / Misafir).</span>
+              <span id="status-dot" class="w-2 h-2 rounded-full bg-zinc-400"></span>
+              <span id="status-message">Henüz bir olay seçilmedi.</span>
             </div>
-            <span id="status-action-tag" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-amber-100 text-amber-900 rounded">
-              GİRİŞ İZNİ BEKLENİYOR
+            <span id="status-action-tag" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-zinc-200 text-zinc-600 rounded">
+              BEKLEMEDE
             </span>
           </div>
         </div>
@@ -440,15 +390,15 @@
         <!-- Hızlı Eylem Butonları -->
         <div class="flex items-center gap-2 pt-2 border-t border-zinc-100 flex-wrap">
           <button onclick="fillFormFromPlate()" class="flex-1 py-2 px-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl transition-colors cursor-pointer text-center">
-            Plaka Kayıtlarını Göster
+            Kayıt defterinde göster
           </button>
           <button onclick="openRegisterModal(document.getElementById('plate-input-val').value)" class="py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
             <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            <span>Kaydı Düzenle / Tescil Et</span>
+            <span>Kaydını düzenle</span>
           </button>
           <button onclick="askGeminiForPlate()" class="flex-1 py-2 px-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-xl border border-red-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
             <svg class="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-            <span>Yapay Zekâ'ya Sor</span>
+            <span>Bu aracı sor</span>
           </button>
         </div>
 
@@ -463,12 +413,11 @@
       
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 pb-4">
         <div>
-          <div class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-zinc-800">
-            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-            Araç Tescil ve Güvenlik Defteri
-          </div>
+          <h2 class="text-base font-bold text-zinc-900">Araç Kayıt Defteri</h2>
           <p class="text-xs text-zinc-500 mt-0.5">
-            Otopark güvenlik veri tabanında tescilli araçlar, sürücü künyesi ve yetki durumu.
+            Sistemin "hafızası": kimin aracı, hangi yetkiyle giriyor. Satırları düzenleyip
+            sonucun sorulara nasıl yansıdığını görebilirsiniz.
+            <span class="font-mono text-[10px] text-zinc-400">Postgres · Alembic</span>
           </p>
         </div>
 
@@ -482,7 +431,7 @@
             <span>Demoyu Sıfırla</span>
           </button>
           <div id="dossier-match-badge" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl text-xs font-mono font-semibold">
-            Eşleşme: <span id="dossier-match-status" class="text-zinc-900">Kayıtsız Ziyaretçi</span>
+            Durum: <span id="dossier-match-status" class="text-zinc-900">—</span>
           </div>
         </div>
       </div>
@@ -491,30 +440,30 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-mono">
         <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200/70">
           <span class="text-[11px] text-zinc-400 block mb-0.5">Plaka</span>
-          <span id="dossier-plate" class="text-sm font-bold text-zinc-900">14 EV 669</span>
+          <span id="dossier-plate" class="text-sm font-bold text-zinc-900">—</span>
         </div>
         <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200/70">
           <span class="text-[11px] text-zinc-400 block mb-0.5">Sürücü / İsim</span>
-          <span id="dossier-name" class="text-sm font-semibold text-zinc-900">Ahmet Yılmaz</span>
+          <span id="dossier-name" class="text-sm font-semibold text-zinc-900">—</span>
         </div>
         <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200/70">
           <span class="text-[11px] text-zinc-400 block mb-0.5">Kayıt / Yetki Türü</span>
-          <span id="dossier-kind" class="text-sm font-semibold text-zinc-900">Misafir (Otel / Tesis)</span>
+          <span id="dossier-kind" class="text-sm font-semibold text-zinc-900">—</span>
         </div>
         <div class="p-3 bg-zinc-50 rounded-xl border border-zinc-200/70">
           <span class="text-[11px] text-zinc-400 block mb-0.5">Tahsis Birimi / Konum</span>
-          <span id="dossier-address" class="text-sm font-semibold text-zinc-900">Bolu Merkez</span>
+          <span id="dossier-address" class="text-sm font-semibold text-zinc-900">—</span>
         </div>
       </div>
 
       <!-- Tescil Tablosu (Sistemdeki Örnek Araçlar) -->
       <div id="registry-section" class="flex flex-col gap-2 pt-2 scroll-mt-24">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-mono text-zinc-500 font-semibold uppercase tracking-wider">
-            Sistemde Tanımlı Araçlar & Tescil Veritabanı
+          <span class="text-xs text-zinc-500 font-semibold">
+            Kayıtlı araçlar
           </span>
           <span class="text-[11px] font-mono text-zinc-400">
-            Satıra tıklayarak aracı vizöre ve terminale alabilirsiniz.
+            Satıra tıklayarak aracı kameraya ve soru kutusuna alabilirsiniz.
           </span>
         </div>
         <div class="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
@@ -545,20 +494,19 @@
     <div class="bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm flex flex-col gap-6">
       
       <div class="flex flex-col gap-1 border-b border-zinc-100 pb-4">
-        <div class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-zinc-800">
-          <span class="w-2 h-2 rounded-full bg-red-600"></span>
-          Kervansaray Doğal Dil İstihbarat Terminali (NVIDIA Nemotron)
-        </div>
+        <h2 class="text-base font-bold text-zinc-900">Güvenliğe Sor</h2>
         <p class="text-xs text-zinc-500">
-          Otopark SQL veritabanına Türkçe sorular sorun; LLM anlatısını, seçilen aracı ve veritabanı gerçeğini şeffafça görün.
+          Aklınıza geleni Türkçe sorun. Cevabı, arka planda ne yaptığını ve o cevabın
+          hangi kayıtlardan geldiğini birlikte gösterir.
+          <span class="font-mono text-[10px] text-zinc-400">LLM · Tool Calling · NVIDIA Nemotron</span>
         </p>
       </div>
 
       <!-- Önerilen Soru Çipleri -->
       <div class="flex flex-col gap-2">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-mono text-zinc-400 font-medium uppercase tracking-wider">
-            Önerilen Hazır Sorular (Tek Tıkla Sor • 0ms / $0 Önbellek)
+          <span class="text-xs text-zinc-500 font-semibold">
+            Hazır sorular <span class="font-normal text-zinc-400">— tek tıkla, anında</span>
           </span>
           <span class="text-[11px] font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
             ⚡ Response Cache Aktif
@@ -593,10 +541,13 @@
             06 AK 0052 plakalı misafirin geçmiş ziyaretlerini getir.
           </button>
           <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
-            Bugün hava nasıl olacak? (Guardrail ret testi)
+            26 ABC 2626 plakalı yöneticinin bu ayki tüm giriş çıkışlarını listele.
+          </button>
+          <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200/80 rounded-full text-xs text-zinc-700 hover:border-red-500 hover:text-red-600 hover:shadow-sm transition-all font-medium">
+            Bugün hava nasıl olacak? (kapsam dışı — reddeder)
           </button>
           <button onclick="askChip(this.innerText)" class="px-3 py-1.5 bg-rose-50/70 border border-rose-200 rounded-full text-xs text-rose-700 hover:border-rose-500 hover:text-rose-800 hover:shadow-sm transition-all font-medium">
-            26 ABC 2626; DROP TABLE events; -- (Guardrail SQL güvenlik testi)
+            26 ABC 2626; DROP TABLE events; -- (zararlı komut — engeller)
           </button>
         </div>
       </div>
@@ -606,7 +557,7 @@
         <input
           type="text"
           id="query-input"
-          placeholder="Otopark hareketleri, araç geçmişi veya anomali sorgusu yazın..."
+          placeholder="Kendi sorunuzu Türkçe yazın — ör. “bugün kaç araç girdi?”"
           class="flex-1 bg-transparent px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none font-sans"
           onkeydown="if(event.key==='Enter') submitQuery()"
         />
@@ -647,7 +598,7 @@
         <div class="bg-zinc-50 p-5 rounded-2xl border border-zinc-200/80 shadow-sm flex flex-col gap-2">
           <div class="flex items-center gap-2 text-xs font-mono text-zinc-400 uppercase tracking-wider font-semibold">
             <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-            1. Asistan Yanıtı (Özet)
+            Cevap
           </div>
           <p id="narrative-text" class="text-base text-zinc-800 leading-relaxed font-medium">
             —
@@ -683,7 +634,7 @@
             <div class="flex items-center justify-between text-zinc-400 font-semibold uppercase tracking-wider pb-2 border-b border-zinc-800">
               <span class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                2. Çalıştırılan SQL Fonksiyonu
+                Arka planda ne yaptı?
               </span>
             </div>
             <div>
@@ -701,7 +652,7 @@
             <div class="flex items-center justify-between text-xs font-mono text-zinc-400 uppercase tracking-wider pb-2 border-b border-zinc-200">
               <span class="flex items-center gap-2 font-semibold text-zinc-700">
                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                3. Doğrulanmış Veritabanı Tablosu
+                Bu cevabın kaynağı
               </span>
               <span id="row-count-badge" class="text-zinc-500 text-[11px]">0 Satır</span>
             </div>
@@ -763,7 +714,7 @@
               </div>
               <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2.5">
                 <span class="text-xs font-mono font-bold text-zinc-800 uppercase tracking-wider">
-                  İstihbarat & Karar Künyesi
+                  Nasıl karar verdi?
                 </span>
                 <span id="audit-status-badge" class="px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200/60 inline-flex items-center gap-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -772,7 +723,7 @@
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-zinc-400 text-xs font-mono hidden sm:inline">İstihbarat Künyesi</span>
+              <span class="text-zinc-400 text-[10px] font-mono hidden sm:inline">teknik detay</span>
               <svg id="audit-accordion-chevron" class="w-4 h-4 text-zinc-500 transform transition-transform duration-300 rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
@@ -929,8 +880,8 @@
             </svg>
           </div>
           <div>
-            <h3 class="font-bold text-sm text-zinc-900" id="reg-modal-title">Araç Tescil & Künye Formu</h3>
-            <p class="text-[11px] text-zinc-500 font-mono">Veritabanına anında yazılır ve sorgulara yansır</p>
+            <h3 class="font-bold text-sm text-zinc-900" id="reg-modal-title">Araç Kaydı</h3>
+            <p class="text-[11px] text-zinc-500">Kaydettiğiniz bilgi anında sorulara yansır</p>
           </div>
         </div>
         <button onclick="closeRegistryModal()" class="w-7 h-7 rounded-lg hover:bg-zinc-200 text-zinc-400 hover:text-zinc-700 flex items-center justify-center transition-colors cursor-pointer">
@@ -1020,7 +971,9 @@
         kind: 'Güvenlik Müdürü (Kadrolu)',
         address: 'Güvenlik Amirliği • Nizamiye Bloğu',
         matchStatus: 'Eşleşti (Yönetici)',
-        prompt: '26 ABC 2626 plakalı yöneticinin bu ayki tüm giriş çıkışlarını listele.'
+        prompt: '26 ABC 2626 plakalı yöneticinin bu ayki tüm giriş çıkışlarını listele.',
+        story: 'Tanıdık araç, tam yetkili — bariyer kendiliğinden açılır.',
+        flow: 'Bariyer açıldı'
       },
       '06ak0052': {
         plate: '06 AK 0052',
@@ -1032,7 +985,9 @@
         kind: 'Misafir (Kayıtlı)',
         address: 'İş Ortağı • Doğu Otoparkı B-12',
         matchStatus: 'Eşleşti (Kayıtlı Misafir)',
-        prompt: '06 AK 0052 plakalı misafirin geçmiş ziyaretlerini getir.'
+        prompt: '06 AK 0052 plakalı misafirin geçmiş ziyaretlerini getir.',
+        story: 'Sistemde kayıtlı düzenli ziyaretçi — geçişi onaylı.',
+        flow: 'Geçiş onaylandı'
       },
       '34kay44': {
         plate: '34 KAY 44',
@@ -1044,7 +999,9 @@
         kind: 'Misafir (VIP)',
         address: 'Başkanlık Süiti • VIP Karşılama',
         matchStatus: 'Eşleşti (VIP Misafir)',
-        prompt: 'VIP misafir araçları için geçerli prosedür nedir?'
+        prompt: 'VIP misafir araçları için geçerli prosedür nedir?',
+        story: 'Protokol aracı — vale ve karşılama yönlendirmesi.',
+        flow: 'Vale ve protokol çağrıldı'
       },
       '26xyz413': {
         plate: '26 XYZ 413',
@@ -1056,7 +1013,9 @@
         kind: 'Kayıtsız Ziyaretçi',
         address: 'Kargo / Tedarik • Geçici Misafir',
         matchStatus: 'Kayıtsız Ziyaretçi',
-        prompt: '26 XYZ 413 plakalı araç daha önce tesise giriş yaptı mı?'
+        prompt: '26 XYZ 413 plakalı araç daha önce tesise giriş yaptı mı?',
+        story: 'Sistemde kaydı olmayan kargo aracı — elle onay gerekir.',
+        flow: 'Elle onay bekleniyor'
       },
       '06xyz01': {
         plate: '06 XYZ 01',
@@ -1068,7 +1027,9 @@
         kind: 'Ziyaretçi (Overstay)',
         address: 'B Blok Kapalı Otopark • Bölge 4',
         matchStatus: '48s Overstay İhlali',
-        prompt: 'Bu dönemde 48 saatten uzun sahada kalan araç var mı?'
+        prompt: 'Bu dönemde 48 saatten uzun sahada kalan araç var mı?',
+        story: '3 gündür tesisten çıkmayan araç — kontrol edilmeli.',
+        flow: 'Devriye yönlendirildi'
       },
       '34vip99': {
         plate: '34 VIP 99',
@@ -1080,7 +1041,9 @@
         kind: 'Giriş Yasağı',
         address: 'Hukuk Birimi • Karar No: 2026/41',
         matchStatus: '⚠️ Kara Liste Alarmı',
-        prompt: 'Bu dönemde kara listedeki bir plaka görüldü mü?'
+        prompt: 'Bu dönemde kara listedeki bir plaka görüldü mü?',
+        story: 'Girişi yasaklanmış araç kapıda — sistem alarm veriyor.',
+        flow: 'Giriş engellendi'
       }
     };
 
@@ -1098,20 +1061,20 @@
 
     let isCameraActive = true;
 
+    // Ilk senaryo secilene kadar kamera bos-durum ipucu gosterir (§7.2).
+    let scenarioStarted = false;
+
     // --- 2. Sayfa Yüklendiğinde Başlatma ---
     window.addEventListener('DOMContentLoaded', () => {
       renderRegistryTable();
       renderScenarioCards();
       fetchRegistry();
-      // Ilk senaryoyu sessizce yerlestir (tarama/sorgu tetiklemeden) —
-      // statik HTML varsayilanlariyla tutarli kalsin.
-      applyScenario(SCENARIOS['26abc2626'], { silent: true });
+      // Senaryo OTOMATIK SECILMEZ — ziyaretci yukaridan bir olay secerek baslatir.
     });
 
-    // Senaryonun tum alanlarini panele yazar: kamera karesi, tescil kunyesi,
-    // plaka kirpma ve onerilen soru (query-input'a yazilir ama CALISTIRILMAZ —
-    // ziyaretci "Sorgula" ile kendi tetikler; her tikta LLM cagrisi yapip
-    // dakikalik kotayi tuketmeyelim). silent=true: ALPR tarama animasyonu da yok.
+    // Senaryonun tum alanlarini panele yazar: kamera karesi, kayit kunyesi,
+    // plaka ve onerilen soru (query-input'a yazilir ama CALISTIRILMAZ —
+    // ziyaretci "Sorgula" ile kendi tetikler). silent=true: animasyon/akis yok.
     function applyScenario(s, { silent = false } = {}) {
       if (!s) return;
       const camImg = document.getElementById('car-view-img');
@@ -1126,17 +1089,68 @@
       if (s.prompt) document.getElementById('query-input').value = s.prompt;
       renderScenarioCards();
       if (!silent) {
+        hideCameraHint();
         triggerPlateScan(false);
-        showToast(`Senaryo seçildi: ${s.plate} — soru hazır, "Sorgula" ile çalıştır`);
+        runScenarioFlow(s);
+        highlightChip(s.prompt);
       }
     }
 
-    // --- 3. Senaryo Değiştirici & ALPR Tetikleyici ---
+    // §7.2 — kamera bos-durum ipucunu kaldir (ilk senaryoda bir kez)
+    function hideCameraHint() {
+      if (scenarioStarted) return;
+      scenarioStarted = true;
+      const hint = document.getElementById('camera-hint');
+      if (!hint) return;
+      hint.classList.add('opacity-0');
+      setTimeout(() => hint.classList.add('hidden'), 500);
+    }
+
+    // §7.3 — toast yerine kameranin altinda tek satir sakin surec akisi
+    function runScenarioFlow(s) {
+      const el = document.getElementById('scenario-flow');
+      if (!el) return;
+      const steps = [
+        'Kamera plakayı okudu',
+        'Kayıt defterinde arandı',
+        s.flow || 'Karar verildi',
+      ];
+      const tone = s.statusType === 'blacklist' ? 'text-red-600'
+        : (s.statusType === 'warning' || s.statusType === 'unregistered') ? 'text-amber-600'
+        : 'text-emerald-600';
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+      el.innerHTML = '';
+      steps.forEach((txt, i) => {
+        const span = document.createElement('span');
+        const last = i === steps.length - 1;
+        span.className = `inline-flex items-center gap-2 opacity-0 transition-opacity duration-300 ${last ? tone + ' font-semibold' : ''}`;
+        span.innerHTML = (i > 0 ? '<span class="text-zinc-300">→</span>' : '') + `<span>${esc(txt)}</span>`;
+        el.appendChild(span);
+        setTimeout(() => span.classList.remove('opacity-0'), 400 * (i + 1));
+      });
+    }
+
+    // §7.1 — senaryoya karsilik gelen hazir soru cipini kisa sure vurgula
+    function highlightChip(query) {
+      if (!query) return;
+      const norm = t => (t || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      const chip = [...document.querySelectorAll('#chips-container button')]
+        .find(b => norm(b.textContent) === norm(query));
+      if (!chip) return;
+      chip.classList.add('ring-2', 'ring-red-500', 'ring-offset-1', 'border-red-400', 'text-red-700');
+      chip.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => chip.classList.remove('ring-2', 'ring-red-500', 'ring-offset-1', 'border-red-400', 'text-red-700'), 2600);
+    }
+
+    // --- 3. Senaryo Değiştirici ---
     function loadScenario(key) {
       applyScenario(SCENARIOS[key]);
     }
 
-    // --- 3.1 Canlı ALPR 6 Senaryo Kartını Dinamik Render Etme (Faz 8c + DB Sync) ---
+    // --- 3.1 Olay kartları (UI_DESIGN_V2_PLAN §4) ---
+    // Her kart: durum etiketi + plaka + TEK CÜMLELİK HİKÂYE (tıklamadan önce
+    // ne olacağı belli). Renk sadece durumu anlatır; gerisi nötr (§5.1).
     function renderScenarioCards() {
       const container = document.getElementById('scenario-cards-container');
       if (!container) return;
@@ -1144,58 +1158,33 @@
       const currentPlate = (document.getElementById('plate-input-val')?.value || '').replace(/\s+/g, '').toUpperCase();
       const keys = ['26abc2626', '06ak0052', '34kay44', '26xyz413', '06xyz01', '34vip99'];
 
+      // durum -> etiket metni + nokta rengi (tek aksan; kart gövdesi hep nötr)
+      const TONE = {
+        manager:      { label: 'Yetkili',        dot: 'bg-emerald-500', chip: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+        guest:        { label: 'Kayıtlı misafir', dot: 'bg-emerald-500', chip: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+        vip:          { label: 'VIP',            dot: 'bg-emerald-500', chip: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+        unregistered: { label: 'Kaydı yok',      dot: 'bg-amber-500',   chip: 'text-amber-700 bg-amber-50 border-amber-200' },
+        warning:      { label: 'Dikkat',         dot: 'bg-amber-500',   chip: 'text-amber-700 bg-amber-50 border-amber-200' },
+        blacklist:    { label: 'Girişi yasak',   dot: 'bg-red-600',     chip: 'text-red-700 bg-red-50 border-red-200' },
+      };
+
       container.innerHTML = keys.map(k => {
         const s = SCENARIOS[k];
         if (!s) return '';
+        const t = TONE[s.statusType] || TONE.guest;
         const isSelected = currentPlate === (s.plate || '').replace(/\s+/g, '').toUpperCase();
-        const activeRing = isSelected ? 'ring-2 ring-zinc-900 ring-offset-1 shadow-md scale-[1.02]' : 'shadow-xs';
-
-        let badgeText = 'KAYITLI MİSAFİR';
-        let badgeClass = 'bg-sky-100 text-sky-800';
-        let cardTheme = 'border-zinc-200 bg-zinc-50 hover:bg-sky-50 hover:border-sky-300 text-zinc-900 group-hover:text-sky-700';
-        let rightLabel = esc(s.name || '');
-        let subText = esc(s.address || '—');
-        let subColor = 'text-zinc-500';
-
-        if (s.statusType === 'manager') {
-          badgeText = 'GÜV. MÜDÜRÜ';
-          badgeClass = 'bg-emerald-100 text-emerald-800';
-          cardTheme = 'border-zinc-200 bg-zinc-50 hover:bg-emerald-50 hover:border-emerald-300 text-zinc-900 group-hover:text-emerald-700';
-        } else if (s.statusType === 'vip') {
-          badgeText = 'VIP MİSAFİR';
-          badgeClass = 'bg-blue-100 text-blue-800';
-          cardTheme = 'border-zinc-200 bg-zinc-50 hover:bg-blue-50 hover:border-blue-300 text-zinc-900 group-hover:text-blue-700';
-        } else if (s.statusType === 'unregistered') {
-          badgeText = 'KAYITSIZ';
-          badgeClass = 'bg-amber-100 text-amber-800';
-          cardTheme = 'border-zinc-200 bg-zinc-50 hover:bg-amber-50 hover:border-amber-300 text-zinc-900 group-hover:text-amber-700';
-          rightLabel = (s.name && s.name !== 'Kayıt Yok' && !s.name.includes('Kayıt Yok')) ? esc(s.name) : 'Kargo';
-        } else if (s.statusType === 'warning') {
-          badgeText = 'OVERSTAY';
-          badgeClass = 'bg-orange-100 text-orange-800';
-          cardTheme = 'border-zinc-200 bg-zinc-50 hover:bg-orange-50 hover:border-orange-300 text-zinc-900 group-hover:text-orange-700';
-          rightLabel = (s.name && s.name !== 'Bilinmeyen Sürücü' && s.name !== 'Terk Araç Şüphesi') ? esc(s.name) : '>48s';
-        } else if (s.statusType === 'blacklist') {
-          badgeText = 'KARA LİSTE';
-          badgeClass = 'bg-red-600 text-white animate-pulse';
-          cardTheme = 'border-red-200 bg-red-50/50 hover:bg-red-100 hover:border-red-400 text-red-900 group-hover:text-red-700';
-          rightLabel = (s.name && s.name !== 'Yasaklı Araç')
-            ? `<span class="text-[10px] font-mono text-red-600 font-bold truncate max-w-[80px]" title="${esc(s.name)}">${esc(s.name)}</span>`
-            : '<span class="text-[10px] font-mono text-red-600 font-bold">ALARM</span>';
-          subColor = 'text-red-600 font-medium';
-        }
-
-        const cardBorderAndBg = cardTheme.split(' ').slice(0, 4).join(' ');
-        const plateTextClass = cardTheme.split(' ').slice(4).join(' ');
+        const sel = isSelected
+          ? 'border-zinc-900 bg-white shadow-md'
+          : 'border-zinc-200 bg-zinc-50/70 hover:bg-white hover:border-zinc-300 shadow-xs';
 
         return `
-          <button onclick="loadScenario('${k}')" class="p-2.5 rounded-xl border ${cardBorderAndBg} ${activeRing} transition-all text-left group cursor-pointer">
-            <div class="flex items-center justify-between mb-1 gap-1">
-              <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold shrink-0 ${badgeClass}">${badgeText}</span>
-              <span class="text-[10px] font-mono text-zinc-500 truncate max-w-[85px] text-right font-medium" title="${esc(s.name)}">${rightLabel}</span>
+          <button onclick="loadScenario('${k}')" class="p-3 rounded-xl border ${sel} transition-all text-left cursor-pointer flex flex-col gap-1.5 h-full">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full shrink-0 ${t.dot}"></span>
+              <span class="text-[10px] font-medium px-1.5 py-0.5 rounded border ${t.chip}">${t.label}</span>
+              <span class="ml-auto font-mono text-[11px] font-bold text-zinc-900">${esc(s.plate)}</span>
             </div>
-            <div class="font-mono font-bold text-xs ${plateTextClass}">${esc(s.plate)}</div>
-            <div class="text-[10px] ${subColor} truncate" title="${subText}">${subText}</div>
+            <p class="text-xs text-zinc-600 leading-snug">${esc(s.story || s.address || '')}</p>
           </button>
         `;
       }).join('');
@@ -1212,11 +1201,15 @@
     function setPlateDisplays(plate) {
       const txt = (plate || '').trim().toUpperCase();
       const crop = document.getElementById('plate-crop-chars');
-      if (crop) crop.innerText = txt;
+      if (crop) {
+        crop.innerText = txt || '—';
+        // bos-durumdaki soluk renk; gercek plaka gelince normale doner
+        crop.style.color = txt ? '' : '#d4d4d8';
+      }
       const sub = document.getElementById('plate-crop-sub');
       if (sub) {
         const il = IL_ADLARI[txt.slice(0, 2)];
-        sub.innerText = (il ? `Tescil ili: ${il} · ` : '') + 'ALPR kırpması';
+        sub.innerText = txt ? (il ? `Tescil ili: ${il}` : 'plaka okundu') : 'henüz okuma yok';
       }
     }
 
@@ -1232,8 +1225,7 @@
         laser.classList.add('hidden');
         box.classList.remove('border-red-500', 'bg-red-500/10');
         box.classList.add('border-emerald-400');
-        const plateVal = document.getElementById('plate-input-val').value;
-        showToast(`Plaka okundu: ${plateVal}`);
+        box.classList.remove('opacity-0');
         if (submitAfter) {
           submitQuery();
         }
@@ -1250,26 +1242,26 @@
       if (isCameraActive) {
         img.classList.remove('hidden');
         placeholder.classList.add('hidden');
-        btnText.innerText = 'Kamera Durdur';
-        badge.innerText = '● CANLI AKIŞ: NİZAMİYE GİRİŞ';
-        badge.className = 'px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-100 text-zinc-600 border border-zinc-200';
+        btnText.innerText = 'Kamerayı durdur';
+        badge.innerText = 'Giriş Kapısı · Kamera 1';
+        badge.className = 'px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-100 text-zinc-500 border border-zinc-200';
       } else {
         img.classList.add('hidden');
         placeholder.classList.remove('hidden');
-        btnText.innerText = 'Kamera Başlat';
-        badge.innerText = '○ KAMERA DURDURULDU';
+        btnText.innerText = 'Kamerayı başlat';
+        badge.innerText = 'Kamera durduruldu';
         badge.className = 'px-2 py-0.5 rounded text-[11px] font-mono bg-red-50 text-red-700 border border-red-200';
       }
     }
 
     // --- 4. Tescil Künyesi & Tablo İşlemleri (Read-Only) ---
     const STATUS_MAP = {
-      blacklist: { box: 'bg-red-50 border-red-300 text-red-900 animate-pulse', dot: 'bg-red-600', tag: 'bg-red-600 text-white', badge: '<span class="text-red-600 font-bold">⚠️ KARA LİSTE</span>' },
-      vip: { box: 'bg-blue-50 border-blue-200 text-blue-900', dot: 'bg-blue-600', tag: 'bg-blue-600 text-white', badge: '<span class="text-blue-600 font-bold">★ VIP MİSAFİR</span>' },
-      manager: { box: 'bg-emerald-50 border-emerald-200 text-emerald-900', dot: 'bg-emerald-600', tag: 'bg-emerald-600 text-white', badge: '<span class="text-emerald-600 font-bold">✓ GÜVENLİK MÜDÜRÜ</span>' },
-      guest: { box: 'bg-sky-50 border-sky-200 text-sky-900', dot: 'bg-sky-600', tag: 'bg-sky-600 text-white', badge: '<span class="text-sky-600 font-bold">✓ KAYITLI MİSAFİR</span>' },
-      warning: { box: 'bg-purple-50 border-purple-200 text-purple-900', dot: 'bg-purple-600', tag: 'bg-purple-600 text-white', badge: '<span class="text-purple-600 font-bold">⚠️ ANOMALİ ALARMI</span>' },
-      unregistered: { box: 'bg-amber-50 border-amber-200 text-amber-900', dot: 'bg-amber-500', tag: 'bg-amber-100 text-amber-900', badge: '<span class="text-amber-700 font-bold">? KAYITSIZ ARAÇ</span>' }
+      blacklist: { box: 'bg-red-50 border-red-300 text-red-900', dot: 'bg-red-600', tag: 'bg-red-600 text-white', badge: '<span class="text-red-700 font-bold">Girişi yasak</span>' },
+      vip: { box: 'bg-emerald-50 border-emerald-200 text-emerald-900', dot: 'bg-emerald-600', tag: 'bg-emerald-600 text-white', badge: '<span class="text-emerald-700 font-bold">VIP misafir</span>' },
+      manager: { box: 'bg-emerald-50 border-emerald-200 text-emerald-900', dot: 'bg-emerald-600', tag: 'bg-emerald-600 text-white', badge: '<span class="text-emerald-700 font-bold">Yetkili</span>' },
+      guest: { box: 'bg-emerald-50 border-emerald-200 text-emerald-900', dot: 'bg-emerald-600', tag: 'bg-emerald-600 text-white', badge: '<span class="text-emerald-700 font-bold">Kayıtlı misafir</span>' },
+      warning: { box: 'bg-amber-50 border-amber-200 text-amber-900', dot: 'bg-amber-500', tag: 'bg-amber-500 text-white', badge: '<span class="text-amber-700 font-bold">Dikkat</span>' },
+      unregistered: { box: 'bg-amber-50 border-amber-200 text-amber-900', dot: 'bg-amber-500', tag: 'bg-amber-100 text-amber-900', badge: '<span class="text-amber-700 font-bold">Kaydı yok</span>' }
     };
 
     function updateStatusBadge(type, text, action) {
@@ -1304,7 +1296,6 @@
         const [msg, act] = ACTIONS[r.kind] || ACTIONS.unregistered;
         updateStatusBadge(r.kind, msg, act);
       }
-      showToast(`Plaka doğrulandı: ${plate}`);
     }
 
     // "Plaka Kayıtlarını Göster": tescil tablosuna kaydir ve eslesen satiri vurgula
