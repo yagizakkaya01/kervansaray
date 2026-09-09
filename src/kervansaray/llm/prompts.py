@@ -149,6 +149,22 @@ FEW_SHOT_EXAMPLES = [
         },
     },
     {
+        "question": "Otoparkta kaç araçlık yer var",
+        "tool_call": {
+            "name": "occupancy",
+            "args": {},
+        },
+    },
+    {
+        "question": "Gece 00:00 ile 05:00 arasında gelen araçlar için güvenlik talimatı var mı?",
+        "tool_call": {
+            "name": "search_notes",
+            "args": {
+                "query": "gece girisi talimat",
+            },
+        },
+    },
+    {
         "question": "Kara listedeki veya hacizli bir araç kapıya gelirse ne yapmalıyız?",
         "tool_call": {
             "name": "search_notes",
