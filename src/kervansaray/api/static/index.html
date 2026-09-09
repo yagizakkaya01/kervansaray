@@ -616,11 +616,8 @@
               <span id="row-count-badge" class="text-zinc-500 text-[11px]">0 Satır</span>
             </div>
 
-            <!-- Skalar Değer (Sayım Vurgusu) -->
-            <div id="scalar-container" class="hidden p-4 bg-red-50 border border-red-100 rounded-xl flex items-center justify-between">
-              <span class="text-xs font-mono text-red-700 font-medium">Hesaplanan Sayı:</span>
-              <span id="scalar-value" class="text-2xl font-bold font-mono text-red-600">—</span>
-            </div>
+            <!-- Skalar / Özet Bilgi Alanı -->
+            <div id="scalar-container" class="hidden p-3.5 bg-white border border-zinc-200/80 rounded-xl shadow-2xs transition-all"></div>
 
             <!-- Tablo Alanı -->
             <div class="overflow-x-auto max-h-80 overflow-y-auto rounded-xl border border-zinc-200 bg-white">
@@ -720,6 +717,8 @@
   <!-- JAVASCRIPT: ALPR SİMÜLASYONU, TESCİL FORMU & LLM QUERY PIPELINE         -->
   <!-- ========================================================================= -->
   <script>
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
     // --- 1. Hazır 6 ALPR Senaryo Arketipi (Faz 8c) ---
     // carImg: senaryoya ozel, yapay zeka ile uretilmis sentetik kamera karesi
     // (REC/timestamp damgasi goruntune gomulu). Gercek plaka/kisi degil.
@@ -1137,7 +1136,6 @@
 
       const tr = data.tool_result;
       const scalarContainer = document.getElementById('scalar-container');
-      const scalarValue = document.getElementById('scalar-value');
       const tableHead = document.getElementById('table-head');
       const tableBody = document.getElementById('table-body');
       const rowCountBadge = document.getElementById('row-count-badge');
@@ -1148,9 +1146,61 @@
 
       if (tr && tr.scalar !== null && tr.scalar !== undefined) {
         scalarContainer.classList.remove('hidden');
-        scalarValue.innerText = typeof tr.scalar === 'object' ? JSON.stringify(tr.scalar) : tr.scalar;
+        if (typeof tr.scalar === 'object') {
+          const s = tr.scalar;
+          const chips = [];
+          if (s.vehicle_label) {
+            chips.push(`<span class="px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-zinc-100 text-zinc-800 border border-zinc-200 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>${esc(s.vehicle_label)}</span>`);
+          }
+          if (s.is_blacklisted) {
+            chips.push(`<span class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-red-100 text-red-800 border border-red-200 flex items-center gap-1">⛔ KARA LİSTEDE</span>`);
+          } else if (s.known !== undefined) {
+            chips.push(s.known
+              ? `<span class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">✓ Kayıtlı Araç</span>`
+              : `<span class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">? Kayıtsız / Misafir</span>`);
+          }
+          if (s.event_count !== undefined) {
+            chips.push(`<span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-zinc-50 border border-zinc-200 text-zinc-600"><strong class="text-zinc-900 text-sm font-bold">${s.event_count}</strong> Hareket</span>`);
+          }
+          if (s.session_count !== undefined) {
+            chips.push(`<span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-zinc-50 border border-zinc-200 text-zinc-600"><strong class="text-zinc-900 text-sm font-bold">${s.session_count}</strong> Ziyaret</span>`);
+          }
+          Object.entries(s).forEach(([k, v]) => {
+            if (['vehicle_label', 'is_blacklisted', 'known', 'event_count', 'session_count', 'sessions'].includes(k)) return;
+            if (typeof v === 'object' && v !== null) return;
+            const label = k.replace(/_/g, ' ');
+            const valStr = typeof v === 'boolean' ? (v ? 'Evet' : 'Hayır') : esc(String(v));
+            chips.push(`<span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-zinc-50 border border-zinc-200 text-zinc-600">${label}: <strong class="text-zinc-900">${valStr}</strong></span>`);
+          });
+
+          scalarContainer.innerHTML = `
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center justify-between text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
+                <span class="flex items-center gap-1.5 font-semibold text-zinc-600">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Özet Künye & Bilgi
+                </span>
+                <button type="button" onclick="document.getElementById('scalar-raw-json')?.classList.toggle('hidden')" class="text-zinc-500 hover:text-zinc-800 hover:underline text-[10px] cursor-pointer">
+                  Ham JSON
+                </button>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                ${chips.join('')}
+              </div>
+              <pre id="scalar-raw-json" class="hidden mt-1 p-2.5 bg-zinc-900 text-emerald-400 rounded-lg text-[11px] font-mono overflow-x-auto max-h-40 leading-relaxed">${esc(JSON.stringify(s, null, 2))}</pre>
+            </div>
+          `;
+        } else {
+          scalarContainer.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono text-zinc-500 font-medium uppercase tracking-wider">Hesaplanan Değer / Sayı:</span>
+              <span class="text-xl sm:text-2xl font-bold font-mono text-zinc-900">${esc(String(tr.scalar))}</span>
+            </div>
+          `;
+        }
       } else {
         scalarContainer.classList.add('hidden');
+        scalarContainer.innerHTML = '';
       }
 
       const rows = (tr && Array.isArray(tr.rows)) ? tr.rows : [];
@@ -1160,11 +1210,32 @@
         emptyMsg.classList.remove('hidden');
       } else {
         emptyMsg.classList.add('hidden');
-        const cols = Object.keys(rows[0]);
+        // Koken panelinde kullanilan / gurultu olan alanlar tablodan gizlenir
+        // (satir nesnesinde kalir, tikla-koken hala calisir).
+        const HIDDEN = new Set(['event_id', 'event_row_id', 'camera_id', 'device_id',
+          'track_id', 'crop_ref', 'model_version', 'ingested_at', 'person_id', 'vehicle_id']);
+        const HEAD = { ts: 'Zaman', direction: 'Yön', plaka: 'Plaka', plate: 'Plaka',
+          kisi: 'Kişi', tur: 'Tür', kayitli: 'Kayıtlı', eslesme: 'Eşleşme',
+          entry_ts: 'Giriş', exit_ts: 'Çıkış', hours: 'Saat', still_inside: 'İçeride',
+          visits: 'Ziyaret', plate: 'Plaka', first_seen: 'İlk', last_seen: 'Son',
+          match_status: 'Eşleşme', raw_plate: 'Kamera Okuması' };
+        const fmt = (col, v) => {
+          if (v === null || v === undefined || v === '') return '—';
+          if (col === 'direction') return v === 'entry' ? 'GİRİŞ' : v === 'exit' ? 'ÇIKIŞ' : v;
+          if (typeof v === 'boolean') return v ? 'Evet' : 'Hayır';
+          if ((col === 'ts' || col.endsWith('_ts') || col.endsWith('_seen')) && /\d{4}-\d\d-\d\d/.test(v))
+            return String(v).replace('T', ' ').replace(/(\+00:00|Z)$/, '').slice(0, 16);
+          return v;
+        };
+        const ORDER = ['ts', 'entry_ts', 'exit_ts', 'direction', 'plaka', 'plate', 'raw_plate',
+          'kisi', 'tur', 'kayitli', 'registered', 'eslesme', 'match_status',
+          'hours', 'visits', 'still_inside', 'first_seen', 'last_seen'];
+        const cols = Object.keys(rows[0]).filter(c => !HIDDEN.has(c))
+          .sort((a, b) => ((ORDER.indexOf(a) + 1 || 99) - (ORDER.indexOf(b) + 1 || 99)));
         cols.forEach(col => {
           const th = document.createElement('th');
           th.className = 'py-2 px-3';
-          th.innerText = col;
+          th.innerText = HEAD[col] || col;
           tableHead.appendChild(th);
         });
 
@@ -1175,7 +1246,7 @@
           cols.forEach(col => {
             const td = document.createElement('td');
             td.className = 'py-1.5 px-3 whitespace-nowrap text-zinc-700';
-            td.innerText = (r[col] === null || r[col] === undefined) ? '—' : r[col];
+            td.innerText = fmt(col, r[col]);
             trElem.appendChild(td);
           });
           trElem.onclick = () => showProvenance(r);

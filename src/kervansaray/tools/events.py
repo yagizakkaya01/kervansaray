@@ -46,8 +46,14 @@ def query_events(
 
     capped = max(1, min(int(limit), MAX_ROWS))
     params["lim"] = capped + 1
+    # v_events 23 kolonlu (S7 denormalize). Kullaniciya bir gecis dokumu icin
+    # anlamli olan alt kume dondurulur; event_id/camera_id koken (provenance)
+    # panelinde kullanildigi icin tutulur, arayuz tablodan gizler.
     sql = text(
-        f"SELECT * FROM v_events WHERE {' AND '.join(where)} "  # noqa: S608 - sabit parcalar
+        "SELECT event_id, camera_id, ts, direction, raw_plate AS plaka, "
+        "person_name AS kisi, person_kind AS tur, registered AS kayitli, "
+        "match_status AS eslesme "
+        f"FROM v_events WHERE {' AND '.join(where)} "  # noqa: S608 - sabit whitelist
         "ORDER BY ts ASC LIMIT :lim"
     )
     rows = [json_row(r) for r in db.execute(sql, params).mappings()]

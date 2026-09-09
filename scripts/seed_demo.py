@@ -98,8 +98,13 @@ def visit(sess, *, plate, entry, exit_=None, vehicle_id=None,
     ))
 
 
+DEMO_PLATES = [
+    "26ABC2626", "06AK0052", "34KAY44", "26XYZ413", "06XYZ01", "34VIP99",
+]
+
+
 def _mk_person(sess, name, kind, room=None):
-    p = Person(name=f"[DEMO] {name}", kind=kind, room_no=room)
+    p = Person(name=name, kind=kind, room_no=room)
     sess.add(p)
     sess.flush()
     return p
@@ -107,7 +112,7 @@ def _mk_person(sess, name, kind, room=None):
 
 def _mk_vehicle(sess, plate, person, label, *, blacklisted=False, reg_from=None, reg_to=None):
     v = Vehicle(plate=canonicalize(plate), person_id=person.id if person else None,
-                label=f"[DEMO] {label}", is_blacklisted=blacklisted)
+                label=label, is_blacklisted=blacklisted)
     sess.add(v)
     sess.flush()
     if person and reg_from is not None:
@@ -193,7 +198,7 @@ def seed_background(sess, n_vehicles=32):
     rng = random.Random(8642)
     pool = list(sess.execute(
         select(Vehicle.id, Vehicle.plate)
-        .where(func.coalesce(Vehicle.label, "").notlike("[DEMO]%"))
+        .where(Vehicle.plate.notin_(DEMO_PLATES))
         .where(Vehicle.id.in_(select(Registration.vehicle_id)))
     ).all())
     rng.shuffle(pool)
@@ -261,12 +266,18 @@ def seed_notes(sess):
 
 def reset(sess):
     sess.execute(text("TRUNCATE events, sessions, notes RESTART IDENTITY CASCADE"))
-    # [DEMO] isareti arac/kisi label'inda; onceki kosunun kayitlarini temizle.
-    demo_vids = list(sess.scalars(select(Vehicle.id).where(Vehicle.label.like("[DEMO]%"))))
-    if demo_vids:
-        sess.execute(delete(Registration).where(Registration.vehicle_id.in_(demo_vids)))
-        sess.execute(delete(Vehicle).where(Vehicle.id.in_(demo_vids)))
-    sess.execute(delete(Person).where(Person.name.like("[DEMO]%")))
+    # Demo araclarini/kisilerini sabit plaka listesinden temizle (arka plan
+    # populasyonuna dokunmadan).
+    rows = list(sess.execute(
+        select(Vehicle.id, Vehicle.person_id).where(Vehicle.plate.in_(DEMO_PLATES))
+    ).all())
+    if rows:
+        vids = [r.id for r in rows]
+        pids = [r.person_id for r in rows if r.person_id]
+        sess.execute(delete(Registration).where(Registration.vehicle_id.in_(vids)))
+        sess.execute(delete(Vehicle).where(Vehicle.id.in_(vids)))
+        if pids:
+            sess.execute(delete(Person).where(Person.id.in_(pids)))
 
 
 def main():
