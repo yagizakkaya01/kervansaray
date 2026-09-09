@@ -185,6 +185,52 @@
     </div>
 
     <!-- ========================================================================= -->
+    <!-- ONBOARDING: "Nedir & 3 Adımda Nasıl Denenir" (UI_PONYTAIL_PLAN §3.A)     -->
+    <!-- ========================================================================= -->
+    <div class="bg-white rounded-2xl border border-zinc-200/80 p-5 sm:p-6 shadow-sm flex flex-col gap-5">
+      <div class="flex flex-col gap-2">
+        <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-red-600">
+          // 01 • AKILLI TESİS GÜVENLİĞİ & OTOPARK İSTİHBARAT MOTORU
+        </div>
+        <p class="text-sm sm:text-[15px] text-zinc-700 leading-relaxed max-w-3xl">
+          Giriş-çıkış yapan araçları kamera vizöründe otomatik tanıyan (ALPR) ve
+          güvenlik operatörünün Türkçe sorularını SQL'e çevirip veritabanından
+          anında raporlayan bir yapay zeka istihbarat motoru.
+        </p>
+        <div class="flex flex-wrap gap-1.5 pt-1 font-mono text-[11px] text-zinc-700">
+          <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">0 ms önbellek / ~5–15 sn canlı model · NVIDIA Nemotron 3.5 (30B)</span>
+          <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">Pre-flight SQL kalkanı</span>
+          <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">Salt-okunur public demo</span>
+          <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">220 sentetik test olayı</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-zinc-100">
+        <div class="flex gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-lg bg-zinc-900 text-white text-xs font-bold flex items-center justify-center">1</span>
+          <div>
+            <div class="text-xs font-bold text-zinc-900">Senaryo seç</div>
+            <p class="text-[11px] text-zinc-500 leading-snug mt-0.5">Aşağıdaki 6 hazır güvenlik senaryosundan birine tıkla (ör. <span class="text-red-600 font-medium">Kara Liste Alarmı</span>).</p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-lg bg-zinc-900 text-white text-xs font-bold flex items-center justify-center">2</span>
+          <div>
+            <div class="text-xs font-bold text-zinc-900">Kamerayı izle</div>
+            <p class="text-[11px] text-zinc-500 leading-snug mt-0.5">Vizörde plakanın okunmasını ve bariyer kararının anında verilmesini gör.</p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-lg bg-zinc-900 text-white text-xs font-bold flex items-center justify-center">3</span>
+          <div>
+            <div class="text-xs font-bold text-zinc-900">Terminale sor</div>
+            <p class="text-[11px] text-zinc-500 leading-snug mt-0.5">Hazır soru çiplerine tıkla ya da Türkçe serbest sor; getirilen SQL sonucunu incele.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
     <!-- BENTO MODÜL 1: PLAKA TANIMA SİSTEMİ (Kamera Vizörü + Plaka Sonucu)      -->
     <!-- ========================================================================= -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -239,7 +285,7 @@
         <!-- Canlı Geçiş / ALPR Simülatörü: 6 Hedefli Senaryo Kartı -->
         <div class="flex flex-col gap-2 pt-1 border-t border-zinc-100">
           <div class="flex items-center justify-between text-xs font-mono text-zinc-500">
-            <span class="font-semibold text-zinc-700 uppercase tracking-wider">// CANLI ALPR SİMÜLATÖRÜ (6 SENARYO KARTI)</span>
+            <span class="font-semibold text-zinc-700 uppercase tracking-wider">// CANLI KAMERA AKIŞI & OTOMATİK PLAKA OKUMA (ALPR)</span>
             <span class="text-[11px] text-zinc-400">Karta tıkla • plaka okunur, künye ve soru hazırlanır</span>
           </div>
 
@@ -396,7 +442,7 @@
           <button onclick="fillFormFromPlate()" class="flex-1 py-2 px-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl transition-colors cursor-pointer text-center">
             Plaka Kayıtlarını Göster
           </button>
-          <button onclick="openRegisterModal(document.getElementById('plate-input-val').value)" class="py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+          <button data-op onclick="openRegisterModal(document.getElementById('plate-input-val').value)" class="py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
             <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span>Kaydı Düzenle / Tescil Et</span>
           </button>
@@ -419,7 +465,7 @@
         <div>
           <div class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-zinc-800">
             <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-            Araç & Kişi Tescil Yönetimi (Veritabanı Kaydı)
+            Araç Tescil ve Güvenlik Defteri
           </div>
           <p class="text-xs text-zinc-500 mt-0.5">
             Otopark güvenlik veri tabanında tescilli araçlar, sürücü künyesi ve yetki durumu.
@@ -427,14 +473,17 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-          <button onclick="openRegisterModal()" class="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
+          <button data-op onclick="openRegisterModal()" class="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
             <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span>+ Araç Kaydet / Düzenle</span>
           </button>
-          <button onclick="confirmResetDemo()" id="btn-reset-demo" class="px-3 py-1.5 bg-zinc-100 hover:bg-red-50 hover:border-red-200 hover:text-red-700 text-zinc-700 border border-zinc-200 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
+          <button data-op onclick="confirmResetDemo()" id="btn-reset-demo" class="px-3 py-1.5 bg-zinc-100 hover:bg-red-50 hover:border-red-200 hover:text-red-700 text-zinc-700 border border-zinc-200 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             <span>Demoyu Sıfırla</span>
           </button>
+          <span data-pub class="px-3 py-1.5 bg-zinc-50 border border-zinc-200 text-zinc-500 rounded-xl text-[11px] font-mono font-medium">
+            Salt-okunur demo · düzenleme kapalı
+          </span>
           <div id="dossier-match-badge" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl text-xs font-mono font-semibold">
             Eşleşme: <span id="dossier-match-status" class="text-zinc-900">Kayıtsız Ziyaretçi</span>
           </div>
@@ -468,7 +517,7 @@
             Sistemde Tanımlı Araçlar & Tescil Veritabanı
           </span>
           <span class="text-[11px] font-mono text-zinc-400">
-            Satıra tıklayarak vizöre alabilir veya "Düzenle" ile güncelleyebilirsiniz.
+            Satıra tıklayarak aracı vizöre ve terminale alabilirsiniz.
           </span>
         </div>
         <div class="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
@@ -601,7 +650,7 @@
         <div class="bg-zinc-50 p-5 rounded-2xl border border-zinc-200/80 shadow-sm flex flex-col gap-2">
           <div class="flex items-center gap-2 text-xs font-mono text-zinc-400 uppercase tracking-wider font-semibold">
             <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-            1. Model Anlatısı (Doğal Dil Özeti)
+            1. Asistan Yanıtı (Özet)
           </div>
           <p id="narrative-text" class="text-base text-zinc-800 leading-relaxed font-medium">
             —
@@ -637,7 +686,7 @@
             <div class="flex items-center justify-between text-zinc-400 font-semibold uppercase tracking-wider pb-2 border-b border-zinc-800">
               <span class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                2. SQL Tool Çağrısı
+                2. Çalıştırılan SQL Fonksiyonu
               </span>
             </div>
             <div>
@@ -655,7 +704,7 @@
             <div class="flex items-center justify-between text-xs font-mono text-zinc-400 uppercase tracking-wider pb-2 border-b border-zinc-200">
               <span class="flex items-center gap-2 font-semibold text-zinc-700">
                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                3. Sonuç Tablosu (Veritabanı Gerçeği)
+                3. Doğrulanmış Veritabanı Tablosu
               </span>
               <span id="row-count-badge" class="text-zinc-500 text-[11px]">0 Satır</span>
             </div>
@@ -717,7 +766,7 @@
               </div>
               <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2.5">
                 <span class="text-xs font-mono font-bold text-zinc-800 uppercase tracking-wider">
-                  Model Güvenlik & Karar Künyesi
+                  İstihbarat & Karar Künyesi
                 </span>
                 <span id="audit-status-badge" class="px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200/60 inline-flex items-center gap-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -871,8 +920,8 @@
     </div>
   </div>
 
-  <!-- Araç Tescil & Düzenleme Modalı -->
-  <div id="registry-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <!-- Araç Tescil & Düzenleme Modalı (yalnızca operatör; public'te DOM'dan silinir) -->
+  <div data-op id="registry-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl border border-zinc-200 shadow-2xl max-w-md w-full flex flex-col overflow-hidden">
       <!-- Modal Başlığı -->
       <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100 bg-zinc-50/80">
@@ -959,6 +1008,17 @@
   <!-- ========================================================================= -->
   <script>
     const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+    // Operatör modu: tescil düzenleme / demo reset gibi yazma aksiyonları
+    // sunucuda ENABLE_OPERATOR_ROUTES ile korunuyor (public'te 403). Bu butonlar
+    // public demoda hiç gösterilmez — ziyaretçi 403'e basıp projeyi kırık sanmasın.
+    // Operatör yerelde ?op=1 (veya localStorage.kv_op='1') ile açar.
+    const OPERATOR = new URLSearchParams(location.search).get('op') === '1'
+      || (() => { try { return localStorage.getItem('kv_op') === '1'; } catch { return false; } })();
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('[data-op]').forEach(el => { if (!OPERATOR) el.remove(); });
+      document.querySelectorAll('[data-pub]').forEach(el => { if (OPERATOR) el.remove(); });
+    });
 
     // --- 1. Hazır 6 ALPR Senaryo Arketipi (Faz 8c) ---
     // carImg: senaryoya ozel, yapay zeka ile uretilmis sentetik kamera karesi
@@ -1366,9 +1426,7 @@
           <td class="py-2.5 px-3 text-zinc-500">${esc(r.address || '—')}</td>
           <td class="py-2.5 px-3 text-zinc-500">${esc(r.contact || '—')}</td>
           <td class="py-2.5 px-3 text-right">
-            <button onclick="event.stopPropagation(); openRegisterModal('${plateAttr}')" class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded bg-zinc-100 hover:bg-zinc-900 hover:text-white text-zinc-700 transition-colors cursor-pointer">
-              Düzenle
-            </button>
+            ${OPERATOR ? `<button onclick="event.stopPropagation(); openRegisterModal('${plateAttr}')" class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded bg-zinc-100 hover:bg-zinc-900 hover:text-white text-zinc-700 transition-colors cursor-pointer">Düzenle</button>` : '<span class="text-zinc-300">—</span>'}
           </td>
         `;
         tbody.appendChild(tr);
@@ -1644,11 +1702,9 @@
                 <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
-                <span>Test Modu: Soru kotasını sıfırlayıp hemen devam edebilirsiniz.</span>
+                <span>${OPERATOR ? 'Test Modu: Soru kotasını sıfırlayıp hemen devam edebilirsiniz.' : 'Hazır soru çipleri kotadan düşmez — istediğiniz kadar deneyebilirsiniz. Serbest sorular için 1 dakika sonra tekrar deneyin.'}</span>
               </div>
-              <button type="button" onclick="resetRateLimit()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer whitespace-nowrap">
-                🔄 Soru Kotasını Sıfırla
-              </button>
+              ${OPERATOR ? `<button type="button" onclick="resetRateLimit()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer whitespace-nowrap">🔄 Soru Kotasını Sıfırla</button>` : ''}
             </div>
           </div>
         `;
