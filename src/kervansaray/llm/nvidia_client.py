@@ -61,6 +61,7 @@ def generate(
     *,
     tools: list[dict[str, Any]] | None = None,
     few_shots: list[dict[str, Any]] | None = None,
+    tool_choice: str = "auto",
 ) -> dict[str, Any]:
     """NVIDIA NIM modeline istek gönderir; tool_call veya metin yanıtı döner."""
     if not settings.NVIDIA_API_KEY:
@@ -108,7 +109,7 @@ def generate(
         formatted_tools = _format_tools_openai(tools)
         if formatted_tools:
             body["tools"] = formatted_tools
-            body["tool_choice"] = "auto"
+            body["tool_choice"] = tool_choice
 
     r = _session().post(url, headers=headers, json=body, timeout=settings.LLM_REQUEST_TIMEOUT)
     if r.status_code != 200:

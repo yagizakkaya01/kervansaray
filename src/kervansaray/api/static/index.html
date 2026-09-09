@@ -630,7 +630,7 @@
         </div>
 
         <!-- 2 & 3. GÖRÜNÜMLER: TOOL ÇAĞRISI VE SONUÇ TABLOSU -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div id="tool-views-container" class="grid grid-cols-1 lg:grid-cols-3 gap-5">
           
           <!-- 2. GÖRÜNÜM: TOOL ÇAĞRISI + PARAMETRELER -->
           <div class="lg:col-span-1 bg-zinc-900 text-zinc-200 p-5 rounded-2xl border border-zinc-800 flex flex-col gap-3 font-mono text-xs shadow-sm">
@@ -1607,16 +1607,25 @@
     }
 
     function renderResult(data) {
+      const provBar = document.getElementById('provenance-bar');
+      if (provBar) provBar.classList.add('hidden');
+
       const statusBadge = document.getElementById('badge-status');
-      statusBadge.innerText = (data.status || 'UNKNOWN').toUpperCase();
       if (data.status === 'success') {
         statusBadge.className = 'px-2 py-0.5 rounded font-semibold bg-emerald-100 text-emerald-800';
+        statusBadge.innerText = 'SUCCESS';
       } else if (data.status === 'declined') {
         statusBadge.className = 'px-2 py-0.5 rounded font-semibold bg-amber-100 text-amber-800';
+        statusBadge.innerText = 'KAPSAM DIŞI';
+      } else if (data.status === 'direct_response') {
+        statusBadge.className = 'px-2 py-0.5 rounded font-semibold bg-blue-100 text-blue-800';
+        statusBadge.innerText = 'DOĞRUDAN YANIT';
       } else if (data.status === 'rate_limit') {
         statusBadge.className = 'px-2 py-0.5 rounded font-semibold bg-orange-100 text-orange-800';
+        statusBadge.innerText = 'KOTA AŞILDI';
       } else {
         statusBadge.className = 'px-2 py-0.5 rounded font-semibold bg-red-100 text-red-800';
+        statusBadge.innerText = (data.status || 'HATA').toUpperCase();
       }
 
       document.getElementById('val-provider').innerText = data.provider || 'nemotron-3.5';
@@ -1645,6 +1654,15 @@
       }
 
       const tc = data.tool_call;
+      const toolViews = document.getElementById('tool-views-container');
+      if (toolViews) {
+        if (!tc || !tc.name || data.status === 'direct_response' || data.status === 'declined' || data.status === 'rate_limit') {
+          toolViews.classList.add('hidden');
+        } else {
+          toolViews.classList.remove('hidden');
+        }
+      }
+
       if (tc && tc.name) {
         document.getElementById('tool-name').innerText = tc.name;
         document.getElementById('tool-args').innerText = JSON.stringify(tc.args, null, 2);

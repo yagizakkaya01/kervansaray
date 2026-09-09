@@ -155,24 +155,39 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
     if tool_name == "find_anomalies":
         cnt = len(result.rows)
         rule = args.get("rule", "anomali")
+        rule_tr = {
+            "night_entry": "gece girişi (00:00-05:00)",
+            "overstay": "48 saat üzeri kalma (overstay)",
+            "blacklist": "kara liste ihlali",
+            "unregistered_recurring": "kayıtsız sık ziyaret",
+        }.get(rule, rule)
         if cnt == 0:
-            return f"Belirtilen aralıkta herhangi bir '{rule}' anomalisi tespit edilmedi."
-        return f"Belirtilen aralıkta {cnt} adet '{rule}' anomalisi tespit edildi."
+            return f"Belirtilen dönemde herhangi bir {rule_tr} anomalisi tespit edilmedi."
+        plates = ", ".join(r.get("plate", "") for r in result.rows[:3])
+        plates_str = f" (Plakalar: {plates})" if plates else ""
+        return f"Sistemde {cnt} adet {rule_tr} anomalisi tespit edildi{plates_str}."
 
     if tool_name == "occupancy":
         cnt = result.scalar if result.scalar is not None else len(result.rows)
         as_of_val = args.get("as_of") or result.params.get("as_of")
+        capacity = 100
+        empty_spots = max(0, capacity - int(cnt))
         if as_of_val:
-            return f"Belirtilen an itibarıyla otoparkta {cnt} araç bulunuyordu."
-        return f"Otoparkta şu anda {cnt} araç bulunuyor."
+            return f"Belirtilen an itibarıyla otoparkta {cnt} araç bulunuyordu (Kapasite: {capacity}, Boş Yer: {empty_spots})."
+        return f"Otoparkta şu anda {cnt} araç bulunuyor. Toplam {capacity} araçlık tesiste {empty_spots} boş yer mevcuttur."
 
     if tool_name == "search_notes":
         cnt = len(result.rows)
         q = args.get("query", "")
         if cnt == 0:
             return f"'{q}' konusuyla ilgili herhangi bir vardiya notu veya prosedür bulunamadı."
-        first_snippet = result.rows[0].get("body", "")[:120] if result.rows else ""
-        return f"'{q}' ile ilgili {cnt} adet not bulundu: \"{first_snippet}\""
+        first_note = result.rows[0]
+        first_body = first_note.get("body", "").strip()
+        author = first_note.get("author", "")
+        author_str = f" ({author})" if author else ""
+        if cnt == 1:
+            return f"İlgili prosedür/not bulundu{author_str}: \"{first_body}\""
+        return f"'{q}' ile ilgili {cnt} adet kayıt bulundu. İlgili talimat{author_str}: \"{first_body}\""
 
     return f"{tool_name} başarıyla çalıştırıldı ({len(result.rows)} kayıt)."
 
@@ -345,17 +360,21 @@ def run_query(
         if not candidates:
             candidates = [gemini_client]
 
-    def _invoke(sys_instr: str) -> tuple[dict[str, Any] | None, Any, Exception | None]:
+    def _invoke(sys_instr: str, tool_choice: str = "auto") -> tuple[dict[str, Any] | None, Any, Exception | None]:
         err: Exception | None = None
         for cand in candidates:
             prov = getattr(cand, "PROVIDER", "unknown")
             tools = OPENAI_TOOLS if prov == "nvidia" else GEMINI_FUNCTION_DECLARATIONS
             t_llm = perf_counter()
             try:
-                out = cand.generate(
-                    clean_query, system_instruction=sys_instr,
-                    tools=tools, few_shots=FEW_SHOT_EXAMPLES,
-                )
+                gen_kwargs: dict[str, Any] = {
+                    "system_instruction": sys_instr,
+                    "tools": tools,
+                    "few_shots": FEW_SHOT_EXAMPLES,
+                }
+                if prov == "nvidia":
+                    gen_kwargs["tool_choice"] = tool_choice
+                out = cand.generate(clean_query, **gen_kwargs)
                 LLM_LATENCY.labels(prov).observe(perf_counter() - t_llm)
                 LLM_REQUESTS.labels(prov, "ok").inc()
                 return out, cand, None
@@ -368,16 +387,13 @@ def run_query(
 
     _t_first = perf_counter()
     llm_out, used_client, last_error = _invoke(system_instruction)
-    _first_secs = perf_counter() - _t_first
 
     # Kapsam ici bir soruyu tool cagirmadan mi gecti? Bir kez daha, sertlestirilmis
-    # talimatla dene (kucuk model hatasi telafisi). Ilk deneme yavassa (model
-    # zorlaniyor) tekrar denemek gecikmeyi ikiye katlar - atla.
+    # talimat ve zorunlu tool_choice="required" ile dene (kucuk model hatasi telafisi).
     _clean_lower = to_ascii(clean_query.lower())
     if (
         llm_out is not None
         and not llm_out.get("function_call")
-        and _first_secs < 12.0
         and any(h in _clean_lower for h in _DOMAIN_HINTS)
     ):
         retry_instr = system_instruction + (
@@ -386,7 +402,7 @@ def run_query(
             "search_notes, plaka soruları vehicle_history, kara liste/gece/overstay "
             "find_anomalies ile cevaplanır."
         )
-        retry_out, retry_client, _ = _invoke(retry_instr)
+        retry_out, retry_client, _ = _invoke(retry_instr, tool_choice="required")
         if retry_out is not None and retry_out.get("function_call"):
             llm_out, used_client = retry_out, retry_client
 
@@ -460,6 +476,20 @@ def run_query(
     # 5. Tool calistir
     tool_name = fc.get("name", "")
     tool_args = fc.get("args", {})
+
+    if tool_name == "find_anomalies":
+        q_low = clean_query.lower()
+        has_specific_day = any(
+            w in q_low
+            for w in (
+                "dün", "dun", "bugün", "bugun", "nisan", "mayıs", "mayis",
+                "haziran", "temmuz", "ağustos", "agustos", "eylül", "eylul",
+                "ekim", "kasım", "kasim", "aralık", "aralik", "ocak", "şubat", "subat", "mart"
+            )
+        )
+        if not has_specific_day:
+            tool_args["start"] = "2026-01-01T00:00:00+03:00"
+
     tool_res = dispatch_tool(db, tool_name, tool_args, as_of=as_of)
 
     status = "error" if tool_res.note else "success"
