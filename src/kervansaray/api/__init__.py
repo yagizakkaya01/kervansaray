@@ -35,6 +35,17 @@ def create_app() -> Flask:
     if settings.ENABLE_OPERATOR_ROUTES:
         app.register_blueprint(review_bp)
 
+    # Public demo: 6 senaryo + oneri cipleri icin kuratorlu cevap onbellegi.
+    # LLM'e ugramadan 0 ms'de cevaplanir; DB bos ise sessizce atlanir.
+    try:
+        from kervansaray.demo_cache import warm as _warm_demo_cache
+
+        with session_scope() as _db:
+            _warm_demo_cache(_db)
+    except Exception:  # noqa: BLE001
+        log_ = __import__("logging").getLogger(__name__)
+        log_.warning("demo_cache isitilmadi (DB hazir degil?)", exc_info=True)
+
     @app.get("/")
     def index():
         return app.send_static_file("index.html")

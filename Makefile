@@ -1,4 +1,4 @@
-.PHONY: install lint test eval eval-build schema synth
+.PHONY: install lint test eval eval-build schema synth seed-demo
 
 install:
 	pip install -e ".[dev]"
@@ -23,3 +23,10 @@ schema:
 # Sentetik veri: populasyonu DB'ye yaz + olaylari ingest API'sine gonder.
 synth:
 	python scripts/synth.py --reset --seed-db --post http://localhost:8000
+
+# Public demo verisi: 6 senaryo plakasi + oneri sorulari icin kuratorlu
+# events/sessions/notes. Ingest API gerekmez. Calistirdiktan sonra
+# `docker compose restart app` (kuratorlu onbellek acilista isinir).
+seed-demo:
+	docker compose exec app python scripts/seed_demo.py
+	docker compose restart app

@@ -73,7 +73,11 @@ def generate(
     }
 
     full_instruction = system_instruction or ""
-    if not tools and few_shots and "ÖRNEKLER:" not in full_instruction:
+    # Few-shot ornekleri DAIMA sistem prompt'una eklenir. Nemotron gibi kucuk
+    # modeller tool secimini yalniz kurallardan guvenilir yapamiyor; ozellikle
+    # "prosedur nedir" -> search_notes ve "kara liste" -> find_anomalies
+    # eslemeleri ornek olmadan '[DECLINED]'a kayiyordu.
+    if few_shots and "ÖRNEKLER:" not in full_instruction:
         lines = []
         for ex in few_shots:
             if "tool_call" in ex:
@@ -81,7 +85,7 @@ def generate(
                 lines.append(f'- Soru: "{ex["question"]}" -> Araç: {tc["name"]}({tc["args"]})')
             else:
                 lines.append(f'- Soru: "{ex["question"]}" -> Yanıt: {ex.get("response")}')
-        full_instruction += "\n\nÖRNEKLER:\n" + "\n".join(lines)
+        full_instruction += "\n\nÖRNEKLER (soru -> secilecek araç):\n" + "\n".join(lines)
 
     messages: list[dict[str, Any]] = []
     if full_instruction:
