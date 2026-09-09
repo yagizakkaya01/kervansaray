@@ -101,30 +101,6 @@
       filter: contrast(1.08) saturate(0.96);
     }
     #plate-crop-display .tr-plate-chars { font-size: clamp(20px, 6vw, 34px); }
-    /* Kamera vizorundeki plaka: gercek fotografin plaka bolgesine bindirilir */
-    #cam-plate-overlay {
-      position: absolute;
-      left: 33.4%;
-      top: 78.7%;
-      width: 29.4%;
-      height: 9.6%;
-      transform: rotate(-2deg);
-      transform-origin: center;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
-      border-radius: 3px;
-    }
-    #cam-plate-overlay .tr-plate {
-      width: 100%; height: 100%;
-      align-items: stretch;
-      border-width: 1.5px;
-      border-radius: 3px;
-      box-shadow: none;
-    }
-    #cam-plate-overlay .tr-plate-blue { padding: 0 2px; font-size: 5px; }
-    #cam-plate-overlay .tr-plate-chars {
-      font-size: clamp(8px, 3vw, 16px);
-      letter-spacing: 0.04em;
-    }
   </style>
 </head>
 <body class="bg-[#faf8fb] text-[#111318] font-sans antialiased min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
@@ -230,42 +206,18 @@
         <!-- Kamera Ekranı / Görsel Vizör Alanı -->
         <div class="relative w-full aspect-[4/3] bg-zinc-950 rounded-xl overflow-hidden border border-zinc-800 flex items-center justify-center group shadow-inner">
           
-          <!-- Araç Görseli (tek gercek fotograf; plaka senaryoya gore bindirilir) -->
+          <!-- Araç Görseli — senaryoya gore degisen kamera karesi (REC/timestamp
+               damgasi goruntune gomulu; ALPR/nisangah katmani asagida) -->
           <img
             id="car-view-img"
-            src="/static/assets/sample_car_14ev669.webp"
-            alt="Araç Geçiş Görseli"
+            src="/static/assets/car_26abc2626.webp"
+            alt="Araç Geçiş Görseli (kamera karesi)"
             class="w-full h-full object-cover select-none transition-transform duration-300"
           />
 
-          <!-- Senaryo plakasi: fotograftaki plakanin uzerine oturur -->
-          <div id="cam-plate-overlay" class="pointer-events-none select-none">
-            <div class="tr-plate">
-              <div class="tr-plate-blue"><span>TR</span></div>
-              <div class="tr-plate-chars" id="cam-plate-chars">14 EV 669</div>
-            </div>
-          </div>
-
-          <!-- Kamera HUD & Nişangah Katmanı -->
-          <div class="absolute inset-0 pointer-events-none p-3 flex flex-col justify-between text-white/80 font-mono text-[11px]">
-            <div class="flex items-center justify-between">
-              <span class="bg-black/60 backdrop-blur px-2 py-0.5 rounded border border-white/10 text-emerald-400 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                REC [1080p 30fps]
-              </span>
-              <span id="hud-clock" class="bg-black/60 backdrop-blur px-2 py-0.5 rounded border border-white/10 text-zinc-300">
-                2026-09-08 13:35:00
-              </span>
-            </div>
-
-            <div class="flex items-center justify-between text-[10px] text-zinc-400">
-              <span>FOV: 84° • ISO 200</span>
-              <span>DEV: JETSON-ORIN-01</span>
-            </div>
-          </div>
-
-          <!-- Plaka Hedefleme Kutusu (Bounding Box) — plaka konumuna sabitlenmiş -->
-          <div id="plate-bounding-box" class="absolute left-1/2 -translate-x-1/2 bottom-[12%] w-44 h-14 border-2 border-emerald-400 bg-emerald-400/10 rounded flex items-center justify-center transition-all pointer-events-none">
+          <!-- Plaka Hedefleme Kutusu (Bounding Box) — 6 senaryonun plaka
+               konumu benzer: on plaka, kadraj ortasi, ~%70 yukseklik -->
+          <div id="plate-bounding-box" class="absolute left-1/2 top-[70%] -translate-x-1/2 -translate-y-1/2 w-36 h-10 border-2 border-emerald-400 bg-emerald-400/10 rounded flex items-center justify-center transition-all pointer-events-none">
             <span class="absolute -top-4 left-1 text-[9px] bg-emerald-500 text-black px-1 font-bold rounded">
               ALPR OCR: 98.4%
             </span>
@@ -292,17 +244,27 @@
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <!-- 1. Personel -->
-            <button onclick="loadScenario('06ak0052')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-emerald-50 hover:border-emerald-300 transition-all text-left group shadow-xs">
+            <!-- 1. Güvenlik Müdürü -->
+            <button onclick="loadScenario('26abc2626')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-emerald-50 hover:border-emerald-300 transition-all text-left group shadow-xs">
               <div class="flex items-center justify-between mb-1">
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800">PERSONEL</span>
-                <span class="text-[10px] font-mono text-zinc-400">Can Ö.</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800">GÜV. MÜDÜRÜ</span>
+                <span class="text-[10px] font-mono text-zinc-400">H. Aydın</span>
               </div>
-              <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-emerald-700">06 AK 0052</div>
-              <div class="text-[10px] text-zinc-500 truncate">Bilgi İşlem • Daimi Giriş</div>
+              <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-emerald-700">26 ABC 2626</div>
+              <div class="text-[10px] text-zinc-500 truncate">Güvenlik Amirliği • Daimi</div>
             </button>
 
-            <!-- 2. VIP Misafir -->
+            <!-- 2. Kayıtlı Misafir -->
+            <button onclick="loadScenario('06ak0052')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-sky-50 hover:border-sky-300 transition-all text-left group shadow-xs">
+              <div class="flex items-center justify-between mb-1">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-100 text-sky-800">KAYITLI MİSAFİR</span>
+                <span class="text-[10px] font-mono text-zinc-400">Can Ö.</span>
+              </div>
+              <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-sky-700">06 AK 0052</div>
+              <div class="text-[10px] text-zinc-500 truncate">İş Ortağı • Ön Onaylı</div>
+            </button>
+
+            <!-- 3. VIP Misafir -->
             <button onclick="loadScenario('34kay44')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-blue-50 hover:border-blue-300 transition-all text-left group shadow-xs">
               <div class="flex items-center justify-between mb-1">
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 text-blue-800">VIP MİSAFİR</span>
@@ -312,37 +274,17 @@
               <div class="text-[10px] text-zinc-500 truncate">Doğu Otoparkı • Protokol</div>
             </button>
 
-            <!-- 3. Kayıtsız Ziyaretçi -->
-            <button onclick="loadScenario('14ev669')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-amber-50 hover:border-amber-300 transition-all text-left group shadow-xs">
+            <!-- 4. Kayıtsız Ziyaretçi -->
+            <button onclick="loadScenario('26xyz413')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-amber-50 hover:border-amber-300 transition-all text-left group shadow-xs">
               <div class="flex items-center justify-between mb-1">
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 text-amber-800">KAYITSIZ</span>
-                <span class="text-[10px] font-mono text-zinc-400">Ahmet Y.</span>
+                <span class="text-[10px] font-mono text-zinc-400">Kargo</span>
               </div>
-              <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-amber-700">14 EV 669</div>
-              <div class="text-[10px] text-zinc-500 truncate">Bolu Merkez • Geçici Misafir</div>
+              <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-amber-700">26 XYZ 413</div>
+              <div class="text-[10px] text-zinc-500 truncate">Kargo/Tedarik • Geçici</div>
             </button>
 
-            <!-- 4. Kara Liste Alarmı -->
-            <button onclick="loadScenario('34vip99')" class="p-2.5 rounded-xl border border-red-200 bg-red-50/50 hover:bg-red-100 hover:border-red-400 transition-all text-left group shadow-xs">
-              <div class="flex items-center justify-between mb-1">
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-red-600 text-white animate-pulse">KARA LİSTE</span>
-                <span class="text-[10px] font-mono text-red-600 font-bold">ALARM</span>
-              </div>
-              <div class="font-mono font-bold text-xs text-red-900 group-hover:text-red-700">34 VIP 99</div>
-              <div class="text-[10px] text-red-600 truncate font-medium">İcralık • Giriş Yasağı</div>
-            </button>
-
-            <!-- 5. Gece Girişi Şüphesi -->
-            <button onclick="loadScenario('38he907')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-purple-50 hover:border-purple-300 transition-all text-left group shadow-xs">
-              <div class="flex items-center justify-between mb-1">
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-100 text-purple-800">GECE GİRİŞİ</span>
-                <span class="text-[10px] font-mono text-zinc-400">03:15</span>
-              </div>
-              <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-purple-700">38 HE 907</div>
-              <div class="text-[10px] text-zinc-500 truncate">Oda 312 • Devriye İstendi</div>
-            </button>
-
-            <!-- 6. 48h Overstay -->
+            <!-- 5. 48h Overstay -->
             <button onclick="loadScenario('06xyz01')" class="p-2.5 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-orange-50 hover:border-orange-300 transition-all text-left group shadow-xs">
               <div class="flex items-center justify-between mb-1">
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-orange-100 text-orange-800">OVERSTAY</span>
@@ -350,6 +292,16 @@
               </div>
               <div class="font-mono font-bold text-xs text-zinc-900 group-hover:text-orange-700">06 XYZ 01</div>
               <div class="text-[10px] text-zinc-500 truncate">B Blok • Terk Araç Şüphesi</div>
+            </button>
+
+            <!-- 6. Kara Liste Alarmı -->
+            <button onclick="loadScenario('34vip99')" class="p-2.5 rounded-xl border border-red-200 bg-red-50/50 hover:bg-red-100 hover:border-red-400 transition-all text-left group shadow-xs">
+              <div class="flex items-center justify-between mb-1">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-red-600 text-white animate-pulse">KARA LİSTE</span>
+                <span class="text-[10px] font-mono text-red-600 font-bold">ALARM</span>
+              </div>
+              <div class="font-mono font-bold text-xs text-red-900 group-hover:text-red-700">34 VIP 99</div>
+              <div class="text-[10px] text-red-600 truncate font-medium">İcralık • Giriş Yasağı</div>
             </button>
           </div>
         </div>
@@ -769,25 +721,37 @@
   <!-- ========================================================================= -->
   <script>
     // --- 1. Hazır 6 ALPR Senaryo Arketipi (Faz 8c) ---
+    // carImg: senaryoya ozel, yapay zeka ile uretilmis sentetik kamera karesi
+    // (REC/timestamp damgasi goruntune gomulu). Gercek plaka/kisi degil.
     const SCENARIOS = {
+      '26abc2626': {
+        plate: '26 ABC 2626',
+        carImg: '/static/assets/car_26abc2626.webp',
+        statusText: 'Tesis Güvenlik Müdürü — tüm kapılarda daimi yetki.',
+        statusType: 'manager',
+        statusAction: 'BARİYER AÇILDI',
+        name: 'H. Aydın',
+        kind: 'Güvenlik Müdürü (Kadrolu)',
+        address: 'Güvenlik Amirliği • Nizamiye Bloğu',
+        matchStatus: 'Eşleşti (Yönetici)',
+        prompt: '26 ABC 2626 plakalı yöneticinin bu ayki tüm giriş çıkışlarını listele.'
+      },
       '06ak0052': {
         plate: '06 AK 0052',
-        carImg: '/static/assets/sample_car_14ev669.webp',
-        plateImg: '/static/assets/sample_plate_14ev669.webp',
-        statusText: 'Yetkili Personel: Bilgi İşlem Kat 2 (Daimi Giriş İzni)',
-        statusType: 'staff',
-        statusAction: 'BARİYER AÇILDI',
+        carImg: '/static/assets/car_06ak0052.webp',
+        statusText: 'Kayıtlı Misafir: ön onaylı, düzenli ziyaretçi listesinde.',
+        statusType: 'guest',
+        statusAction: 'GEÇİŞ ONAYLANDI',
         name: 'Can Öztürk',
-        kind: 'Personel (Kadrolu)',
-        address: 'Bilgi İşlem Kat 2 • Dahili 104',
-        matchStatus: 'Eşleşti (Personel)',
-        prompt: '06 AK 0052 plakalı personelin hareketlerini listele.'
+        kind: 'Misafir (Kayıtlı)',
+        address: 'İş Ortağı • Doğu Otoparkı B-12',
+        matchStatus: 'Eşleşti (Kayıtlı Misafir)',
+        prompt: '06 AK 0052 plakalı misafirin geçmiş ziyaretlerini getir.'
       },
       '34kay44': {
         plate: '34 KAY 44',
-        carImg: '/static/assets/sample_car_14ev669.webp',
-        plateImg: '/static/assets/sample_plate_14ev669.webp',
-        statusText: 'VIP Misafir: Doğu Otoparkı A-01 Rezervasyonlu Alan',
+        carImg: '/static/assets/car_34kay44.webp',
+        statusText: 'VIP Misafir: Doğu Otoparkı A-01 Rezervasyonlu Alan.',
         statusType: 'vip',
         statusAction: 'VALE & PROTOKOL',
         name: 'Sayın Kaya',
@@ -796,112 +760,91 @@
         matchStatus: 'Eşleşti (VIP Misafir)',
         prompt: 'VIP misafir araçları için geçerli prosedür nedir?'
       },
-      '14ev669': {
-        plate: '14 EV 669',
-        carImg: '/static/assets/sample_car_14ev669.webp',
-        plateImg: '/static/assets/sample_plate_14ev669.webp',
-        statusText: 'Araç tescili bulunamadı (Yabancı / İlk Giriş).',
+      '26xyz413': {
+        plate: '26 XYZ 413',
+        carImg: '/static/assets/car_26xyz413.webp',
+        statusText: 'Araç tescili bulunamadı (yabancı / kayıtsız ziyaretçi).',
         statusType: 'unregistered',
         statusAction: 'GİRİŞ İZNİ BEKLENİYOR',
-        name: 'Ahmet Yılmaz',
+        name: 'Kayıt Yok',
         kind: 'Kayıtsız Ziyaretçi',
-        address: 'Bolu Merkez • Geçici Misafir',
+        address: 'Kargo / Tedarik • Geçici Misafir',
         matchStatus: 'Kayıtsız Ziyaretçi',
-        prompt: '14 EV 669 plakalı araç daha önce otoparka giriş yaptı mı?'
-      },
-      '34vip99': {
-        plate: '34 VIP 99',
-        carImg: '/static/assets/sample_car_14ev669.webp',
-        plateImg: '/static/assets/sample_plate_14ev669.webp',
-        statusText: 'KARA LİSTE ALARMI! Hacizli / Yasaklı Araç Tesise Alınamaz.',
-        statusType: 'blacklist',
-        statusAction: 'GİRİŞ ENGELİ (AMİRE BİLDİR)',
-        name: 'Kara Liste İhlali',
-        kind: 'Giriş Yasağı',
-        address: 'Hukuk Birimi • Karar No: 2026/41',
-        matchStatus: '⚠️ Kara Liste Alarmı',
-        prompt: 'Bu dönemde kara listedeki bir plaka görüldü mü?'
-      },
-      '38he907': {
-        plate: '38 HE 907',
-        carImg: '/static/assets/sample_car_14ev669.webp',
-        plateImg: '/static/assets/sample_plate_14ev669.webp',
-        statusText: 'Dikkat: Gece 03:15 girişi şüphesi tespit edildi.',
-        statusType: 'warning',
-        statusAction: 'DEVRİYE KONTROLÜ İSTENDİ',
-        name: 'Mehmet Demir',
-        kind: 'Misafir (Gece Şüpheli)',
-        address: 'Oda 312 • Gece Geç Giriş',
-        matchStatus: 'Gece Girişi Uyarısı',
-        prompt: 'Tüm dönem boyunca gece 03:00 civarı giriş yapan araç oldu mu?'
+        prompt: '26 XYZ 413 plakalı araç daha önce tesise giriş yaptı mı?'
       },
       '06xyz01': {
         plate: '06 XYZ 01',
-        carImg: '/static/assets/sample_car_14ev669.webp',
-        plateImg: '/static/assets/sample_plate_14ev669.webp',
-        statusText: 'Dikkat: 48 Saatlik Overstay ihlali (Terk araç şüphesi).',
+        carImg: '/static/assets/car_06xyz01.webp',
+        statusText: 'Dikkat: 48 saatlik overstay ihlali (terk araç şüphesi).',
         statusType: 'warning',
         statusAction: 'İHLAL TUTANAĞI',
         name: 'Bilinmeyen Sürücü',
         kind: 'Ziyaretçi (Overstay)',
-        address: 'B Blok Kapalı Otopark - Bölge 4',
-        matchStatus: '48h Overstay İhlali',
+        address: 'B Blok Kapalı Otopark • Bölge 4',
+        matchStatus: '48s Overstay İhlali',
         prompt: 'Bu dönemde 48 saatten uzun sahada kalan araç var mı?'
+      },
+      '34vip99': {
+        plate: '34 VIP 99',
+        carImg: '/static/assets/car_34vip99.webp',
+        statusText: 'KARA LİSTE ALARMI! Hacizli / yasaklı araç tesise alınamaz.',
+        statusType: 'blacklist',
+        statusAction: 'GİRİŞ ENGELİ (AMİRE BİLDİR)',
+        name: 'Yasaklı Araç',
+        kind: 'Giriş Yasağı',
+        address: 'Hukuk Birimi • Karar No: 2026/41',
+        matchStatus: '⚠️ Kara Liste Alarmı',
+        prompt: 'Bu dönemde kara listedeki bir plaka görüldü mü?'
       }
     };
 
     // Bellek içi tescil kayıtları tablosu
     let REGISTRY_DATA = [
-      { id: 1, plate: '06 AK 0052', name: 'Can Öztürk', kind: 'staff', address: 'Bilgi İşlem Kat 2', contact: '(0532) 111 22 33' },
-      { id: 2, plate: '34 KAY 44', name: 'Sayın Kaya', kind: 'vip', address: 'Başkanlık Süiti', contact: 'kaya@holding.com.tr' },
-      { id: 3, plate: '14 EV 669', name: 'Ahmet Yılmaz', kind: 'unregistered', address: 'Bolu Merkez', contact: '(0555) 555 55 55' },
-      { id: 4, plate: '34 VIP 99', name: 'Yasaklı Araç', kind: 'blacklist', address: 'Hukuk Birimi (Hacizli)', contact: 'guvenlik@kervansaray.com' },
-      { id: 5, plate: '38 HE 907', name: 'Mehmet Demir', kind: 'warning', address: 'Oda 312 (Gece Şüpheli)', contact: 'm.demir@erciyes.edu.tr' },
-      { id: 6, plate: '06 XYZ 01', name: 'Terk Araç Şüphesi', kind: 'warning', address: 'B Blok Kapalı Otopark', contact: '—' }
+      { id: 1, plate: '26 ABC 2626', name: 'H. Aydın (Güvenlik Müdürü)', kind: 'manager', address: 'Güvenlik Amirliği', contact: 'guvenlik.amiri@kervansaray.local' },
+      { id: 2, plate: '06 AK 0052', name: 'Can Öztürk', kind: 'guest', address: 'İş Ortağı • Doğu Otoparkı', contact: '(0532) 111 22 33' },
+      { id: 3, plate: '34 KAY 44', name: 'Sayın Kaya', kind: 'vip', address: 'Başkanlık Süiti', contact: 'kaya@holding.com.tr' },
+      { id: 4, plate: '26 XYZ 413', name: 'Kayıt Yok (Kargo / Tedarik)', kind: 'unregistered', address: 'Geçici Misafir', contact: '—' },
+      { id: 5, plate: '06 XYZ 01', name: 'Terk Araç Şüphesi', kind: 'warning', address: 'B Blok Kapalı Otopark', contact: '—' },
+      { id: 6, plate: '34 VIP 99', name: 'Yasaklı Araç', kind: 'blacklist', address: 'Hukuk Birimi (Hacizli)', contact: 'guvenlik@kervansaray.com' }
     ];
 
     let isCameraActive = true;
 
     // --- 2. Sayfa Yüklendiğinde Başlatma ---
     window.addEventListener('DOMContentLoaded', () => {
-      startHudClock();
       renderRegistryTable();
+      // Ilk senaryoyu sessizce yerlestir (tarama/sorgu tetiklemeden) —
+      // statik HTML varsayilanlariyla tutarli kalsin.
+      applyScenario(SCENARIOS['26abc2626'], { silent: true });
     });
 
-    function startHudClock() {
-      setInterval(() => {
-        const now = new Date();
-        const str = now.toISOString().replace('T', ' ').substring(0, 19);
-        const el = document.getElementById('hud-clock');
-        if (el) el.innerText = str + ' UTC+3';
-      }, 1000);
-    }
-
-    // --- 3. Senaryo Değiştirici & ALPR Tetikleyici ---
-    function loadScenario(key) {
-      const s = SCENARIOS[key];
+    // Senaryonun tum alanlarini panele yazar. silent=true iken ALPR tarama
+    // animasyonu ve otomatik sorgu tetiklenmez (sayfa acilisinda kullanilir).
+    function applyScenario(s, { silent = false } = {}) {
       if (!s) return;
-
+      const camImg = document.getElementById('car-view-img');
+      if (camImg && s.carImg) camImg.src = s.carImg;
       document.getElementById('plate-input-val').value = s.plate;
       document.getElementById('dossier-plate').innerText = s.plate;
       document.getElementById('dossier-name').innerText = s.name;
       document.getElementById('dossier-kind').innerText = s.kind;
       document.getElementById('dossier-address').innerText = s.address;
       setPlateDisplays(s.plate);
-
       updateStatusBadge(s.statusType, s.statusText, s.statusAction);
-
-      if (s.prompt) {
-        document.getElementById('query-input').value = s.prompt;
+      if (s.prompt) document.getElementById('query-input').value = s.prompt;
+      if (!silent) {
+        triggerPlateScan(true);
+        showToast(`Senaryo seçildi: ${s.plate}`);
       }
-
-      triggerPlateScan(true);
-      showToast(`Senaryo seçildi: ${s.plate}`);
     }
 
-    // Plaka gorsellerini (kamera vizoru bindirmesi + ALPR kirpma onizlemesi)
-    // senaryoya gore gunceller. Ayri gorsel dosyasi yok; tek gercek fotograf
-    // uzerine sentetik plaka bindirilir (ROADMAP: demo verisi sentetiktir).
+    // --- 3. Senaryo Değiştirici & ALPR Tetikleyici ---
+    function loadScenario(key) {
+      applyScenario(SCENARIOS[key]);
+    }
+
+    // ALPR kirpma onizlemesindeki plaka metnini senaryoya gore gunceller.
+    // Kamera karesi ayrica carImg ile degisir (loadScenario icinde).
     const IL_ADLARI = {
       '01': 'Adana', '06': 'Ankara', '07': 'Antalya', '10': 'Balıkesir',
       '14': 'Bolu', '16': 'Bursa', '20': 'Denizli', '26': 'Eskişehir',
@@ -911,13 +854,11 @@
     function setPlateDisplays(plate) {
       const txt = (plate || '').trim().toUpperCase();
       const crop = document.getElementById('plate-crop-chars');
-      const cam = document.getElementById('cam-plate-chars');
       if (crop) crop.innerText = txt;
-      if (cam) cam.innerText = txt;
       const sub = document.getElementById('plate-crop-sub');
       if (sub) {
         const il = IL_ADLARI[txt.slice(0, 2)];
-        sub.innerText = (il ? `Tescil ili: ${il} · ` : '') + 'sentetik kırpma';
+        sub.innerText = (il ? `Tescil ili: ${il} · ` : '') + 'ALPR kırpması';
       }
     }
 
@@ -947,18 +888,15 @@
       const placeholder = document.getElementById('empty-img-placeholder');
       const btnText = document.getElementById('cam-btn-text');
       const badge = document.getElementById('cam-status-badge');
-      const plateOverlay = document.getElementById('cam-plate-overlay');
 
       if (isCameraActive) {
         img.classList.remove('hidden');
-        plateOverlay?.classList.remove('hidden');
         placeholder.classList.add('hidden');
         btnText.innerText = 'Kamera Durdur';
         badge.innerText = '● CANLI AKIŞ: NİZAMİYE GİRİŞ';
         badge.className = 'px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-100 text-zinc-600 border border-zinc-200';
       } else {
         img.classList.add('hidden');
-        plateOverlay?.classList.add('hidden');
         placeholder.classList.remove('hidden');
         btnText.innerText = 'Kamera Başlat';
         badge.innerText = '○ KAMERA DURDURULDU';
@@ -970,7 +908,8 @@
     const STATUS_MAP = {
       blacklist: { box: 'bg-red-50 border-red-300 text-red-900 animate-pulse', dot: 'bg-red-600', tag: 'bg-red-600 text-white', badge: '<span class="text-red-600 font-bold">⚠️ KARA LİSTE</span>' },
       vip: { box: 'bg-blue-50 border-blue-200 text-blue-900', dot: 'bg-blue-600', tag: 'bg-blue-600 text-white', badge: '<span class="text-blue-600 font-bold">★ VIP MİSAFİR</span>' },
-      staff: { box: 'bg-emerald-50 border-emerald-200 text-emerald-900', dot: 'bg-emerald-600', tag: 'bg-emerald-600 text-white', badge: '<span class="text-emerald-600 font-bold">✓ PERSONEL</span>' },
+      manager: { box: 'bg-emerald-50 border-emerald-200 text-emerald-900', dot: 'bg-emerald-600', tag: 'bg-emerald-600 text-white', badge: '<span class="text-emerald-600 font-bold">✓ GÜVENLİK MÜDÜRÜ</span>' },
+      guest: { box: 'bg-sky-50 border-sky-200 text-sky-900', dot: 'bg-sky-600', tag: 'bg-sky-600 text-white', badge: '<span class="text-sky-600 font-bold">✓ KAYITLI MİSAFİR</span>' },
       warning: { box: 'bg-purple-50 border-purple-200 text-purple-900', dot: 'bg-purple-600', tag: 'bg-purple-600 text-white', badge: '<span class="text-purple-600 font-bold">⚠️ ANOMALİ ALARMI</span>' },
       unregistered: { box: 'bg-amber-50 border-amber-200 text-amber-900', dot: 'bg-amber-500', tag: 'bg-amber-100 text-amber-900', badge: '<span class="text-amber-700 font-bold">? KAYITSIZ ARAÇ</span>' }
     };
@@ -995,16 +934,17 @@
       const r = REGISTRY_DATA.find(x => x.plate.replace(/\s+/g, '') === plate.replace(/\s+/g, ''));
       if (!r) {
         updateStatusBadge('unregistered', `${plate} için sistemde aktif tescil kaydı bulunamadı.`, 'MİSAFİR GİRİŞİ');
-      } else if (r.kind === 'blacklist') {
-        updateStatusBadge('blacklist', `${plate} kara listede kayıtlı! Tesis girişi yasaklanmıştır.`, 'GİRİŞ İZNİ VERME');
-      } else if (r.kind === 'staff') {
-        updateStatusBadge('staff', `${plate} personel aracıdır (${r.name}).`, 'BARİYER AÇILDI');
-      } else if (r.kind === 'vip') {
-        updateStatusBadge('vip', `${plate} kayıtlı misafirdir (${r.name}).`, 'GEÇİŞ ONAYLANDI');
-      } else if (r.kind === 'warning') {
-        updateStatusBadge('warning', `${plate} kayıtlı ancak anomali işaretli: ${r.name} — ${r.address}.`, 'DEVRİYE KONTROLÜ');
       } else {
-        updateStatusBadge('unregistered', `${plate} sistemde tescilli değil (${r.name || 'Yabancı / Misafir'}).`, 'MİSAFİR GİRİŞİ');
+        const ACTIONS = {
+          manager:      [`${plate} tesis güvenlik yöneticisi aracıdır (${r.name}).`, 'BARİYER AÇILDI'],
+          guest:        [`${plate} kayıtlı misafirdir (${r.name}).`, 'GEÇİŞ ONAYLANDI'],
+          vip:          [`${plate} VIP protokol misafiridir (${r.name}).`, 'VALE & PROTOKOL'],
+          warning:      [`${plate} kayıtlı ancak anomali işaretli: ${r.name} — ${r.address}.`, 'DEVRİYE KONTROLÜ'],
+          blacklist:    [`${plate} kara listede kayıtlı! Tesis girişi yasaklanmıştır.`, 'GİRİŞ İZNİ VERME'],
+          unregistered: [`${plate} sistemde tescilli değil (${r.name || 'Yabancı / Misafir'}).`, 'MİSAFİR GİRİŞİ'],
+        };
+        const [msg, act] = ACTIONS[r.kind] || ACTIONS.unregistered;
+        updateStatusBadge(r.kind, msg, act);
       }
       showToast(`Plaka doğrulandı: ${plate}`);
     }
@@ -1045,7 +985,8 @@
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-zinc-50/80 cursor-pointer transition-colors';
         tr.onclick = () => selectRegistryRow(r);
-        const badgeColor = r.kind === 'blacklist' ? 'text-red-700 bg-red-50' : (r.kind === 'staff' ? 'text-emerald-700 bg-emerald-50' : (r.kind === 'vip' ? 'text-blue-700 bg-blue-50' : 'text-zinc-700 bg-zinc-100'));
+        const KIND_BADGE = { blacklist: 'text-red-700 bg-red-50', manager: 'text-emerald-700 bg-emerald-50', guest: 'text-sky-700 bg-sky-50', vip: 'text-blue-700 bg-blue-50', warning: 'text-amber-700 bg-amber-50', unregistered: 'text-zinc-700 bg-zinc-100' };
+        const badgeColor = KIND_BADGE[r.kind] || 'text-zinc-700 bg-zinc-100';
         tr.innerHTML = `
           <td class="py-2.5 px-3 font-semibold text-zinc-400">${idx + 1}</td>
           <td class="py-2.5 px-3 font-bold text-zinc-900">${r.plate}</td>
