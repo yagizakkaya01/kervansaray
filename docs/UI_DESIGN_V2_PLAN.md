@@ -112,15 +112,62 @@ Tıklandığında kısa bir "şimdi ne oluyor" akışı (mevcut toast'lar yerine
 
 ---
 
-## 7. Kabul Kriterleri
+## 7. Mikro-Etkileşimler (Micro-UX Polish)
+
+Plan koda dökülürken şu 3 ince dokunuş deneyimi zirveye taşır.
+
+### 7.1 · Senaryo → Terminal köprüsü (bağlamsal öneri)
+Bir senaryo kartına tıklandığında, kamerada olay canlanırken aşağıdaki
+**"Güvenliğe Sor"** bölümündeki **o senaryoya en uygun öneri çipi** kısa süre
+vurgulanır (ör. yumuşak kırmızı `ring` + tek sefer `pulse`, ~2 sn) ve görünür
+alana kayar (`scrollIntoView`, yumuşak). Amaç: ziyaretçiyi doğrudan "şimdi bunu
+sorabilirsin" noktasına götürmek.
+
+- `SCENARIOS[key]` içine `chipQuery` alanı (o senaryonun eşleştiği çip metni).
+- `34 VIP 99` → çip: *"Bu dönemde kara listedeki bir plaka görüldü mü?"*
+- Çip zaten `#query-input`'a yazılıyordu (mevcut davranış korunur); ek olarak
+  **çipin kendisi** vurgulanır. Otomatik `submitQuery()` **yok** — kullanıcı basar.
+
+### 7.2 · Kamera başlangıç yönlendirmesi (empty state)
+Sayfa ilk açıldığında **hiçbir senaryo otomatik seçilmez** (mevcut
+`applyScenario(..., {silent:true})` kaldırılır). Kamera alanı sakin bir boş-durum
+gösterir:
+
+> **▲ Yukarıdan bir olay seçerek kapı simülasyonunu başlatın**
+> *(hafif, yavaş yanıp sönen; ilk karta tıklanınca kaybolur)*
+
+Bu, §5.3'teki akış sırasıyla (kartlar kameranın üstünde) tutarlı ve "hikâye"
+his verir. Tescil defteri ve terminal ilk render'da varsayılan/boş halleriyle durur.
+
+### 7.3 · Sakin süreç akışı (toast yerine)
+Kart tıklamasında ekranın dört bir yanından fırlayan toast'lar yerine, kameranın
+**hemen altında tek satırlık** zarif bir akış:
+
+```
+Kamera plakayı okudu  →  Kayıt defterinde doğrulandı  →  Bariyer Açıldı
+```
+
+- 3 adım sırayla belirir (~400 ms arayla, opacity/translate geçişi).
+- Son adım senaryoya göre değişir: `Bariyer Açıldı` / `Giriş Engellendi (Kara Liste)` /
+  `Elle Onay Bekleniyor` / `Devriye Yönlendirildi`.
+- Toast'lar **yalnız** gerçek sistem bildirimleri (SSE olayları) ve hatalar için kalır.
+- Yeni `#scenario-flow` elemanı; `showToast` çağrıları senaryo akışından sökülür.
+
+---
+
+## 8. Kabul Kriterleri
 
 1. [ ] **Anlaşılırlık:** Teknik olmayan biri sayfayı 20 sn okuyup "kapıdaki kamerayı
    ve kayıtları yapay zekayla birleştiren bir güvenlik sistemi" diyebilir.
 2. [ ] **Mühendis katmanı korunmuş:** SQL tool çağrısı, parametre JSON'u, guardrail
    künyesi, `v_events` kaynağı hâlâ görülebilir (ikinci katmanda).
-3. [ ] **Senaryo netliği:** Her kartın ne yapacağı tıklamadan önce belli.
-4. [ ] **Görsel tutarlılık:** Tek aksan rengi, tek kart sistemi, `font-mono` yalnız
+3. [ ] **Senaryo netliği:** Her kartın ne yapacağı tıklamadan önce belli; tıklayınca
+   ilgili öneri çipi vurgulanır (§7.1).
+4. [ ] **Sakin geri bildirim:** Kart tıklamasında toast yağmuru yok; kameranın altında
+   tek satır süreç akışı (§7.3).
+5. [ ] **Boş durum:** İlk açılışta kamera "olay seç" ipucu gösterir; ilk tıkla kaybolur (§7.2).
+6. [ ] **Görsel tutarlılık:** Tek aksan rengi, tek kart sistemi, `font-mono` yalnız
    künye/kod/plakada.
-5. [ ] **Sıfır regresyon:** 6 senaryo, terminal, kayıt defteri, SSE, mobil düzen
+7. [ ] **Sıfır regresyon:** 6 senaryo, terminal, kayıt defteri, SSE, mobil düzen
    kesintisiz.
-6. [ ] **Dürüstlük:** Uydurma metrik yok (bkz. `portfolio/AGENTS.md`).
+8. [ ] **Dürüstlük:** Uydurma metrik yok (bkz. `portfolio/AGENTS.md`).
