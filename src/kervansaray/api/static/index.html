@@ -240,7 +240,7 @@
         <div class="flex flex-col gap-2 pt-1 border-t border-zinc-100">
           <div class="flex items-center justify-between text-xs font-mono text-zinc-500">
             <span class="font-semibold text-zinc-700 uppercase tracking-wider">// CANLI ALPR SİMÜLATÖRÜ (6 SENARYO KARTI)</span>
-            <span class="text-[11px] text-zinc-400">Araca tıkla • Vizör ve sorgu anında tetiklensin</span>
+            <span class="text-[11px] text-zinc-400">Karta tıkla • plaka okunur, künye ve soru hazırlanır</span>
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -818,8 +818,10 @@
       applyScenario(SCENARIOS['26abc2626'], { silent: true });
     });
 
-    // Senaryonun tum alanlarini panele yazar. silent=true iken ALPR tarama
-    // animasyonu ve otomatik sorgu tetiklenmez (sayfa acilisinda kullanilir).
+    // Senaryonun tum alanlarini panele yazar: kamera karesi, tescil kunyesi,
+    // plaka kirpma ve onerilen soru (query-input'a yazilir ama CALISTIRILMAZ —
+    // ziyaretci "Sorgula" ile kendi tetikler; her tikta LLM cagrisi yapip
+    // dakikalik kotayi tuketmeyelim). silent=true: ALPR tarama animasyonu da yok.
     function applyScenario(s, { silent = false } = {}) {
       if (!s) return;
       const camImg = document.getElementById('car-view-img');
@@ -833,8 +835,8 @@
       updateStatusBadge(s.statusType, s.statusText, s.statusAction);
       if (s.prompt) document.getElementById('query-input').value = s.prompt;
       if (!silent) {
-        triggerPlateScan(true);
-        showToast(`Senaryo seçildi: ${s.plate}`);
+        triggerPlateScan(false);
+        showToast(`Senaryo seçildi: ${s.plate} — soru hazır, "Sorgula" ile çalıştır`);
       }
     }
 
