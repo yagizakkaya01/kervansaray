@@ -93,6 +93,11 @@ def generate(
         "messages": messages,
         "temperature": settings.LLM_TEMPERATURE,
         "max_tokens": settings.LLM_MAX_TOKENS,
+        # Nemotron 3.5 varsayilan olarak "reasoning" (dusunme) modunda calisir:
+        # yanit ~12-27 sn surer, chain-of-thought'u content'e sizdirir ve
+        # cogu zaman max_tokens'a takilip tool_call'suz "DECLINED" doner.
+        # thinking=False ile tek adimli yanit (~1 sn) ve temiz tool calling.
+        "chat_template_kwargs": {"thinking": False},
     }
 
     if tools:

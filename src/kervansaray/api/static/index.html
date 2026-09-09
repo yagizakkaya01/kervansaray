@@ -104,10 +104,10 @@
     /* Kamera vizorundeki plaka: gercek fotografin plaka bolgesine bindirilir */
     #cam-plate-overlay {
       position: absolute;
-      left: 34.3%;
-      top: 79%;
-      width: 27.6%;
-      height: 7.6%;
+      left: 33.4%;
+      top: 78.7%;
+      width: 29.4%;
+      height: 9.6%;
       transform: rotate(-2deg);
       transform-origin: center;
       box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
@@ -192,7 +192,7 @@
           Kervansaray
         </h1>
         <p class="mt-2 text-sm sm:text-base text-zinc-500 max-w-2xl leading-relaxed">
-          Plaka tanıma vizörü, güvenlik nizamiyesi araç tescil künyesi ve Gemini 3.8 Flash destekli doğal dil SQL istihbarat motoru.
+          Plaka tanıma vizörü, güvenlik nizamiyesi araç tescil künyesi ve NVIDIA Nemotron destekli doğal dil SQL istihbarat motoru.
         </p>
       </div>
 
@@ -203,7 +203,7 @@
           CAM-01: Aktif
         </span>
         <span class="px-2.5 py-1 bg-white border border-zinc-200 rounded-lg text-zinc-600 shadow-sm">
-          Model: gemini-3.8-flash
+          Model: nemotron-3.5
         </span>
       </div>
     </div>
@@ -446,7 +446,7 @@
           </button>
           <button onclick="askGeminiForPlate()" class="flex-1 py-2 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-xl border border-red-200 transition-colors flex items-center justify-center gap-1.5">
             <svg class="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-            <span>Gemini'ye Sor</span>
+            <span>Yapay Zekâ'ya Sor</span>
           </button>
         </div>
 
@@ -496,7 +496,7 @@
       </div>
 
       <!-- Tescil Tablosu (Sistemdeki Örnek Araçlar) -->
-      <div class="flex flex-col gap-2 pt-2">
+      <div id="registry-section" class="flex flex-col gap-2 pt-2 scroll-mt-24">
         <span class="text-xs font-mono text-zinc-400 font-semibold uppercase tracking-wider">
           Sistemde Tanımlı Örnek Araçlar & Tescil Veritabanı
         </span>
@@ -529,7 +529,7 @@
       <div class="flex flex-col gap-1 border-b border-zinc-100 pb-4">
         <div class="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-zinc-800">
           <span class="w-2 h-2 rounded-full bg-red-600"></span>
-          Kervansaray Doğal Dil İstihbarat Terminali (Gemini 3.8 Flash)
+          Kervansaray Doğal Dil İstihbarat Terminali (NVIDIA Nemotron)
         </div>
         <p class="text-xs text-zinc-500">
           Otopark SQL veritabanına Türkçe sorular sorun; LLM anlatısını, seçilen aracı ve veritabanı gerçeğini şeffafça görün.
@@ -604,7 +604,7 @@
       <!-- Yükleniyor Durumu -->
       <div id="loading-state" class="hidden py-10 flex flex-col items-center justify-center gap-3 text-center">
         <div class="w-8 h-8 border-2 border-zinc-300 border-t-red-600 rounded-full animate-spin"></div>
-        <p class="text-xs font-mono text-zinc-500">Gemini 3.8 Flash çözümlüyor & SQL aracı çalıştırılıyor...</p>
+        <p class="text-xs font-mono text-zinc-500">Model çözümlüyor & SQL aracı çalıştırılıyor...</p>
       </div>
 
       <!-- ÜÇLÜ GÖRÜNÜM SONUÇ PANELİ -->
@@ -614,7 +614,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-zinc-100 rounded-xl border border-zinc-200 text-xs font-mono">
           <div class="flex items-center gap-3">
             <span id="badge-status" class="px-2 py-0.5 rounded font-semibold bg-emerald-100 text-emerald-800">SUCCESS</span>
-            <span class="text-zinc-500">Model: <strong id="val-provider" class="text-zinc-800">gemini-3.8-flash</strong></span>
+            <span class="text-zinc-500">Model: <strong id="val-provider" class="text-zinc-800">nemotron-3.5</strong></span>
             <span class="text-zinc-500">Süre: <strong id="val-time" class="text-zinc-800">0.00s</strong></span>
           </div>
           <div class="flex items-center gap-2">
@@ -999,14 +999,31 @@
         updateStatusBadge('blacklist', `${plate} kara listede kayıtlı! Tesis girişi yasaklanmıştır.`, 'GİRİŞ İZNİ VERME');
       } else if (r.kind === 'staff') {
         updateStatusBadge('staff', `${plate} personel aracıdır (${r.name}).`, 'BARİYER AÇILDI');
-      } else {
+      } else if (r.kind === 'vip') {
         updateStatusBadge('vip', `${plate} kayıtlı misafirdir (${r.name}).`, 'GEÇİŞ ONAYLANDI');
+      } else if (r.kind === 'warning') {
+        updateStatusBadge('warning', `${plate} kayıtlı ancak anomali işaretli: ${r.name} — ${r.address}.`, 'DEVRİYE KONTROLÜ');
+      } else {
+        updateStatusBadge('unregistered', `${plate} sistemde tescilli değil (${r.name || 'Yabancı / Misafir'}).`, 'MİSAFİR GİRİŞİ');
       }
       showToast(`Plaka doğrulandı: ${plate}`);
     }
 
+    // "Plaka Kayıtlarını Göster": tescil tablosuna kaydir ve eslesen satiri vurgula
     function fillFormFromPlate() {
-      document.getElementById('dossier-match-badge')?.scrollIntoView({ behavior: 'smooth' });
+      const raw = document.getElementById('plate-input-val').value.trim();
+      const plate = raw.toUpperCase().replace(/\s+/g, '');
+      document.getElementById('registry-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      let hit = false;
+      document.querySelectorAll('#registry-table-body tr').forEach(tr => {
+        const rp = (tr.children[1]?.textContent || '').toUpperCase().replace(/\s+/g, '');
+        if (rp && rp === plate) {
+          hit = true;
+          tr.classList.add('bg-amber-100');
+          setTimeout(() => tr.classList.remove('bg-amber-100'), 2400);
+        }
+      });
+      showToast(hit ? `Tescil kaydı bulundu: ${raw}` : `${raw} tescil tablosunda yok (yabancı araç).`, hit ? 'info' : 'warning');
     }
 
     function askGeminiForPlate() {
@@ -1082,7 +1099,7 @@
       }, 5000);
     }
 
-    // --- 5. Gemini 3.8 Flash Doğal Dil Sorgu Hattı ---
+    // --- 5. NVIDIA Nemotron Doğal Dil Sorgu Hattı ---
     function askChip(text) {
       const clean = text.replace(/\(Guardrail.*\)/, '').trim();
       document.getElementById('query-input').value = clean;
@@ -1160,7 +1177,7 @@
         statusBadge.className = 'px-2 py-0.5 rounded font-semibold bg-red-100 text-red-800';
       }
 
-      document.getElementById('val-provider').innerText = data.provider || 'gemini-3.8-flash';
+      document.getElementById('val-provider').innerText = data.provider || 'nemotron-3.5';
       document.getElementById('val-time').innerText = (data.elapsed_seconds || 0) + 's';
       document.getElementById('val-cached').innerText = data.cached ? '⚡ Önbellek: Evet (0ms - $0 Maliyet)' : '🔄 Canlı Model Çağrısı';
 
