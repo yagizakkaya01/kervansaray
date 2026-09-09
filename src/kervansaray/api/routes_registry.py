@@ -253,11 +253,13 @@ def reset_demo() -> Any:
             sess.flush()
             warm_cache(sess)
 
+        from kervansaray.api.rate_limit import limiter
+        limiter.clear()
         query_cache.clear()
 
         return jsonify({
             "ok": True,
-            "message": "Demo veritabanı ve 6 senaryo verisi fabrika ayarlarına sıfırlandı."
+            "message": "Demo veritabanı, 6 senaryo ve soru kotaları fabrika ayarlarına sıfırlandı."
         }), 200
 
     except Exception as exc:  # noqa: BLE001

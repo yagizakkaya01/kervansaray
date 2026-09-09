@@ -1623,7 +1623,26 @@
       document.getElementById('val-time').innerText = (data.elapsed_seconds || 0) + 's';
       document.getElementById('val-cached').innerText = data.cached ? '⚡ Önbellek: Evet (0ms - $0 Maliyet)' : '🔄 Canlı Model Çağrısı';
 
-      document.getElementById('narrative-text').innerText = data.narrative || 'Açıklama üretilmedi.';
+      if (data.status === 'rate_limit') {
+        document.getElementById('narrative-text').innerHTML = `
+          <div class="flex flex-col gap-3">
+            <span class="text-amber-900 font-medium">${esc(data.narrative || 'İstek kotası aşıldı.')}</span>
+            <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+              <div class="flex items-center gap-2 text-xs text-amber-800 font-medium">
+                <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>Test Modu: Soru kotasını sıfırlayıp hemen devam edebilirsiniz.</span>
+              </div>
+              <button type="button" onclick="resetRateLimit()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer whitespace-nowrap">
+                🔄 Soru Kotasını Sıfırla
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        document.getElementById('narrative-text').innerText = data.narrative || 'Açıklama üretilmedi.';
+      }
 
       const tc = data.tool_call;
       if (tc && tc.name) {
@@ -1912,6 +1931,24 @@
         content.style.maxHeight = (content.scrollHeight + 32) + 'px';
         content.classList.remove('opacity-0');
         content.classList.add('opacity-100');
+      }
+    }
+
+    async function resetRateLimit() {
+      try {
+        const resp = await fetch('/api/rate-limit/reset', { method: 'POST' });
+        const json = await resp.json();
+        if (json.ok) {
+          showToast('Soru kotası ve hız limiti başarıyla sıfırlandı.', 'success', 'KOTA SIFIRLANDI');
+          const panel = document.getElementById('result-panel');
+          if (panel) panel.classList.add('hidden');
+          const input = document.getElementById('query-input');
+          if (input && input.value.trim()) {
+            submitQuery();
+          }
+        }
+      } catch (err) {
+        showToast('Kotayı sıfırlama hatası: ' + err.message, 'critical');
       }
     }
 

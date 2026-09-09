@@ -4,15 +4,24 @@ Sliding window algoritmasi ile tek process / thread-safe calisir.
 """
 from __future__ import annotations
 
+import os
 import threading
 import time
 from collections import defaultdict
 
 
+def _env_int(name: str, default: int) -> int:
+    try:
+        val = os.environ.get(name)
+        return int(val) if val is not None else default
+    except (ValueError, TypeError):
+        return default
+
+
 class RateLimiter:
-    def __init__(self, per_minute: int = 5, per_day: int = 20):
-        self.per_minute = per_minute
-        self.per_day = per_day
+    def __init__(self, per_minute: int | None = None, per_day: int | None = None):
+        self.per_minute = per_minute if per_minute is not None else _env_int("RATE_LIMIT_PER_MINUTE", 10)
+        self.per_day = per_day if per_day is not None else _env_int("RATE_LIMIT_PER_DAY", 500)
         self._requests: dict[str, list[float]] = defaultdict(list)
         self._lock = threading.Lock()
 
@@ -21,6 +30,9 @@ class RateLimiter:
 
         (allowed, error_message) dondurur.
         """
+        if os.environ.get("DISABLE_RATE_LIMIT", "").lower() in ("1", "true", "yes"):
+            return True, None
+
         now = time.time()
         minute_ago = now - 60.0
         day_ago = now - 86400.0
@@ -35,22 +47,22 @@ class RateLimiter:
             if minute_count >= self.per_minute:
                 return (
                     False,
-                    "Dakikalık soru limitine (5 soru/dk) ulaştınız. Lütfen 1 dakika bekleyin.",
+                    f"Dakikalık soru limitine ({self.per_minute} soru/dk) ulaştınız. Lütfen 1 dakika bekleyin veya kotayı sıfırlayın.",
                 )
 
             if len(recent) >= self.per_day:
                 return (
                     False,
-                    "Günlük soru limitine (20 soru/gün) ulaştınız. Yarın tekrar deneyebilirsiniz.",
+                    f"Günlük soru limitine ({self.per_day} soru/gün) ulaştınız. Test modunda kotayı sıfırlayabilirsiniz.",
                 )
 
             recent.append(now)
             return True, None
 
     def clear(self) -> None:
-        """Testler icin hafizayi sifirlar."""
+        """Testler ve demo icin hafizayi sifirlar."""
         with self._lock:
             self._requests.clear()
 
 
-limiter = RateLimiter(per_minute=5, per_day=20)
+limiter = RateLimiter()

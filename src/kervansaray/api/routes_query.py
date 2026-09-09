@@ -62,3 +62,11 @@ def post_query():
         res = run_query(query_text, db, as_of=as_of, use_cache=use_cache)
 
     return jsonify(res), 200
+
+
+@bp.post("/rate-limit/reset")
+def reset_rate_limit():
+    """Test ve demo sırasında soru limitini anında sıfırlar."""
+    limiter.clear()
+    return jsonify({"ok": True, "message": "Soru kotası ve hız limitleri başarıyla sıfırlandı."}), 200
+
