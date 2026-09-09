@@ -60,9 +60,14 @@ class RateLimiter:
             return True, None
 
     def clear(self) -> None:
-        """Testler ve demo icin hafizayi sifirlar."""
+        """Tum IP gecmisini sifirlar (yalniz testler icin)."""
         with self._lock:
             self._requests.clear()
+
+    def clear_ip(self, client_ip: str) -> None:
+        """Yalniz bir IP'nin kota gecmisini sifirlar (public 'kotami sifirla')."""
+        with self._lock:
+            self._requests.pop(client_ip, None)
 
 
 limiter = RateLimiter()

@@ -1,23 +1,27 @@
 """Araç tescil yönetimi ve demo sıfırlama API'si (PROJECT_BRIEF S3.2 / S8).
 
-- GET  /api/registry        : Tescil/senaryo araçlarını listeler (public, read-only)
-- POST /api/registry/upsert : Araç kaydını oluşturur/günceller — YALNIZCA operatör
-- POST /api/demo/reset      : Demo DB'sini fabrika ayarlarına sıfırlar — YALNIZCA operatör
+- GET  /api/registry        : Tescil/senaryo araçlarını listeler
+- POST /api/registry/upsert : Araç kaydını oluşturur/günceller (interaktif demo özelliği)
+- POST /api/demo/reset      : Demo DB'sini fabrika ayarlarına sıfırlar
 
-Yazma uçları `@operator_only` ile korunur: `ENABLE_OPERATOR_ROUTES=false`
-(public demo) iken 403 döner. Bkz. PROJECT_BRIEF S12/S24.
+Veri tamamen sentetiktir ve /api/demo/reset ile her an fabrika ayarlarına
+döner (PROJECT_BRIEF: "sadece sentetik veri"). Bu yüzden yazma uçları public;
+tek koruma: girdi metinleri HTML olarak render edilemez (`_clean_text`) ve
+reset kısa bir cooldown ile spam'e kapalı. Sorgu hattı (/api/query) hâlâ
+salt-okunur.
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
 import logging
+import re
+import time
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from flask import Blueprint, jsonify, request
 from sqlalchemy import delete, select, text, update
 from sqlalchemy.orm import joinedload
 
-from kervansaray.api.guards import operator_only
 from kervansaray.db import session_scope
 from kervansaray.db.models import (
     Event,
@@ -34,6 +38,22 @@ bp = Blueprint("registry", __name__, url_prefix="/api")
 log = logging.getLogger(__name__)
 
 UTC = timezone.utc
+
+_TAG_RE = re.compile(r"<[^>]*>")
+_RESET_COOLDOWN_S = 8.0
+_last_reset_at = 0.0
+
+
+def _clean_text(val: str | None, maxlen: int) -> str:
+    """Serbest metin girdisini HTML-güvenli ve sınırlı hale getirir.
+
+    Bu uçlar public (interaktif demo). Girdi ilerde bir tabloda innerHTML'e
+    girebilir; sunucuda da etiketleri sök ve uzunluğu sınırla (frontend esc()
+    ile birlikte iki katman).
+    """
+    s = _TAG_RE.sub("", (val or "")).replace("<", "").replace(">", "")
+    s = " ".join(s.split())
+    return s[:maxlen].strip()
 
 # 6 Demo Senaryo Plakası
 DEMO_SCENARIO_PLATES = [
@@ -122,19 +142,20 @@ def list_registry() -> Any:
 
 
 @bp.post("/registry/upsert")
-@operator_only
 def upsert_registry() -> Any:
-    """Aracı DB'ye kaydeder veya günceller (yalnızca operatör)."""
+    """Aracı DB'ye kaydeder veya günceller (interaktif demo özelliği)."""
     data = request.get_json(silent=True) or {}
-    raw_plate = (data.get("plate") or "").strip().upper()
+    raw_plate = _clean_text(data.get("plate"), 16).upper()
     if not raw_plate:
         return jsonify({"ok": False, "error": "Plaka zorunludur."}), 400
 
     canon = canonicalize(raw_plate)
-    name = (data.get("name") or "").strip()
+    name = _clean_text(data.get("name"), 60)
     kind = (data.get("kind") or "guest").strip().lower()
-    address = (data.get("address") or "").strip()
-    contact = (data.get("contact") or "").strip()
+    if kind not in {"guest", "manager", "staff", "vip", "vendor", "warning", "blacklist", "unregistered"}:
+        kind = "guest"
+    address = _clean_text(data.get("address"), 80)
+    contact = _clean_text(data.get("contact"), 60)
 
     try:
         with session_scope() as sess:
@@ -253,12 +274,25 @@ def upsert_registry() -> Any:
 
 
 @bp.post("/demo/reset")
-@operator_only
 def reset_demo() -> Any:
-    """Demo veritabanını fabrika ayarlarına sıfırlar (yalnızca operatör)."""
+    """Demo veritabanını fabrika ayarlarına sıfırlar (public; sentetik veri)."""
+    global _last_reset_at
+    now = time.monotonic()
+    if now - _last_reset_at < _RESET_COOLDOWN_S:
+        wait = round(_RESET_COOLDOWN_S - (now - _last_reset_at), 1)
+        return jsonify({
+            "ok": False,
+            "error": f"Demo yeni sıfırlandı, {wait} sn sonra tekrar deneyin.",
+        }), 429
+    _last_reset_at = now
+
     try:
         from scripts.seed_demo import reset, seed_background, seed_notes, seed_scenarios
         from kervansaray.demo_cache import warm as warm_cache
+
+        from kervansaray.api.rate_limit import limiter
+        query_cache.clear()
+        limiter.clear()
 
         with session_scope() as sess:
             reset(sess)
@@ -266,11 +300,7 @@ def reset_demo() -> Any:
             seed_background(sess)
             seed_notes(sess)
             sess.flush()
-            warm_cache(sess)
-
-        from kervansaray.api.rate_limit import limiter
-        limiter.clear()
-        query_cache.clear()
+            warm_cache(sess)  # EN SON: temizlikten sonra kuratörlü cevapları ısıt
 
         return jsonify({
             "ok": True,

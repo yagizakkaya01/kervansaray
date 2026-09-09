@@ -200,7 +200,7 @@
         <div class="flex flex-wrap gap-1.5 pt-1 font-mono text-[11px] text-zinc-700">
           <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">0 ms önbellek / ~5–15 sn canlı model · NVIDIA Nemotron 3.5 (30B)</span>
           <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">Pre-flight SQL kalkanı</span>
-          <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">Salt-okunur public demo</span>
+          <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">Sorgular salt-okunur · sentetik veri, her an fabrika sıfırlama</span>
           <span class="px-2 py-1 rounded-lg bg-zinc-100 border border-zinc-200">220 sentetik test olayı</span>
         </div>
       </div>
@@ -442,7 +442,7 @@
           <button onclick="fillFormFromPlate()" class="flex-1 py-2 px-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-semibold rounded-xl transition-colors cursor-pointer text-center">
             Plaka Kayıtlarını Göster
           </button>
-          <button data-op onclick="openRegisterModal(document.getElementById('plate-input-val').value)" class="py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+          <button onclick="openRegisterModal(document.getElementById('plate-input-val').value)" class="py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
             <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span>Kaydı Düzenle / Tescil Et</span>
           </button>
@@ -473,17 +473,14 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-          <button data-op onclick="openRegisterModal()" class="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
+          <button onclick="openRegisterModal()" class="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
             <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span>+ Araç Kaydet / Düzenle</span>
           </button>
-          <button data-op onclick="confirmResetDemo()" id="btn-reset-demo" class="px-3 py-1.5 bg-zinc-100 hover:bg-red-50 hover:border-red-200 hover:text-red-700 text-zinc-700 border border-zinc-200 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
+          <button onclick="confirmResetDemo()" id="btn-reset-demo" class="px-3 py-1.5 bg-zinc-100 hover:bg-red-50 hover:border-red-200 hover:text-red-700 text-zinc-700 border border-zinc-200 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             <span>Demoyu Sıfırla</span>
           </button>
-          <span data-pub class="px-3 py-1.5 bg-zinc-50 border border-zinc-200 text-zinc-500 rounded-xl text-[11px] font-mono font-medium">
-            Salt-okunur demo · düzenleme kapalı
-          </span>
           <div id="dossier-match-badge" class="px-3 py-1.5 bg-zinc-50 border border-zinc-200 text-zinc-700 rounded-xl text-xs font-mono font-semibold">
             Eşleşme: <span id="dossier-match-status" class="text-zinc-900">Kayıtsız Ziyaretçi</span>
           </div>
@@ -921,7 +918,7 @@
   </div>
 
   <!-- Araç Tescil & Düzenleme Modalı (yalnızca operatör; public'te DOM'dan silinir) -->
-  <div data-op id="registry-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div id="registry-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl border border-zinc-200 shadow-2xl max-w-md w-full flex flex-col overflow-hidden">
       <!-- Modal Başlığı -->
       <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100 bg-zinc-50/80">
@@ -1008,17 +1005,6 @@
   <!-- ========================================================================= -->
   <script>
     const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-
-    // Operatör modu: tescil düzenleme / demo reset gibi yazma aksiyonları
-    // sunucuda ENABLE_OPERATOR_ROUTES ile korunuyor (public'te 403). Bu butonlar
-    // public demoda hiç gösterilmez — ziyaretçi 403'e basıp projeyi kırık sanmasın.
-    // Operatör yerelde ?op=1 (veya localStorage.kv_op='1') ile açar.
-    const OPERATOR = new URLSearchParams(location.search).get('op') === '1'
-      || (() => { try { return localStorage.getItem('kv_op') === '1'; } catch { return false; } })();
-    window.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('[data-op]').forEach(el => { if (!OPERATOR) el.remove(); });
-      document.querySelectorAll('[data-pub]').forEach(el => { if (OPERATOR) el.remove(); });
-    });
 
     // --- 1. Hazır 6 ALPR Senaryo Arketipi (Faz 8c) ---
     // carImg: senaryoya ozel, yapay zeka ile uretilmis sentetik kamera karesi
@@ -1426,7 +1412,7 @@
           <td class="py-2.5 px-3 text-zinc-500">${esc(r.address || '—')}</td>
           <td class="py-2.5 px-3 text-zinc-500">${esc(r.contact || '—')}</td>
           <td class="py-2.5 px-3 text-right">
-            ${OPERATOR ? `<button onclick="event.stopPropagation(); openRegisterModal('${plateAttr}')" class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded bg-zinc-100 hover:bg-zinc-900 hover:text-white text-zinc-700 transition-colors cursor-pointer">Düzenle</button>` : '<span class="text-zinc-300">—</span>'}
+            <button onclick="event.stopPropagation(); openRegisterModal('${plateAttr}')" class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded bg-zinc-100 hover:bg-zinc-900 hover:text-white text-zinc-700 transition-colors cursor-pointer">Düzenle</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1541,7 +1527,7 @@
           await fetchRegistry();
           loadScenario('26abc2626');
         } else {
-          showToast(`Sıfırlama hatası: ${data.error}`, 'critical');
+          showToast(data.error || 'Sıfırlama yapılamadı.', res.status === 429 ? 'warning' : 'critical');
         }
       } catch (err) {
         showToast('Bağlantı hatası', 'critical');
@@ -1702,9 +1688,9 @@
                 <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
-                <span>${OPERATOR ? 'Test Modu: Soru kotasını sıfırlayıp hemen devam edebilirsiniz.' : 'Hazır soru çipleri kotadan düşmez — istediğiniz kadar deneyebilirsiniz. Serbest sorular için 1 dakika sonra tekrar deneyin.'}</span>
+                <span>Hazır soru çipleri kotadan düşmez. Serbest soru kotanızı sıfırlayıp devam edebilirsiniz.</span>
               </div>
-              ${OPERATOR ? `<button type="button" onclick="resetRateLimit()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer whitespace-nowrap">🔄 Soru Kotasını Sıfırla</button>` : ''}
+              <button type="button" onclick="resetRateLimit()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer whitespace-nowrap">🔄 Soru Kotamı Sıfırla</button>
             </div>
           </div>
         `;

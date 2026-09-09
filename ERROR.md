@@ -6,54 +6,55 @@
 
 ---
 
-## ✅ Kapatıldı — `9a48a24` (kervansaray) + `aa5044d` (portfolio)
+## ✅ Kapatıldı
 
-Public demoyu **yazılabilir** hale getiren 4 kritik açık:
+`bae3c7a` public demoyu yazılabilir yaptı. Önce hepsi `@operator_only` ile
+kilitlendi (`9a48a24` + `aa5044d`). Sonra **ürün kararı**: tescil düzenleme /
+kayıtsız aracı tescil / demo reset **bilinçli interaktif demo özellikleri**
+(sentetik veri + her an fabrika sıfırlama). `d1...` ile yazma uçları public'e
+geri açıldı, **görünmez** sıkılaştırma eklendi:
 
-| Açık | Durum |
+| Açık | Nihai durum |
 |---|---|
-| `POST /api/registry/upsert` kimlik doğrulamasız DB yazma (araç/kişi oluştur-sil, `is_blacklisted` değiştir, tüm event'leri yeniden bağla) | `@operator_only` → public'te **403** |
-| `POST /api/demo/reset` kimlik doğrulamasız `TRUNCATE events,sessions,notes` + reseed (griefing/DoS) | `@operator_only` → **403** |
-| Stored XSS: `renderRegistryTable` `r.name`/`r.address`/`r.contact` `innerHTML`'e `esc()` olmadan giriyordu (upsert ile enjekte edilir, her ziyaretçide çalışır) | `esc()` eklendi; `showToast` da |
-| `POST /api/rate-limit/reset` kimlik doğrulamasız global `limiter.clear()` + `query_cache.clear()` | `@operator_only`; Caddy proxy listesinden çıkarıldı |
+| Stored XSS: `renderRegistryTable` / `showToast` `r.name`/`address`/`contact` `innerHTML`'e escape'siz | **Kapalı.** Frontend `esc()` + sunucuda `_clean_text()` (HTML etiketlerini sök, uzunluk sınırı: name 60 / address 80 / contact 60). İki katman. |
+| `POST /api/demo/reset` griefing/DoS (spam TRUNCATE+reseed) | **Kapalı.** 8 sn modül-seviye cooldown → spam'de 429. |
+| `POST /api/rate-limit/reset` global `limiter.clear()` (tüm IP'ler) + `query_cache.clear()` | **Kapalı.** Artık yalnız çağıran IP'yi temizler (`limiter.clear_ip`), global önbelleğe dokunmaz. Public. |
+| `reset_demo` `warm_cache()` çağırıp hemen `query_cache.clear()` yapıyordu (E5 sınıfı) | **Kapalı.** Sıra düzeltildi: önce clear, en son warm. |
+| `upsert` sonrası kuratörlü cevaplar kayboluyordu | **Kapalı.** `upsert` sonrası `demo_cache.warm()`. |
 
-Ek: `src/kervansaray/api/guards.py` (`@operator_only`, `ENABLE_OPERATOR_ROUTES=false` → 403).
-`upsert` + `rate-limit/reset` `query_cache.clear()` sonrası `demo_cache.warm()` çağırıyor
-(aksi halde 16 kuratörlü cevap restart'a kadar canlı LLM'e düşüyordu).
-`portfolio/Caddyfile`: `/api/events*` ve `/api/rate-limit/*` proxy'den çıkarıldı, commit edildi.
+- `src/kervansaray/api/guards.py` (`@operator_only`) artık kullanılmıyor → **silindi**.
+- `POST /events` (ingest) hâlâ `ENABLE_OPERATOR_ROUTES` ile kilitli (değişmedi).
+- Sorgu hattı (`/api/query`) salt-okunur — tool'lar yalnız SELECT.
+- `portfolio/Caddyfile`: `/api/registry* /api/demo* /api/rate-limit*` proxy'li; `/api/events*` değil.
 
 ---
 
 ## 🟠 Açık — Yüksek
 
 ### E1 · Yeni yüzeyin sıfır testi
-**Nerede:** `tests/` — 20 test dosyası; `routes_registry.py`, `api/guards.py`,
-`check_query_safety`, `build_audit_metadata`, `demo_cache.py`, `/api/rate-limit/reset`
-için **hiçbiri yok**.
-**Risk:** ~1500 satır yeni kod (en hassas kısmı güvenlik). Bir sonraki refactor
-`@operator_only`'yi veya `renderRegistryTable`'daki `esc()`'i sessizce geri alabilir.
+**Nerede:** `tests/` — 20 test dosyası; `routes_registry.py`, `check_query_safety`,
+`build_audit_metadata`, `demo_cache.py`, `_clean_text`, reset cooldown için **hiçbiri yok**.
+**Risk:** ~1500 satır yeni kod. Bir sonraki refactor `_clean_text`'i veya
+`renderRegistryTable`'daki `esc()`'i sessizce geri alabilir → stored XSS geri döner.
 **Düzeltme:** `tests/test_registry.py` — Flask test client:
-- `ENABLE_OPERATOR_ROUTES=false` → `POST /api/registry/upsert` = 403, `POST /api/demo/reset` = 403
-- `=true` → 200 + DB'de kayıt
-- `GET /api/registry` her iki modda 200
-- `check_query_safety`: `"DROP TABLE"` → `(False, …)`, normal Türkçe soru → `(True, …)`
+- `POST /api/registry/upsert` `name="<b>x</b> Ali"` → kayıtlı name `"x Ali"` (tag sökülmüş)
+- name > 60 char → kesiliyor
+- `POST /api/demo/reset` iki kez arka arkaya → 2. çağrı 429
+- `POST /api/rate-limit/reset` → yalnız çağıran IP; başka IP'nin kotası duruyor
+- demo reset sonrası kuratörlü soru (`query_cache`) hâlâ dolu
+- `check_query_safety`: `"DROP TABLE"` → `(False, …)`, normal Türkçe → `(True, …)`, `"5 -- 6"` → şu an `(False, …)` (bkz. E3)
 
 `conftest.py`'de test DB fixture'ı var (`test_ingest.py` kullanıyor).
 
-### E2 · `Person.contact` — kimlik doğrulamasız PII
-**Nerede:** `db/models.py` `Person.contact` + migration `0002` + `routes_registry.py:~88`
-(`list_registry` her kayıtta `"contact"` döndürüyor) + `GET /api/registry` public.
-**Risk:** Şu an sentetik. Ama desen tam olarak kardeş `portfolio/AGENTS.md`'nin
-yasakladığı şey ("public endpoint contact döndürmemeli"). Operator modunda gerçek
-telefon/e-posta girilirse `GET https://yagizakkaya.com.tr/api/registry` ile herkese açılır.
-`vehicle_history` (`tools/vehicles.py`) `contact` döndürmüyor — sızıntı sadece burada.
-**Düzeltme:** `list_registry` response'una `contact`'ı yalnızca `ENABLE_OPERATOR_ROUTES=true`
-iken ekle:
-```python
-row = {"id": idx, "plate": ..., "name": ..., "kind": ..., "address": ...}
-if settings.ENABLE_OPERATOR_ROUTES:
-    row["contact"] = contact_val
-```
+### E2 · `Person.contact` — public `GET /api/registry`'de dönüyor
+**Nerede:** `db/models.py` `Person.contact` + migration `0002` + `routes_registry.py`
+`list_registry` her kayıtta `"contact"` döndürüyor; endpoint public.
+**Durum:** Veri sentetik ve tescil defteri artık **kasıtlı** interaktif demo —
+"İletişim" sütunu demonun bir parçası. Yani düşük öncelik. Yine de kardeş
+`portfolio/AGENTS.md` deseni ("public endpoint contact döndürmemeli") ile çelişiyor;
+gerçek veri hiç girilmemeli (upsert formu placeholder'ları sentetik tutulmalı) ve
+`_clean_text` contact'ı da 60 char'a sınırlıyor. İstenirse "İletişim" sütununu
+tamamen kaldırmak en temizi.
 Frontend `${esc(r.contact || '—')}` zaten `undefined` → `'—'` gösteriyor, uyumlu.
 
 ---
