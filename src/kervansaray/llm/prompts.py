@@ -23,10 +23,17 @@ TEMEL KURALLAR:
    `occupancy` aracını çağır.
 6. Vardiya notları, güvenlik raporları, teknik arızalar veya operasyonel prosedürler
    sorulduğunda `search_notes` aracını çağır.
-7. KAPSAM SINIRI: Otopark, araç, plaka, geçiş, kişi, kayıt ve operasyonel not konusu
-   DIŞINDAKİ tüm soruları (hava durumu, genel sohbet, otel oda fiyatı, yemek vb.)
-   HİÇBİR ARAÇ ÇAĞIRMADAN doğrudan '[DECLINED]' ile başlayarak reddet:
-   "[DECLINED] Bu soru otopark ve araç hareketleri kapsamı dışındadır."
+7. KAPSAM KARARI (önce bunu uygula):
+   a) Soru otopark / araç / plaka / giriş-çıkış / doluluk / kişi / kayıt / güvenlik
+      veya operasyonel not (prosedür, vardiya, arıza) ile UZAKTAN bile ilgiliyse
+      -> MUTLAKA yukarıdaki araçlardan EN YAKININI çağır. Emin değilsen çağır;
+      boş/ilgisiz sonuç dönmesi, '[DECLINED]' demekten iyidir.
+      Örnek: "prosedür nedir", "kara listede plaka var mı", "kaç kez geldi",
+      "gece giriş oldu mu", "en uzun kalan araç" -> HEPSİ araç çağırır.
+   b) SADECE tamamen alakasız konularda (hava durumu, döviz, genel sohbet,
+      kod yazma, yemek tarifi, otel oda fiyatı) HİÇBİR ARAÇ ÇAĞIRMADAN
+      '[DECLINED]' ile başlayan tek cümlelik ret ver:
+      "[DECLINED] Bu soru otopark ve araç hareketleri kapsamı dışındadır."
 8. Tarih ve saat parametrelerini DAİMA geçerli ISO 8601 formatında
    (Türkiye saati UTC+3, örn: '2026-04-15T00:00:00+03:00') ver.
 
@@ -143,6 +150,24 @@ FEW_SHOT_EXAMPLES = [
             "name": "search_notes",
             "args": {
                 "query": "bariyer",
+            },
+        },
+    },
+    {
+        "question": "Kayıtsız araç için geçerli prosedür nedir?",
+        "tool_call": {
+            "name": "search_notes",
+            "args": {
+                "query": "kayıtsız araç",
+            },
+        },
+    },
+    {
+        "question": "34 KAY 44 plakalı araç kaç kez geldi?",
+        "tool_call": {
+            "name": "vehicle_history",
+            "args": {
+                "plate": "34KAY44",
             },
         },
     },

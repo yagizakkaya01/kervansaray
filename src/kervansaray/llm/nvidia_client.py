@@ -31,7 +31,7 @@ def _session() -> requests.Session:
         "https://",
         HTTPAdapter(
             max_retries=Retry(
-                total=2,
+                total=1,
                 backoff_factor=0.5,
                 status_forcelist=[429, 500, 502, 503, 504],
                 allowed_methods=frozenset(["POST"]),

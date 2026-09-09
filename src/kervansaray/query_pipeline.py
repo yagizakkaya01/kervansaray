@@ -24,6 +24,18 @@ log = logging.getLogger(__name__)
 
 _DYNAMIC_WORDS = ("su an", "simdi", "bugun", "anlik", "canli", "doluluk")
 
+# Kucuk model (Nemotron) bazen bu konulardaki sorulari yanlislikla '[DECLINED]'
+# yapiyor. Soru bu ipuclarindan birini iceriyorsa ve ilk deneme tool cagirmadan
+# dondu ise, sistem prompt'u pekistirilmis sekilde BIR kez daha denenir.
+_DOMAIN_HINTS = (
+    "plaka", "arac", "araç", "otopark", "giris", "giriş", "cikis", "çıkış",
+    "gecis", "geçiş", "hareket", "sahada", "iceride", "içeride", "doluluk",
+    "prosedur", "prosedür", "kara liste", "blacklist", "gece giris", "gece giriş",
+    "overstay", "anomali", "supheli", "şüpheli", "ziyaret", "vardiya", "nizamiye",
+    "bariyer", "kayitli", "kayıtlı", "kayitsiz", "kayıtsız", "misafir", "personel",
+    "tescil", "kamera",
+)
+
 
 class QueryCache:
     """Bellek ici hibrit TTL sorgu onbellegi (PROJECT_BRIEF S12 / S4).
@@ -206,34 +218,50 @@ def run_query(
         if not candidates:
             candidates = [gemini_client]
 
-    llm_out = None
-    used_client = None
-    last_error: Exception | None = None
+    def _invoke(sys_instr: str) -> tuple[dict[str, Any] | None, Any, Exception | None]:
+        err: Exception | None = None
+        for cand in candidates:
+            prov = getattr(cand, "PROVIDER", "unknown")
+            tools = OPENAI_TOOLS if prov == "nvidia" else GEMINI_FUNCTION_DECLARATIONS
+            t_llm = perf_counter()
+            try:
+                out = cand.generate(
+                    clean_query, system_instruction=sys_instr,
+                    tools=tools, few_shots=FEW_SHOT_EXAMPLES,
+                )
+                LLM_LATENCY.labels(prov).observe(perf_counter() - t_llm)
+                LLM_REQUESTS.labels(prov, "ok").inc()
+                return out, cand, None
+            except Exception as exc:  # noqa: BLE001
+                LLM_LATENCY.labels(prov).observe(perf_counter() - t_llm)
+                LLM_REQUESTS.labels(prov, "error").inc()
+                log.warning("LLM saglayicisi (%s) basarisiz, siradakine geciliyor: %s", prov, exc)
+                err = exc
+        return None, None, err
 
-    for cand in candidates:
-        cand_prov = getattr(cand, "PROVIDER", "unknown")
-        cand_tools = OPENAI_TOOLS if cand_prov == "nvidia" else GEMINI_FUNCTION_DECLARATIONS
-        t_llm = perf_counter()
-        try:
-            llm_out = cand.generate(
-                clean_query,
-                system_instruction=system_instruction,
-                tools=cand_tools,
-                few_shots=FEW_SHOT_EXAMPLES,
-            )
-            LLM_LATENCY.labels(cand_prov).observe(perf_counter() - t_llm)
-            LLM_REQUESTS.labels(cand_prov, "ok").inc()
-            used_client = cand
-            break
-        except Exception as exc:  # noqa: BLE001
-            LLM_LATENCY.labels(cand_prov).observe(perf_counter() - t_llm)
-            LLM_REQUESTS.labels(cand_prov, "error").inc()
-            log.warning(
-                "LLM saglayicisi (%s) basarisiz oldu, siradakine geciliyor: %s",
-                cand_prov,
-                exc,
-            )
-            last_error = exc
+    _t_first = perf_counter()
+    llm_out, used_client, last_error = _invoke(system_instruction)
+    _first_secs = perf_counter() - _t_first
+
+    # Kapsam ici bir soruyu tool cagirmadan mi gecti? Bir kez daha, sertlestirilmis
+    # talimatla dene (kucuk model hatasi telafisi). Ilk deneme yavassa (model
+    # zorlaniyor) tekrar denemek gecikmeyi ikiye katlar - atla.
+    _clean_lower = to_ascii(clean_query.lower())
+    if (
+        llm_out is not None
+        and not llm_out.get("function_call")
+        and _first_secs < 12.0
+        and any(h in _clean_lower for h in _DOMAIN_HINTS)
+    ):
+        retry_instr = system_instruction + (
+            "\n\nUYARI: Bu soru otopark/araç kapsamı İÇİNDEDİR. '[DECLINED]' deme; "
+            "yukarıdaki araçlardan birini MUTLAKA çağır. Prosedür/not soruları "
+            "search_notes, plaka soruları vehicle_history, kara liste/gece/overstay "
+            "find_anomalies ile cevaplanır."
+        )
+        retry_out, retry_client, _ = _invoke(retry_instr)
+        if retry_out is not None and retry_out.get("function_call"):
+            llm_out, used_client = retry_out, retry_client
 
     if llm_out is None:
         log.exception("Tum LLM saglayicilari basarisiz oldu. Son hata: %s", last_error)
