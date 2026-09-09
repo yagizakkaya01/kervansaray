@@ -63,7 +63,15 @@ Teknik derinlik rozetlerde ve İstihbarat Künyesinde korunurken, ana başlıkla
 
 ## 4. Kabul Kriterleri (Doğrulama)
 
-1. [ ] **İlk İzlenim:** Sayfaya giren bir ziyaretçi, Kervansaray'ın ne işe yaradığını ve nasıl deneneceğini 15 saniyede anlar.
-2. [ ] **Kırık Buton Yok:** Public demoda hiçbir buton tıklandığında 403 Forbidden veya hata toast'ı üretmez.
-3. [ ] **Dürüstlük:** Sayfadaki tüm süreler, sayılar ve rozetler sistemin gerçek kapasitesini yansıtır.
-4. [ ] **Sıfır Mimari Risk:** Caddy, API yolları veya diğer servislerde hiçbir dosya/ayar değişikliği gerekmez. Yalnızca `index.html` güncellenir.
+> Uygulandı: commit `e8e0589` (yalnız `src/kervansaray/api/static/index.html`, +75/−19).
+
+1. [x] **İlk İzlenim:** Hero bloğu değer önerisi + 3 adımlı rehber sunuyor.
+2. [x] **Kırık Buton Yok:** Puppeteer ile public modda 21 buton tıklandı → 0 hata toast'ı, 0 pageerror. Operatör butonları (`[data-op]`) public DOM'dan siliniyor; operatör `?op=1` ile açar.
+3. [x] **Dürüstlük:** Rozetler gerçek — `0 ms önbellek / ~5–15 sn canlı model`, `220 sentetik test olayı`. "0.8s" / "yüzbinlerce" ifadeleri kullanılmadı.
+4. [x] **Sıfır Mimari Risk:** Caddy / API yolları / Docker'a dokunulmadı.
+
+### Kapsam dışı bırakılanlar (UI_MODULAR_PLAN_REVIEW.md kuyruğu — sonraki tur)
+- B2 Tailwind CDN → build'lenmiş CSS
+- B3 a11y (tablist/aria/focus), B4 Open Graph meta
+- B6 UI smoke testi (kalıcı)
+- D2 onboarding funnel ölçümü
