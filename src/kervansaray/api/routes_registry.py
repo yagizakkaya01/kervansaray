@@ -1,8 +1,11 @@
 """Araç tescil yönetimi ve demo sıfırlama API'si (PROJECT_BRIEF S3.2 / S8).
 
-- GET  /api/registry        : Sistemdeki tescilli ve senaryo araçlarını listeler
-- POST /api/registry/upsert : Araç kaydını oluşturur veya günceller (DB'ye yazar)
-- POST /api/demo/reset      : Demo veritabanını ve senaryoları fabrika ayarlarına sıfırlar
+- GET  /api/registry        : Tescil/senaryo araçlarını listeler (public, read-only)
+- POST /api/registry/upsert : Araç kaydını oluşturur/günceller — YALNIZCA operatör
+- POST /api/demo/reset      : Demo DB'sini fabrika ayarlarına sıfırlar — YALNIZCA operatör
+
+Yazma uçları `@operator_only` ile korunur: `ENABLE_OPERATOR_ROUTES=false`
+(public demo) iken 403 döner. Bkz. PROJECT_BRIEF S12/S24.
 """
 from __future__ import annotations
 
@@ -14,6 +17,7 @@ from flask import Blueprint, jsonify, request
 from sqlalchemy import delete, select, text, update
 from sqlalchemy.orm import joinedload
 
+from kervansaray.api.guards import operator_only
 from kervansaray.db import session_scope
 from kervansaray.db.models import (
     Event,
@@ -118,8 +122,9 @@ def list_registry() -> Any:
 
 
 @bp.post("/registry/upsert")
+@operator_only
 def upsert_registry() -> Any:
-    """Aracı DB'ye kaydeder veya günceller."""
+    """Aracı DB'ye kaydeder veya günceller (yalnızca operatör)."""
     data = request.get_json(silent=True) or {}
     raw_plate = (data.get("plate") or "").strip().upper()
     if not raw_plate:
@@ -218,8 +223,17 @@ def upsert_registry() -> Any:
                 )
                 sess.flush()
 
-        # Sorgu önbelleğini temizle (yeni tescil anında algılansın)
+        # Sorgu önbelleğini temizle (yeni tescil anında algılansın), sonra
+        # kuratörlü demo cevaplarını yeniden ısıt (aksi halde 16 hazır soru
+        # restart'a kadar canlı LLM'e düşer).
         query_cache.clear()
+        try:
+            from kervansaray.demo_cache import warm as _warm
+
+            with session_scope() as _db:
+                _warm(_db)
+        except Exception:  # noqa: BLE001
+            log.warning("upsert sonrasi demo_cache isitilamadi", exc_info=True)
 
         return jsonify({
             "ok": True,
@@ -239,8 +253,9 @@ def upsert_registry() -> Any:
 
 
 @bp.post("/demo/reset")
+@operator_only
 def reset_demo() -> Any:
-    """Demo veritabanını fabrika ayarlarına sıfırlar."""
+    """Demo veritabanını fabrika ayarlarına sıfırlar (yalnızca operatör)."""
     try:
         from scripts.seed_demo import reset, seed_background, seed_notes, seed_scenarios
         from kervansaray.demo_cache import warm as warm_cache

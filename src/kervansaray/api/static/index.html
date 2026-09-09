@@ -1355,15 +1355,18 @@
         tr.onclick = () => selectRegistryRow(r);
         const KIND_BADGE = { blacklist: 'text-red-700 bg-red-50', manager: 'text-emerald-700 bg-emerald-50', guest: 'text-sky-700 bg-sky-50', vip: 'text-blue-700 bg-blue-50', warning: 'text-amber-700 bg-amber-50', staff: 'text-indigo-700 bg-indigo-50', unregistered: 'text-zinc-700 bg-zinc-100' };
         const badgeColor = KIND_BADGE[r.kind] || 'text-zinc-700 bg-zinc-100';
+        // XSS: name/address/contact DB'den gelir ve /api/registry/upsert ile
+        // yazılabilir; innerHTML'e girmeden önce mutlaka esc().
+        const plateAttr = String(r.plate ?? '').replace(/[^A-Z0-9 ]/gi, '');
         tr.innerHTML = `
           <td class="py-2.5 px-3 font-semibold text-zinc-400">${idx + 1}</td>
-          <td class="py-2.5 px-3 font-bold text-zinc-900 group-hover:text-red-600 transition-colors">${r.plate}</td>
-          <td class="py-2.5 px-3">${r.name}</td>
-          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeColor}">${(r.kind || '').toUpperCase()}</span></td>
-          <td class="py-2.5 px-3 text-zinc-500">${r.address || '—'}</td>
-          <td class="py-2.5 px-3 text-zinc-500">${r.contact || '—'}</td>
+          <td class="py-2.5 px-3 font-bold text-zinc-900 group-hover:text-red-600 transition-colors">${esc(r.plate)}</td>
+          <td class="py-2.5 px-3">${esc(r.name)}</td>
+          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeColor}">${esc((r.kind || '').toUpperCase())}</span></td>
+          <td class="py-2.5 px-3 text-zinc-500">${esc(r.address || '—')}</td>
+          <td class="py-2.5 px-3 text-zinc-500">${esc(r.contact || '—')}</td>
           <td class="py-2.5 px-3 text-right">
-            <button onclick="event.stopPropagation(); openRegisterModal('${r.plate}')" class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded bg-zinc-100 hover:bg-zinc-900 hover:text-white text-zinc-700 transition-colors cursor-pointer">
+            <button onclick="event.stopPropagation(); openRegisterModal('${plateAttr}')" class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded bg-zinc-100 hover:bg-zinc-900 hover:text-white text-zinc-700 transition-colors cursor-pointer">
               Düzenle
             </button>
           </td>
@@ -1522,14 +1525,14 @@
         <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-1.5">
           <div class="font-bold flex items-center gap-2 text-white">
             <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
-            <span class="tracking-wide">${title || defaultTitle}</span>
+            <span class="tracking-wide">${esc(title || defaultTitle)}</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-[10px] text-zinc-400 font-mono">${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
             <button onclick="this.closest('div.pointer-events-auto').remove()" class="text-zinc-400 hover:text-white text-xs px-1 hover:bg-white/10 rounded transition-colors cursor-pointer" title="Kapat">✕</button>
           </div>
         </div>
-        <div class="text-[11px] ${bodyColor} leading-relaxed font-sans font-medium">${msg}</div>
+        <div class="text-[11px] ${bodyColor} leading-relaxed font-sans font-medium">${esc(msg)}</div>
       `;
       container.appendChild(el);
       requestAnimationFrame(() => {

@@ -9,6 +9,7 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 
+from kervansaray.api.guards import operator_only
 from kervansaray.api.rate_limit import limiter
 from kervansaray.db import session_scope
 from kervansaray.query_pipeline import query_cache, run_query
@@ -65,9 +66,21 @@ def post_query():
 
 
 @bp.post("/rate-limit/reset")
+@operator_only
 def reset_rate_limit():
-    """Test ve demo sırasında soru limitini ve sorgu önbelleğini anında sıfırlar."""
+    """Soru limitini ve sorgu önbelleğini sıfırlar (yalnızca operatör).
+
+    Önbellek temizlendiği için kuratörlü demo cevapları yeniden ısıtılır;
+    aksi halde 16 hazır soru restart'a kadar canlı LLM'e düşerdi.
+    """
     limiter.clear()
     query_cache.clear()
+    try:
+        from kervansaray.demo_cache import warm as _warm
+
+        with session_scope() as db:
+            _warm(db)
+    except Exception:  # noqa: BLE001
+        pass
     return jsonify({"ok": True, "message": "Soru kotası ve sorgu önbelleği başarıyla sıfırlandı."}), 200
 
