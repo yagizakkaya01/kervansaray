@@ -157,17 +157,21 @@ Kamera plakayı okudu  →  Kayıt defterinde doğrulandı  →  Bariyer Açıld
 
 ## 8. Kabul Kriterleri
 
-1. [ ] **Anlaşılırlık:** Teknik olmayan biri sayfayı 20 sn okuyup "kapıdaki kamerayı
+> Uygulandı: commit `00a85b9` (yalnız `src/kervansaray/api/static/index.html`, +246/−255).
+> Puppeteer doğrulaması: 6 senaryo × (plaka / kırpma / akış / çip) doğru,
+> 0 toast, 0 pageerror; mobil 390px yatay taşma yok; uçtan uca sorgu çalışıyor.
+
+1. [x] **Anlaşılırlık:** Teknik olmayan biri sayfayı 20 sn okuyup "kapıdaki kamerayı
    ve kayıtları yapay zekayla birleştiren bir güvenlik sistemi" diyebilir.
-2. [ ] **Mühendis katmanı korunmuş:** SQL tool çağrısı, parametre JSON'u, guardrail
+2. [x] **Mühendis katmanı korunmuş:** SQL tool çağrısı, parametre JSON'u, guardrail
    künyesi, `v_events` kaynağı hâlâ görülebilir (ikinci katmanda).
-3. [ ] **Senaryo netliği:** Her kartın ne yapacağı tıklamadan önce belli; tıklayınca
+3. [x] **Senaryo netliği:** Her kartın ne yapacağı tıklamadan önce belli; tıklayınca
    ilgili öneri çipi vurgulanır (§7.1).
-4. [ ] **Sakin geri bildirim:** Kart tıklamasında toast yağmuru yok; kameranın altında
+4. [x] **Sakin geri bildirim:** Kart tıklamasında toast yağmuru yok; kameranın altında
    tek satır süreç akışı (§7.3).
-5. [ ] **Boş durum:** İlk açılışta kamera "olay seç" ipucu gösterir; ilk tıkla kaybolur (§7.2).
-6. [ ] **Görsel tutarlılık:** Tek aksan rengi, tek kart sistemi, `font-mono` yalnız
+5. [x] **Boş durum:** İlk açılışta kamera "olay seç" ipucu gösterir; ilk tıkla kaybolur (§7.2).
+6. [x] **Görsel tutarlılık:** Tek aksan rengi, tek kart sistemi, `font-mono` yalnız
    künye/kod/plakada.
-7. [ ] **Sıfır regresyon:** 6 senaryo, terminal, kayıt defteri, SSE, mobil düzen
+7. [x] **Sıfır regresyon:** 6 senaryo, terminal, kayıt defteri, SSE, mobil düzen
    kesintisiz.
-8. [ ] **Dürüstlük:** Uydurma metrik yok (bkz. `portfolio/AGENTS.md`).
+8. [x] **Dürüstlük:** Uydurma metrik yok (bkz. `portfolio/AGENTS.md`).
