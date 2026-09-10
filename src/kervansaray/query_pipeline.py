@@ -82,6 +82,26 @@ class QueryCache:
 query_cache = QueryCache()
 
 
+_PUNCT_RUN = re.compile(r"([!?.,;:])[!?.,;:]+")
+
+
+def normalize_query(text: str) -> str:
+    """Model'e gitmeden önce gürültüyü azaltır (bug 6.7: '"KAÇ ARAÇ İÇERİDE?!!"'
+    → occupancy yerine aggregate seçiliyordu). Anlamı bozmaz:
+    - fazla boşluk tek boşluğa
+    - tekrarlanan noktalama tekile ('!!!'→'!')
+    - cümlenin harfleri çoğunlukla BÜYÜK ise küçült (bağırma). Plakalar
+      canonicalize() ile zaten büyütülür, few-shot'lar küçük plaka kabul eder.
+    """
+    t = " ".join(text.split())
+    t = _PUNCT_RUN.sub(r"\1", t)
+    letters = [c for c in t if c.isalpha()]
+    if len(letters) >= 8 and sum(c.isupper() for c in letters) / len(letters) > 0.7:
+        # Türkçe-duyarlı küçültme (İ→i, I→ı) — Python .lower() 'İ'yi bozar
+        t = t.replace("İ", "i").replace("I", "ı").lower()
+    return t
+
+
 def is_dynamic_query(text: str, tool_name: str | None = None) -> bool:
     """Sorgunun anlik/canli veri icerip icermedigini belirler."""
     if tool_name == "occupancy":
@@ -385,7 +405,7 @@ def run_query(
         }
     """
     t0 = perf_counter()
-    clean_query = user_text.strip()
+    clean_query = normalize_query(user_text.strip())
     if not clean_query:
         return {
             "query": user_text,

@@ -133,12 +133,14 @@ def dispatch_tool(
             query = str(args.get("query", "")).strip()
             if not query:
                 return ToolResult(tool=name, params=args, note="query parametresi zorunludur.")
-            return fn(
-                db,
-                query=query,
-                author=args.get("author"),
-                limit=int(args.get("limit", 10)),
-            )
+            limit = int(args.get("limit", 10))
+            author = args.get("author")
+            res = fn(db, query=query, author=author, limit=limit)
+            # bug 2.5: model bazen uydurma bir author ("operasyonel") ekliyor ve
+            # filtre hiçbir notla eşleşmiyor -> author'suz bir kez daha dene.
+            if author and not res.rows:
+                res = fn(db, query=query, author=None, limit=limit)
+            return res
 
         if name == "registry_summary":
             return fn(db, person_kind=args.get("person_kind"))

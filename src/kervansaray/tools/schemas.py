@@ -259,7 +259,12 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
                 },
                 "author": {
                     "type": "string",
-                    "description": "İsteğe bağlı: notu yazan kişi/rol (örn: 'güvenlik', 'teknik').",
+                    "description": (
+                        "İsteğe bağlı: notu yazan birim. YALNIZCA kullanıcı açıkça "
+                        "bir birim adı yazdıysa doldur ('Hukuk Birimi'nin notu', "
+                        "'nöbetçi amirin yazdığı'). Genel prosedür/konu aramasında "
+                        "BOŞ BIRAK."
+                    ),
                 },
                 "limit": {
                     "type": "integer",

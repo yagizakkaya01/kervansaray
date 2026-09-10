@@ -60,6 +60,16 @@ def test_search_notes_wildcard_escaping():
 
 
 
+def test_dispatch_search_notes_bogus_author_falls_back(db):
+    """bug 2.5: model uydurma author ('operasyonel') ekliyor -> filtre 0 sonuç
+    -> dispatcher author'suz bir kez daha denemeli."""
+    from tests._helpers import seed_notes
+    seed_notes(db)
+    res = dispatch_tool(db, "search_notes",
+                        {"query": "bariyer", "author": "operasyonel departman"})
+    assert res.rows, "uydurma author yüzünden boş dönmemeli, fallback çalışmalı"
+
+
 def test_dispatch_search_notes():
     mock_db = MagicMock()
     # 1. Başarılı dispatch

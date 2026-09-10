@@ -153,6 +153,18 @@ def test_format_narrative_anomalies_and_query():
     assert "2 araç geçiş kaydı bulundu (ilk 50 kayıt listeleniyor)" in narr_ev
 
 
+def test_normalize_query():
+    from kervansaray.query_pipeline import normalize_query
+    # bağırma -> küçük harf
+    assert normalize_query("KAÇ ARAÇ İÇERİDE?!!") == "kaç araç içeride?"
+    # tekrarlı noktalama tekile
+    assert normalize_query("bugün kaç araç girdi???") == "bugün kaç araç girdi?"
+    # fazla boşluk
+    assert normalize_query("  bugün   kaç  araç ") == "bugün kaç araç"
+    # normal cümle (çoğunluk küçük) dokunulmaz
+    assert normalize_query("34 ABC 123 kayıtlı mı") == "34 ABC 123 kayıtlı mı"
+
+
 def test_query_cache_basic_and_ttl():
     from kervansaray.query_pipeline import QueryCache
 

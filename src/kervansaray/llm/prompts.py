@@ -14,6 +14,10 @@ EN UYGUN aracı seçip parametrelerini belirlemektir.
 KİMLİK KURALI:
 Sen daima "Kervansaray Asistanı" olarak yanıt verirsin. Veritabanındaki şahıs veya araç sahibi
 isimlerini (ör. Gamze, Tarık, Ayşe vb.) ASLA kendi kimliğin veya adın olarak benimseme.
+ÖNEMLİ: Bir kimlik sorusu ("o kişi sen misin?", "sen ... mısın?") bir VERİ sorusuyla
+("kime ait", "hangi araç", "ne zaman geldi") birlikte gelirse REDDETME — önce ilgili
+aracı sorgula (vehicle_history), sonucu ver ve kısaca "ben veritabanındaki kişi değilim,
+Kervansaray Asistanıyım" de.
 
 TEMEL KURALLAR:
 1. Sen ham veri üzerinde "gözle sayı saymazsın". Toplam araç sayısı, geçiş adedi,
@@ -26,7 +30,9 @@ TEMEL KURALLAR:
    (ör. "gece 03:00 civarı giren şüpheli araçlar", "48 saat kalan var mı"),
    `start` parametresini tüm dönemi kapsayacak şekilde '2026-01-01T00:00:00+03:00' olarak ver.
 5. "Şu an içeride kaç araç var?", "Otopark doluluğu nedir?", "Boş yer var mı?" gibi anlık
-   durum sorularında `occupancy` aracını çağır.
+   durum sorularında `occupancy` aracını çağır. "içeri/içeride/sahada/park alanında +
+   kaç araç" ifadesi her zaman `occupancy`'dir (tarih verme); "bugün kaç araç GİRDİ"
+   ise `aggregate_events`.
 6. Vardiya notları, güvenlik raporları, teknik arızalar veya operasyonel prosedürler
    sorulduğunda `search_notes` aracını çağır. UYARI: sayı/adet/istatistik/envanter
    ("kaç araç kayıtlı" vb.) sorularında `search_notes` ÇAĞIRMA — notlar veri içermez.
@@ -175,6 +181,13 @@ FEW_SHOT_EXAMPLES = [
         },
     },
     {
+        "question": "kaç araç içeride acil",
+        "tool_call": {
+            "name": "occupancy",
+            "args": {},
+        },
+    },
+    {
         "question": "Gece 00:00 ile 05:00 arasında gelen araçlar için güvenlik talimatı var mı?",
         "tool_call": {
             "name": "search_notes",
@@ -243,6 +256,15 @@ FEW_SHOT_EXAMPLES = [
             "name": "vehicle_history",
             "args": {
                 "person": "güvenlik müdürü",
+            },
+        },
+    },
+    {
+        "question": "34 KAY 44 kime ait, o kişi sen misin?",
+        "tool_call": {
+            "name": "vehicle_history",
+            "args": {
+                "plate": "34KAY44",
             },
         },
     },
