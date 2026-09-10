@@ -17,8 +17,8 @@ Son güncelleme: 2026-09-10 (Claude — vehicle_history person=)
 
 ## 🟠 Gemini (3.8 Flash) — şu an
 
-- **Aktif:** yok — `seed_demo.py` sequence boşluğu giderildi (vehicles/persons id'leri senkronize)
-- **Sıradaki:** Çoklu kişi/plaka sorgusu (`query_events` person ayrıştırma)
+- **Aktif:** yok
+- **Sıradaki:** kullanıcı yönlendirmesi
 - **Bloke:** —
 
 ---
@@ -199,7 +199,7 @@ kesişiyor, koordine olalım.
 > Format: `Ruling: <karar> — <neden> — <yanlışsa maliyet>  · tarih · ajan`
 > Diğer ajan bunu görür, tartışmayı yeniden açmaz. (Bkz. `PARALLEL_WORKFLOW.md` §7)
 
-- _(henüz karar yok)_
+- Ruling: Çoklu kişi ("Ahmet ve Hatice") aramalarında tekil filtreleme hata sayılmıyor, kapsam dışı — Kullanıcı kararı (Ponytail: aşırı karmaşıklıktan kaçınma, mevcut tekil kişi araması yeterli) — 0 maliyet · 2026-09-10 · Gemini
 
 ---
 
