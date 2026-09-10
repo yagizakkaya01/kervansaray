@@ -20,6 +20,11 @@ Sonra `docs/PARALLEL_STATUS.md` oku, işini oraya yaz, **önce onu commit et**.
 - Commit mesajı sonu: `Co-Authored-By: <model> <noreply@anthropic.com>`
 
 ## Bilinen tuzaklar
+- **DB Docker'da paylaşımlı** — migration / `make seed-demo` çalıştırmadan önce STATUS'a yaz; diğer ajanın verisini ezersin. Worktree izolasyonu için ayrı compose projesi gerekir (`docker compose -p kervansaray_wt2`).
 - `~/portfolio/Caddyfile` düzenleme → `docker compose up -d --force-recreate caddy` (reload yetmez, inode).
 - `.env` gitignore'da, gerçek API anahtarları var — asla echo'lama, commit'leme.
 - `api/static/index.html`, `prompts.py`, `schemas.py` paylaşımlı — dokunmadan STATUS'a yaz.
+
+## Neye dayanıyor
+Protokolün gerekçesi + endüstri kalıbı + kaynaklar: `docs/PARALLEL_WORKFLOW.md` §8–§9.
+Claude tarafı skill'leri: `using-git-worktrees`, `dispatching-parallel-agents`, `subagent-driven-development`, `executing-plans`, `writing-plans`.

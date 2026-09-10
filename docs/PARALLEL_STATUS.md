@@ -41,6 +41,16 @@ Son güncelleme: 2026-09-10
 
 ---
 
+## 🧭 Kararlar (ruling ledger)
+
+> Ajan bir muğlaklığı/çakışmayı kendi çözdüğünde buraya tek satır ekler.
+> Format: `Ruling: <karar> — <neden> — <yanlışsa maliyet>  · tarih · ajan`
+> Diğer ajan bunu görür, tartışmayı yeniden açmaz. (Bkz. `PARALLEL_WORKFLOW.md` §7)
+
+- _(henüz karar yok)_
+
+---
+
 ## ✅ Tamamlanan (son)
 
 - `feb8ee1` koyu tema + görsel cila + kontrast düzeltmeleri (Claude)

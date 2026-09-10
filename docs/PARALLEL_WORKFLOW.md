@@ -64,6 +64,11 @@ görevlerinde. Görevi benchmark puanına göre değil **yapısal uyuma** göre 
 | `src/kervansaray/api/` route, `src/kervansaray/db/`, `alembic/`, `scripts/`, `src/kervansaray/synth/`, `tests/` | **Gemini** |
 | `api/static/index.html`, `prompts.py`, `schemas.py`, `.env`, `docker-compose.yml` | **PAYLAŞIMLI** — dokunmadan önce STATUS'a "WIP" yaz |
 
+**Görev sınırı kuralı (endüstri standardı):** İki görev **aynı dosyaya veya
+bileşene** dokunuyorsa → paralel değil, **sıralı**. Aynı ajan ikisini arka
+arkaya yapar; ya da biri bitip push edene kadar diğeri başka işe bakar.
+"Aynı component'e dokunan iki task, bir ajanın sıralı işi olmalı."
+
 ---
 
 ## 4. Koordinasyon kuralları
@@ -78,6 +83,8 @@ görevlerinde. Görevi benchmark puanına göre değil **yapısal uyuma** göre 
 8. Diğerinin işini **kullanıcı istemedikçe** tekrar inceleme / tekrar test etme.
 9. Diğeri commit attıktan sonra **tüm dosyayı değil** `git show <sha>` oku.
 10. "Testler geçti" beyanına güven; o alana dokunmuyorsan tekrar çalıştırma.
+11. **Push öncesi kapı:** kendi kulvarında testler geçmeden push etme (`make test` / `pytest -q`).
+12. **Merge serileştir:** ikiniz aynı anda `main`'e push etmeyin. STATUS'ta "🔒 pushing" işaretle → `git pull --rebase` → push → işareti kaldır.
 
 ---
 
@@ -98,3 +105,65 @@ görevlerinde. Görevi benchmark puanına göre değil **yapısal uyuma** göre 
 | "X bitti, sıra sende" | `git fetch` → STATUS oku → plandaki yerden devam |
 | "bunu Gemini'ye/Claude'a bırak" | STATUS'a 3 satırlık spec yaz, dur |
 | "ikiniz de bakın" | Kulvarını al, STATUS'ta parçanı işaretle, paralel git |
+
+---
+
+## 7. Karar günlüğü (ruling ledger)
+
+Bir ajan çalışırken bir muğlaklığı / çakışmayı / plan boşluğunu **kendi çözerse**,
+`PARALLEL_STATUS.md`'nin "Kararlar" bölümüne tek satır ekler:
+
+```
+Ruling: <ne kararlaştırdım> — <neden> — <yanlışsa maliyeti>   · 2026-09-10 · Claude
+```
+
+Diğer ajan bunu görür ve tartışmayı yeniden açmaz. Yanlış karar, kullanıcının
+görüp geri alabileceği bir rework'tür; soruda takılıp beklemek bütün günü yer.
+*(Kaynak: `subagent-driven-development` skill — "Rulings, not stalls".)*
+
+**Yine de dört şey seni durdurur, sadece bunlar:** geri döndürülemez/yıkıcı
+işlem · güvenlik hassasiyeti olan işlem · bu repo dışına taşan yan etki
+(paylaşılan branch'e push, deploy, publish) · her yolu tahmine dayanan
+kadar bozuk plan. Bunlarda dur ve sor.
+
+---
+
+## 8. Yükseltme yolu — çakışma sıklaşınca
+
+**Şu an:** ikisi de `main`, `PARALLEL_STATUS.md` ile koordinasyon. 2 ajan +
+düşük frekansta yeterli ("shared main + task ledger").
+
+**Çakışma artarsa** endüstri standardına geç (2026 varsayılan baseline):
+
+1. **`git worktree`** — ajan başına izole dizin, ayrı branch, paylaşılan `.git`.
+   `.worktrees/<branch>/` (gitignore'lu). Ajanlar aynı dosyayı eşzamanlı
+   düzenleyebilir; çakışma yalnız merge anında çözülür.
+2. **Branch + PR** — her ajan kendi branch'inde çalışır, `main`'e PR ile girer,
+   karşı ajan review eder. Merge'ler sıralı.
+3. **Pre-merge kapı** — testler geçmeden PR merge edilmez.
+
+**Kervansaray tuzağı:** Docker DB **paylaşımlı**. Gerçek worktree izolasyonu
+için worktree başına ayrı DB/compose projesi gerekir
+(`docker compose -p kervansaray_wt2 up`). Bu maliyet yüzünden şimdilik
+shared-main + STATUS yeterli. Port/servis çakışması → worktree başına `.env.local`.
+
+---
+
+## 9. Bu protokol neye dayanıyor
+
+**Claude Code skill'leri** (bu makinede mevcut, `~/.claude/skills/`):
+`using-git-worktrees` · `dispatching-parallel-agents` · `executing-plans` ·
+`subagent-driven-development` · `writing-plans`. Antigravity'de bu skill'ler
+yok; Claude tarafında oturum başında ilgili olan otomatik yüklenir.
+
+**Endüstri kalıbı (2026, artık "advanced" değil varsayılan):**
+worktree-per-agent + tek paylaşılan spec (kabul kriterli) + task ledger
+(markdown/kanban) + pre-merge quality gate + serialized merge.
+Kaynaklar: [Augment Code — multi-agent workspace](https://www.augmentcode.com/guides/how-to-run-a-multi-agent-coding-workspace) ·
+[MindStudio — parallel agents + worktrees](https://www.mindstudio.ai/blog/git-worktrees-parallel-ai-coding-agents).
+
+**Çok ajana çıkarsa framework:**
+[`rinadelph/Agent-MCP`](https://github.com/rinadelph/Agent-MCP) (MCP tabanlı
+çok-ajan koordinasyon, paylaşılan context + task veritabanı) ·
+Batty tarzı araçlar (kalıcı worktree + markdown kanban + dosya-kilidiyle
+serileştirilmiş merge). 2 ajan için gereksiz; şu anki dosya-tabanlı protokol yeter.
