@@ -1974,6 +1974,8 @@
           'kisi', 'unvan', 'tur', 'kayitli', 'registered', 'eslesme', 'match_status',
           'hours', 'visits', 'still_inside', 'first_seen', 'last_seen'];
         const cols = Object.keys(rows[0]).filter(c => !HIDDEN.has(c))
+          // tamamen boş sütunları gizle (ör. "unvan" — kimsede unvan yoksa)
+          .filter(c => rows.some(r => r[c] !== null && r[c] !== undefined && r[c] !== ''))
           .sort((a, b) => ((ORDER.indexOf(a) + 1 || 99) - (ORDER.indexOf(b) + 1 || 99)));
         cols.forEach(col => {
           const th = document.createElement('th');

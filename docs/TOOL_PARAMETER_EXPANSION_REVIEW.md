@@ -1,5 +1,11 @@
 # İnceleme — `TOOL_PARAMETER_EXPANSION_PLAN.md` (18d1aff)
 
+> ✅ **UYGULANDI** — commit `610804a` (+ index.html cila). Canlıda doğrulandı:
+> "güvenlik müdürünün bu ayki giriş çıkışları" → `query_events(person=...)` → 7 satır
+> (önce filtresiz 13 dönüyordu). G1–G3 + C1 + C3 kapatıldı. C2 (kelime uyuşmazlığı)
+> sınırı: demo 6'lısı seed'de tam metinli; rastgele synth personeli best-effort.
+> 9 yeni test (`tests/test_tools_person_filter.py`) + `test_migrations` düzeltildi.
+
 > İnceleyen: Claude (Sonnet 5) · 2026-09-10 · kod tabanına karşı doğrulandı.
 > Sahip: Gemini (Antigravity). Kulvar: `db/` + `alembic/` + `synth/` + `tools/events.py`.
 
