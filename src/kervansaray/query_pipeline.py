@@ -500,11 +500,14 @@ def run_query(
 
     # Kapsam ici bir soruyu tool cagirmadan mi gecti? Bir kez daha, sertlestirilmis
     # talimat ve zorunlu tool_choice="required" ile dene (kucuk model hatasi telafisi).
+    # Plaka kalibi iceren sorular (ör. "34 KAY 44 kime ait, sen misin?" -> bug 5.2)
+    # da domain-ici sayilir; kimlik cumlesi modeli yanlislikla reddettiriyor.
     _clean_lower = to_ascii(clean_query.lower())
+    _has_plate = re.search(r"\b\d{2}\s?[a-z]{1,4}\s?\d{1,5}\b", _clean_lower) is not None
     if (
         llm_out is not None
         and not llm_out.get("function_call")
-        and any(h in _clean_lower for h in _DOMAIN_HINTS)
+        and (_has_plate or any(h in _clean_lower for h in _DOMAIN_HINTS))
     ):
         retry_instr = system_instruction + (
             "\n\nUYARI: Bu soru otopark/araç kapsamı İÇİNDEDİR. '[DECLINED]' deme; "

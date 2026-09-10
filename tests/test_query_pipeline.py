@@ -153,6 +153,30 @@ def test_format_narrative_anomalies_and_query():
     assert "2 araç geçiş kaydı bulundu (ilk 50 kayıt listeleniyor)" in narr_ev
 
 
+def test_plate_pattern_triggers_tool_retry():
+    """bug 5.2: plaka içeren soru ilk denemede tool çağırmadıysa retry tetiklenir."""
+    from unittest.mock import MagicMock
+    db = MagicMock()
+    calls = []
+
+    class Client:
+        PROVIDER = "nvidia"
+
+        def generate(self, q, **kw):
+            calls.append(kw.get("tool_choice"))
+            if len(calls) == 1:
+                return {"response": "Ben Kervansaray Asistanıyım.", "function_call": None,
+                        "provider": "nvidia"}
+            return {"function_call": {"name": "vehicle_history", "args": {"plate": "34KAY44"}},
+                    "response": None, "provider": "nvidia"}
+
+    with patch("kervansaray.query_pipeline.dispatch_tool") as md:
+        md.return_value = ToolResult(tool="vehicle_history", params={"plate": "34KAY44"}, rows=[])
+        res = run_query("34 KAY 44 kime ait, o kişi sen misin?", db, client=Client())
+    assert len(calls) == 2 and calls[1] == "required"
+    assert res["tool_call"]["name"] == "vehicle_history"
+
+
 def test_normalize_query():
     from kervansaray.query_pipeline import normalize_query
     # bağırma -> küçük harf
