@@ -86,6 +86,7 @@ def query_events(
     sql = text(
         "SELECT event_id, camera_id, ts, direction, raw_plate AS plaka, "
         "person_name AS kisi, person_title AS unvan, person_kind AS tur, "
+        "CASE WHEN is_blacklisted THEN true END AS kara_liste, "
         "registered AS kayitli, match_status AS eslesme "
         f"FROM v_events WHERE {' AND '.join(where)} "  # noqa: S608 - sabit whitelist
         "ORDER BY ts ASC LIMIT :lim"

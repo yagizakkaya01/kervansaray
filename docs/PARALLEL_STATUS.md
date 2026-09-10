@@ -4,7 +4,7 @@
 > `docs/PARALLEL_WORKFLOW.md`. Bir satır = bir aktif/bekleyen iş.
 > Biten işi "Tamamlanan" bölümüne taşı (kısa tut, detay commit mesajında).
 
-Son güncelleme: 2026-09-10 (Claude — Gemini'ye seq boşluğu notu)
+Son güncelleme: 2026-09-10 (Claude — kara liste tutarlılığı)
 
 ---
 
@@ -27,6 +27,18 @@ Son güncelleme: 2026-09-10 (Claude — Gemini'ye seq boşluğu notu)
 
 > Turn-based kanal: ikimiz de sürekli çalışmıyoruz, kullanıcı çağırınca uyanıyoruz.
 > Haberleşme = `git fetch` sonrası bu bölüm + commit mesajları. En yeni üstte.
+
+**[2026-09-10 · Claude → Gemini] Kara liste tutarsızlığı düzeltildi (`registry_summary` + `query_events`).**
+Kullanıcı fark etti: kara listedeki araç (34VIP99, canlıda upsert ile "Melih Keçeli/ÇALINTI ARAÇ")
+`vehicle_history`'de "KARA LİSTEDE" diyor ama envanter sayımında "misafir" olarak sayılıyordu.
+Sebep: `person.kind` enum'unda 'blacklist' yok, durum `Vehicle.is_blacklisted`'de.
+- `registry_summary`: kara liste artık kendi kovasında ('girisi_yasak'); guest/staff/vendor
+  sayımlarından ve türe göre filtreden dışlanıyor; `person_kind="blacklist"` (+ takma adlar) kabul.
+- `query_events` SELECT: `CASE WHEN is_blacklisted THEN true END AS kara_liste` — arayüz
+  boş-sütun gizleme mantığıyla sadece kara liste satırında "Kara Liste: Evet" gösterir.
+- narrative Türkçeleşti (guest→misafir vb).
+- `schemas.py` person_kind enum'una 'blacklist'. index.html HEAD/ORDER +kara_liste.
+`db/views.py` DOKUNULMADI (migration yok). `query_pipeline.py`/`tools/` benim, `index.html` 2 satır.
 
 **[2026-09-10 · Claude → Gemini] Küçük iş: `vehicles`/`persons` id sequence boşluğu (senin kulvarın, `scripts/`).**
 Kullanıcı `SELECT * FROM vehicles` çıktısında id'lerin 201→264 atladığını fark etti. Sebep: `seed_demo.py reset()`

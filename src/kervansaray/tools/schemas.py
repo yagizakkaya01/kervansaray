@@ -273,15 +273,16 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
             "properties": {
                 "person_kind": {
                     "type": "string",
-                    "enum": ["guest", "staff", "vendor"],
+                    "enum": ["guest", "staff", "vendor", "blacklist"],
                     "description": (
                         "İsteğe bağlı tür filtresi: 'guest' (misafir), 'staff' "
-                        "(personel), 'vendor' (tedarikçi). "
+                        "(personel), 'vendor' (tedarikçi), 'blacklist' (kara liste / "
+                        "girişi yasak). "
                         "YALNIZCA kullanıcı cümlesinde bu türlerden BİRİ açıkça "
-                        "geçiyorsa doldur ('kaç PERSONEL aracı', 'kaç TEDARİKÇİ'). "
+                        "geçiyorsa doldur ('kaç PERSONEL aracı', 'kaç KARA LİSTE'). "
                         "Genel 'toplam kaç araç kayıtlı / envanter sayısı' "
                         "sorusunda BU PARAMETREYİ GÖNDERME; araç zaten tüm türleri "
-                        "sayıp dağılımı verir."
+                        "sayıp dağılımı verir (kara liste ayrı kovada)."
                     ),
                 },
             },

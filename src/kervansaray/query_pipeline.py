@@ -221,22 +221,30 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
         )
 
     if tool_name == "registry_summary":
+        _KIND_TR = {
+            "guest": "misafir", "staff": "personel", "vendor": "tedarikçi",
+            "girisi_yasak": "girişi yasak", "kayitsiz": "kayıtsız", "blacklist": "girişi yasak",
+        }
         sc = result.scalar if isinstance(result.scalar, dict) else {}
         total = sc.get("kayitli_arac", 0)
         active = sc.get("aktif_tescil", 0)
         bl = sc.get("kara_liste", 0)
         seen = sc.get("kapidan_gecmis", 0)
-        pk = (args.get("person_kind") or "").strip()
+        pk = (args.get("person_kind") or "").strip().lower()
         if pk:
+            tr = _KIND_TR.get(pk, pk)
             return (
-                f"Sistemde '{pk}' türünde {total} kayıtlı araç var; "
+                f"Sistemde {total} {tr} aracı kayıtlı; "
                 f"{active}'inin geçerli tescili aktif."
             )
-        parts = ", ".join(f"{r['adet']} {r['tur']}" for r in result.rows[:4])
+        parts = ", ".join(
+            f"{r['adet']} {_KIND_TR.get(r['tur'], r['tur'])}" for r in result.rows[:5]
+        )
         dagilim = f" ({parts})" if parts else ""
+        bl_str = f" {bl}'si kara listede." if bl else ""
         return (
             f"Sistemde kişiye bağlı {total} araç kayıtlı{dagilim}. Bunların "
-            f"{active}'inin geçerli otopark tescili aktif, {bl}'si kara listede. "
+            f"{active}'inin geçerli otopark tescili aktif.{bl_str} "
             f"İncelenen dönemde bu araçlardan {seen}'i kapıdan geçti."
         )
 

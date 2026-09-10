@@ -7,6 +7,11 @@ geçmemiş olabilir. Bu tool zamandan bağımsız olarak `vehicles` + `persons` 
 
 "Kayıtlı araç" = sisteme bir kişiyle bağlı araç (`person_id IS NOT NULL`).
 `aktif_tescil` = ayrıca geçerli bir `registrations` kaydı olanlar.
+
+KARA LİSTE: `person_kind` enum'unda 'blacklist' yok — kara liste durumu
+`vehicles.is_blacklisted` bayrağında. Bu yüzden tür dağılımında ve türe göre
+filtrede kara listedeki araç kendi kovasında ('girisi_yasak') tutulur;
+guest/staff/vendor sayımlarına DAHİL EDİLMEZ (yasaklı araç "misafir" sayılmaz).
 """
 from __future__ import annotations
 
@@ -17,8 +22,15 @@ from .types import ToolResult
 
 _PERSON_KINDS = {"guest", "staff", "vendor"}
 _UNKNOWN_ALIASES = {"unknown", "bilinmeyen", "kayitsiz", "kayıtsız", "sahipsiz"}
+_BLACKLIST_ALIASES = {
+    "blacklist", "kara liste", "kara_liste", "girisi yasak", "girişi yasak",
+    "yasakli", "yasaklı", "hacizli",
+}
 # LLM'in "filtre yok" niyetiyle gönderebileceği değerler
 _NO_FILTER = {"", "none", "null", "all", "hepsi", "tumu", "tümü", "toplam", "genel"}
+
+# Kara listedeki aracı guest/staff/vendor sayımlarından dışlar
+_NOT_BL = "COALESCE(v.is_blacklisted, FALSE) IS FALSE"
 
 
 def registry_summary(db: DbSession, *, person_kind: str | None = None) -> ToolResult:
@@ -28,12 +40,18 @@ def registry_summary(db: DbSession, *, person_kind: str | None = None) -> ToolRe
     if pk in _NO_FILTER:
         pk = ""
 
-    if pk in _UNKNOWN_ALIASES:
-        where = "v.person_id IS NULL"
+    if pk in _BLACKLIST_ALIASES:
+        pk = "blacklist"
+        where = "v.is_blacklisted IS TRUE"
+    elif pk in _UNKNOWN_ALIASES:
+        pk = "unknown"
+        where = f"v.person_id IS NULL AND {_NOT_BL}"
     elif pk:
         if pk not in _PERSON_KINDS:
-            raise ValueError(f"person_kind {_PERSON_KINDS} veya 'unknown' olmalı: {person_kind}")
-        where = "v.person_id IS NOT NULL AND p.kind::text = :pk"
+            raise ValueError(
+                f"person_kind {_PERSON_KINDS} / 'unknown' / 'blacklist' olmalı: {person_kind}"
+            )
+        where = f"v.person_id IS NOT NULL AND {_NOT_BL} AND p.kind::text = :pk"
         params["pk"] = pk
     else:
         where = "v.person_id IS NOT NULL"
@@ -42,10 +60,15 @@ def registry_summary(db: DbSession, *, person_kind: str | None = None) -> ToolRe
 
     total = int(db.execute(text(f"SELECT count(*) {base}"), params).scalar_one())
 
+    # Tür dağılımı: kara listedeki araç kendi kovasında, guest/staff/vendor'a karışmaz
     by_kind = [
-        {"tur": (r.k or "kayıtsız"), "adet": int(r.n)}
+        {"tur": r.k, "adet": int(r.n)}
         for r in db.execute(
-            text(f"SELECT p.kind::text AS k, count(*) AS n {base} GROUP BY p.kind ORDER BY n DESC"),
+            text(
+                f"SELECT CASE WHEN v.is_blacklisted THEN 'girisi_yasak' "
+                f"ELSE COALESCE(p.kind::text, 'kayitsiz') END AS k, count(*) AS n "
+                f"{base} GROUP BY 1 ORDER BY n DESC"
+            ),
             params,
         )
     ]

@@ -96,6 +96,20 @@ def test_aggregate_person_kind_filter(db):
     assert r.scalar == 1
 
 
+def test_query_events_flags_blacklisted_row(db):
+    from kervansaray.tools import query_events
+    seed_vehicle(db, "34VIP99", person_name="Yasakli", kind=PersonKind.guest,
+                 blacklisted=True, label="ÇALINTI ARAÇ")
+    _ingest(db, plate="34VIP99", direction="entry", minutes=5, track_id=9)
+    _ingest(db, plate="26ABC2626", direction="entry", minutes=6, track_id=10)
+    db.commit()
+    rows = query_events(db, start=_START, end=_END).rows
+    bl = next(r for r in rows if r["plaka"] == "34VIP99")
+    ok = next(r for r in rows if r["plaka"] == "26ABC2626")
+    assert bl["kara_liste"] is True
+    assert ok["kara_liste"] is None  # bayrak yoksa NULL -> arayüz sütunu gizler
+
+
 def test_aggregate_person_kind_invalid_raises(db):
     _setup(db)
     try:

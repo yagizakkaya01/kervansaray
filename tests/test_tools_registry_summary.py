@@ -20,33 +20,46 @@ def _inventory(db):
     seed_vehicle(db, "35CCC0", person_name="Tedarik A.Ş.", kind=PersonKind.vendor)
     seed_vehicle(db, "80DDD0")  # sahipsiz
     seed_vehicle(db, "80DDD1")  # sahipsiz
-    # 1 kara liste (personel)
-    seed_vehicle(db, "34XYZ99", person_name="Yasaklı", kind=PersonKind.staff, blacklisted=True)
+    # 1 kara liste — person.kind hâlâ 'guest' (canlı 34VIP99 senaryosu gibi):
+    # blacklist bir PersonKind değil, Vehicle.is_blacklisted bayrağı.
+    seed_vehicle(db, "34XYZ99", person_name="Yasaklı", kind=PersonKind.guest, blacklisted=True)
     db.commit()
 
 
-def test_total_registered_excludes_ownerless(db):
+def test_total_and_bucket_split(db):
     _inventory(db)
     r = registry_summary(db)
-    # 3 staff + 2 guest + 1 vendor + 1 blacklist(staff) = 7 kişiye bağlı; 2 sahipsiz hariç
+    # 3 staff + 2 guest + 1 vendor + 1 kara-liste(guest) = 7 kişiye bağlı; 2 sahipsiz hariç
     assert r.scalar["kayitli_arac"] == 7
     assert r.scalar["kara_liste"] == 1
     kinds = {row["tur"]: row["adet"] for row in r.rows}
-    assert kinds["staff"] == 4  # 3 + 1 kara liste
-    assert kinds["guest"] == 2
+    assert kinds["staff"] == 3
+    assert kinds["guest"] == 2          # kara listedeki 'guest' kişi buraya SAYILMAZ
     assert kinds["vendor"] == 1
+    assert kinds["girisi_yasak"] == 1   # kendi kovasında
 
 
-def test_person_kind_filter(db):
+def test_person_kind_guest_excludes_blacklisted(db):
     _inventory(db)
-    r = registry_summary(db, person_kind="guest")
-    assert r.scalar["kayitli_arac"] == 2
+    # 3 guest-kind araç var ama biri kara listede -> misafir sayımına girmez
+    assert registry_summary(db, person_kind="guest").scalar["kayitli_arac"] == 2
+
+
+def test_person_kind_blacklist_bucket_and_aliases(db):
+    _inventory(db)
+    assert registry_summary(db, person_kind="blacklist").scalar["kayitli_arac"] == 1
+    assert registry_summary(db, person_kind="kara liste").scalar["kayitli_arac"] == 1
+    assert registry_summary(db, person_kind="girişi yasak").scalar["kayitli_arac"] == 1
+
+
+def test_person_kind_staff_filter(db):
+    _inventory(db)
+    assert registry_summary(db, person_kind="staff").scalar["kayitli_arac"] == 3
 
 
 def test_unknown_counts_ownerless(db):
     _inventory(db)
-    r = registry_summary(db, person_kind="unknown")
-    assert r.scalar["kayitli_arac"] == 2
+    assert registry_summary(db, person_kind="unknown").scalar["kayitli_arac"] == 2
 
 
 def test_active_registration_subcount(db):
@@ -70,12 +83,11 @@ def test_invalid_person_kind_raises(db):
 @pytest.mark.parametrize("junk", ["None", "null", "", "  ", "hepsi", "toplam"])
 def test_no_filter_aliases_treated_as_unfiltered(db, junk):
     _inventory(db)
-    r = registry_summary(db, person_kind=junk)
-    assert r.scalar["kayitli_arac"] == 7  # filtre uygulanmadi
+    assert registry_summary(db, person_kind=junk).scalar["kayitli_arac"] == 7
 
 
 def test_dispatch_wiring(db):
     _inventory(db)
     res = dispatch_tool(db, "registry_summary", {"person_kind": "staff"})
     assert res.note is None
-    assert res.scalar["kayitli_arac"] == 4
+    assert res.scalar["kayitli_arac"] == 3
