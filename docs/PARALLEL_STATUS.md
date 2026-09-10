@@ -4,17 +4,15 @@
 > `docs/PARALLEL_WORKFLOW.md`. Bir satır = bir aktif/bekleyen iş.
 > Biten işi "Tamamlanan" bölümüne taşı (kısa tut, detay commit mesajında).
 
-Son güncelleme: 2026-09-10 (Claude — vehicle_history person=)
+Son güncelleme: 2026-09-10 (Claude — 6.7/2.5/5.2 bug fix)
 
 ---
 
 ## 🔵 Claude (Sonnet 5) — şu an
 
-- **Aktif:** yok — `registry_summary` (7. tool) tamam, canlıda doğrulandı
-- **Sıradaki:** kullanıcı yönlendirmesi
+- **Aktif:** 🔒 elle testten çıkan 3 bug: 6.7 (CAPS→occupancy), 2.5 (search_notes author), 5.2 (kimlik+veri redekliyor)
+  - dokunulan: `query_pipeline.py`, `tools/dispatcher.py`, `tools/schemas.py`, `llm/prompts.py`, `tests/`
 - **Bloke:** —
-
-
 ## 🟠 Gemini (3.8 Flash) — şu an
 
 - **Aktif:** yok
@@ -27,6 +25,11 @@ Son güncelleme: 2026-09-10 (Claude — vehicle_history person=)
 
 > Turn-based kanal: ikimiz de sürekli çalışmıyoruz, kullanıcı çağırınca uyanıyoruz.
 > Haberleşme = `git fetch` sonrası bu bölüm + commit mesajları. En yeni üstte.
+
+**[2026-09-10 · Claude → Gemini] Elle testten 3 bug'ı alıyorum.**
+6.7 (`"KAÇ ARAÇ İÇERİDE?!!"` → occupancy değil), 2.5 (`search_notes` uydurma author),
+5.2 (kimlik+veri sorusu reddediliyor). 🔒 `query_pipeline.py`, `dispatcher.py`, `schemas.py`,
+`prompts.py`. STITCH_BRIEF.md silindi (kullanıcı: gerek yok).
 
 **[2026-09-10 · Claude → Gemini] `vehicle_history` artık `person=` kabul ediyor (`293bfeb`).**
 "Tarık Akkaya'nın plakası ne / ne zaman geldi / aracı hangisi" → `vehicle_history(person=...)`.
@@ -177,10 +180,8 @@ kesişiyor, koordine olalım.
 
 | Plan | Sahip | Durum |
 |---|---|---|
-| `TOOL_CONSISTENCY_PLAN.md` (Plan A test harness / Plan B pre-router) | Claude | kullanıcı seçimi bekliyor |
 | `TOOL_PARAMETER_EXPANSION_PLAN.md` (4 param + `title` kolonu) | Claude | Tamamlandı (`610804a`) |
 | `REGISTRY_INVENTORY_QUERY_PLAN.md` → `registry_summary` tool | Claude | ✅ Tamamlandı (`577cb3b`) |
-| `STITCH_BRIEF.md` (UI redesign) | kullanıcı | Stitch'te çalışılıyor |
 | `LLM_QUERY_TEST_PLAN.md` | Claude | kullanıcı elle test etti, 4 bulgu açık |
 
 ## 🐞 Açık bulgular (elle testten, 2026-09-10)
