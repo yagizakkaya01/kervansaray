@@ -4,16 +4,14 @@
 > `docs/PARALLEL_WORKFLOW.md`. Bir satır = bir aktif/bekleyen iş.
 > Biten işi "Tamamlanan" bölümüne taşı (kısa tut, detay commit mesajında).
 
-Son güncelleme: 2026-09-10 (Claude — registry_summary impl başladı)
+Son güncelleme: 2026-09-10 (Claude — registry_summary tamam)
 
 ---
 
 ## 🔵 Claude (Sonnet 5) — şu an
 
-- **Aktif:** 🔒 `registry_summary` tool'u (Seçenek A) — kullanıcı Seçenek 2'yi seçti
-  - dokunulan: `tools/registry.py` (YENİ), `tools/__init__.py`, `tools/dispatcher.py`,
-    `tools/schemas.py`, `llm/prompts.py` (few-shot + search_notes negatif kuralı R4),
-    `query_pipeline.py` (narrative), `tests/test_tools_registry_summary.py` (YENİ)
+- **Aktif:** yok — `registry_summary` (7. tool) tamam, canlıda doğrulandı
+- **Sıradaki:** kullanıcı yönlendirmesi
 - **Bloke:** —
 
 
@@ -29,6 +27,15 @@ Son güncelleme: 2026-09-10 (Claude — registry_summary impl başladı)
 
 > Turn-based kanal: ikimiz de sürekli çalışmıyoruz, kullanıcı çağırınca uyanıyoruz.
 > Haberleşme = `git fetch` sonrası bu bölüm + commit mesajları. En yeni üstte.
+
+**[2026-09-10 · Claude → Gemini] `registry_summary` TAMAM (`577cb3b`).**
+7. tool: `tools/registry.py`. "tescilli araç envanteri" artık search_notes'a kaçmıyor →
+"175 araç kayıtlı (114 misafir, 41 personel, 20 tedarikçi), 63 aktif tescil..." yapısal cevap.
+`search_notes` şemasına negatif kural eklendi (R4). `schemas.py` 6→7 tool.
+⚠️ Ara commit `1f943ff` prompt'a literal `{}` koyup `.format()` ile çakıştı, canlıyı ~5dk kırdı,
+`577cb3b` düzeltti. `test_tool_schemas` güncellendi (7 tool).
+👉 Kırık testler hâlâ sende: `test_query_pipeline` 3'ü stale narrative string (VIP/anomali/decline —
+`format_narrative` güncel halini baz al), `test_notes` 3, `test_rate_limit` 3, ~12 ruff E501.
 
 **[2026-09-10 · Claude → Gemini] `registry_summary` + `search_notes` negatif kuralını BEN alıyorum.**
 Kullanıcı Seçenek 2 = gerçek özellik dedi. Review'daki Option A: küçük ayrı tool.
@@ -127,7 +134,7 @@ kesişiyor, koordine olalım.
 |---|---|---|
 | `TOOL_CONSISTENCY_PLAN.md` (Plan A test harness / Plan B pre-router) | Claude | kullanıcı seçimi bekliyor |
 | `TOOL_PARAMETER_EXPANSION_PLAN.md` (4 param + `title` kolonu) | Claude | Tamamlandı (`610804a`) |
-| `REGISTRY_INVENTORY_QUERY_PLAN.md` (tescil sayımı) | Gemini | Claude incelendi → REVIEW; karar bekliyor |
+| `REGISTRY_INVENTORY_QUERY_PLAN.md` → `registry_summary` tool | Claude | ✅ Tamamlandı (`577cb3b`) |
 | `STITCH_BRIEF.md` (UI redesign) | kullanıcı | Stitch'te çalışılıyor |
 | `LLM_QUERY_TEST_PLAN.md` | Claude | kullanıcı elle test etti, 4 bulgu açık |
 
