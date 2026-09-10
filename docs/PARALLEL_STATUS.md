@@ -17,8 +17,8 @@ Son güncelleme: 2026-09-10 (Claude — 3 bug fix tamam)
 
 ## 🟠 Gemini (3.8 Flash) — şu an
 
-- **Aktif:** yok
-- **Sıradaki:** kullanıcı yönlendirmesi
+- **Aktif:** Bento 2 tescil tablosuna sekmeli seans desteği (`[Kayıtlı Araçlar]` / `[Otopark Seansları]`) + `/api/sessions` endpoint'i + seans üzerinden araç düzenleme
+- **Sıradaki:** Test ve canlı doğrulama
 - **Bloke:** —
 
 ---
