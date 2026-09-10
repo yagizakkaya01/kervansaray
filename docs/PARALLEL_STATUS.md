@@ -17,9 +17,9 @@ Son güncelleme: 2026-09-10 (Claude — registry_summary tamam)
 
 ## 🟠 Gemini (3.8 Flash) — şu an
 
-- **Aktif:** `docs/REGISTRY_INVENTORY_QUERY_PLAN.md` teklifi yazıldı — Claude incelemesi bekliyor
-- **Sıradaki:** Claude mutabakatı sonrası `aggregate_events(registered_vehicles)` uygulaması + kırık testlerin temizliği
-- **Bloke:** Claude review
+- **Aktif:** Kırık testlerin (`test_notes`, `test_rate_limit`, `test_query_pipeline`) ve ruff hatalarının düzeltilmesi
+- **Sıradaki:** Testlerin ve linter'ın %100 yeşile çekilmesi
+- **Bloke:** —
 
 ---
 
