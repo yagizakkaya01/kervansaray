@@ -17,12 +17,16 @@ from .types import ToolResult
 
 _PERSON_KINDS = {"guest", "staff", "vendor"}
 _UNKNOWN_ALIASES = {"unknown", "bilinmeyen", "kayitsiz", "kayıtsız", "sahipsiz"}
+# LLM'in "filtre yok" niyetiyle gönderebileceği değerler
+_NO_FILTER = {"", "none", "null", "all", "hepsi", "tumu", "tümü", "toplam", "genel"}
 
 
 def registry_summary(db: DbSession, *, person_kind: str | None = None) -> ToolResult:
     """Tescil envanterinin anlık sayımı. Opsiyonel `person_kind` filtresi."""
     params: dict = {}
     pk = (person_kind or "").strip().lower()
+    if pk in _NO_FILTER:
+        pk = ""
 
     if pk in _UNKNOWN_ALIASES:
         where = "v.person_id IS NULL"

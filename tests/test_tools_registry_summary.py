@@ -67,6 +67,13 @@ def test_invalid_person_kind_raises(db):
         registry_summary(db, person_kind="patron")
 
 
+@pytest.mark.parametrize("junk", ["None", "null", "", "  ", "hepsi", "toplam"])
+def test_no_filter_aliases_treated_as_unfiltered(db, junk):
+    _inventory(db)
+    r = registry_summary(db, person_kind=junk)
+    assert r.scalar["kayitli_arac"] == 7  # filtre uygulanmadi
+
+
 def test_dispatch_wiring(db):
     _inventory(db)
     res = dispatch_tool(db, "registry_summary", {"person_kind": "staff"})

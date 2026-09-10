@@ -259,7 +259,11 @@ FEW_SHOT_EXAMPLES = [
         },
     },
     {
-        "question": "Sistemde kaç araç kayıtlı?",
+        "question": "Sistemde toplam kaç araç kayıtlı?",
+        "tool_call": {"name": "registry_summary", "args": {}},
+    },
+    {
+        "question": "Tescilli araç envanterindeki araç sayısı nedir?",
         "tool_call": {"name": "registry_summary", "args": {}},
     },
     {
