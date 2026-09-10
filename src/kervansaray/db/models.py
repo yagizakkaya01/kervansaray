@@ -62,6 +62,10 @@ class Person(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     kind: Mapped[PersonKind] = mapped_column(_pg_enum(PersonKind, "person_kind"), nullable=False)
+    # Serbest metin unvan/rol (ör. "Güvenlik Müdürü", "Lojistik Şefi"). person_kind
+    # kaba sınıf (guest/staff/vendor); title insan-okur ayrıntı. Doğal dil sorgusu
+    # bunu unaccent'li ILIKE ile tarar (tools/events.py :: query_events person=).
+    title: Mapped[str | None] = mapped_column(String(100))
     room_no: Mapped[str | None] = mapped_column(String(32))
     contact: Mapped[str | None] = mapped_column(String(255))
 

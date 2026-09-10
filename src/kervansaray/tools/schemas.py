@@ -38,6 +38,25 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
                     "type": "string",
                     "description": "Filtrelenecek plaka (örn: '34ABC123').",
                 },
+                "person": {
+                    "type": "string",
+                    "description": (
+                        "Kişi ADI veya UNVANI ile filtre (örn: 'Ahmet Yılmaz', "
+                        "'güvenlik müdürü', 'genel müdür'). Ad, unvan ve araç etiketinde "
+                        "aksan-duyarsız aranır. SADECE kullanıcı bir kişi adı ya da "
+                        "unvan belirttiyse doldur; aksi halde BOŞ bırak."
+                    ),
+                },
+                "person_kind": {
+                    "type": "string",
+                    "enum": ["guest", "staff", "vendor", "unknown"],
+                    "description": (
+                        "Kişi türü filtresi: 'guest' (misafir), 'staff' (personel), "
+                        "'vendor' (tedarikçi), 'unknown' (eşleşmeyen/kayıtsız araç). "
+                        "SADECE kullanıcı tür belirttiyse ('personel araçları', "
+                        "'tedarikçiler') doldur."
+                    ),
+                },
                 "direction": {
                     "type": "string",
                     "enum": ["entry", "exit"],
@@ -108,6 +127,21 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
                     "type": "boolean",
                     "description": (
                         "True: yalnızca kayıtlı araçlar. False: kayıtsız/bilinmeyen araçlar."
+                    ),
+                },
+                "plate": {
+                    "type": "string",
+                    "description": (
+                        "Tek bir plakayla sınırla (örn: '26ABC2626'). Bir aracın "
+                        "belirli dönemdeki toplam geçiş sayısı için kullan."
+                    ),
+                },
+                "person_kind": {
+                    "type": "string",
+                    "enum": ["guest", "staff", "vendor", "unknown"],
+                    "description": (
+                        "Kişi türüne göre say ('kaç personel aracı girdi'). SADECE "
+                        "kullanıcı tür belirttiyse doldur."
                     ),
                 },
             },

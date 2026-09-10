@@ -109,14 +109,30 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
             if result.scalar is not None
             else (result.rows[0].get("value", 0) if result.rows else 0)
         )
+        plate_f = (args.get("plate") or "").strip()
+        pk_f = (args.get("person_kind") or "").strip()
+        scope = (
+            f" {plate_f} plakalı araç için" if plate_f
+            else f" '{pk_f}' türündeki araçlar için" if pk_f
+            else ""
+        )
         if metric == "unique_plates":
-            return f"Belirtilen aralıkta toplam {cnt} farklı (tekil) araç tespit edildi."
-        return f"Belirtilen aralıkta toplam {cnt} araç hareketi gerçekleşti."
+            return f"Belirtilen aralıkta{scope} toplam {cnt} farklı (tekil) araç tespit edildi."
+        return f"Belirtilen aralıkta{scope} toplam {cnt} araç hareketi gerçekleşti."
 
     if tool_name == "query_events":
         cnt = len(result.rows)
+        person_f = (args.get("person") or "").strip()
+        pk_f = (args.get("person_kind") or "").strip()
+        if cnt == 0:
+            if person_f:
+                return f"'{person_f}' için belirtilen dönemde araç geçiş kaydı bulunamadı."
+            if pk_f:
+                return f"Belirtilen dönemde '{pk_f}' türünde araç geçişi bulunamadı."
+            return "Belirtilen kriterlere uyan araç geçiş kaydı bulunamadı."
+        who = f" ({person_f})" if person_f else ""
         trunc = " (ilk 50 kayıt listeleniyor)" if result.truncated else ""
-        return f"Kriterlere uygun {cnt} araç geçiş kaydı bulundu{trunc}."
+        return f"Kriterlere uygun {cnt} araç geçiş kaydı bulundu{who}{trunc}."
 
     if tool_name == "vehicle_history":
         plate = args.get("plate", "")

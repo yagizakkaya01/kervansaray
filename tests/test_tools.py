@@ -66,7 +66,7 @@ def test_query_events_plate_filter_canonicalises(db):
     db.commit()
     r = query_events(db, start=_START, end=_END, plate="34 abc 123")
     assert len(r.rows) == 1
-    assert r.rows[0]["plate"] == "34ABC123"
+    assert r.rows[0]["plaka"] == "34ABC123"
     assert r.event_ids == [str(r.rows[0]["event_id"])]
 
 

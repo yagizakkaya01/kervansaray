@@ -65,16 +65,19 @@ def seed_vehicle(
     *,
     person_name: str | None = None,
     kind: PersonKind = PersonKind.guest,
+    title: str | None = None,
+    label: str | None = None,
     blacklisted: bool = False,
     registered: bool = False,
 ) -> Vehicle:
     person = None
     if person_name:
-        person = Person(name=person_name, kind=kind, room_no="101")
+        person = Person(name=person_name, kind=kind, room_no="101", title=title)
         db.add(person)
         db.flush()
     vehicle = Vehicle(
-        plate=plate, person_id=person.id if person else None, is_blacklisted=blacklisted
+        plate=plate, person_id=person.id if person else None,
+        label=label, is_blacklisted=blacklisted,
     )
     db.add(vehicle)
     db.flush()

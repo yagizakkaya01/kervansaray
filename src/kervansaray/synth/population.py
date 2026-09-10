@@ -42,6 +42,14 @@ _VENDOR_CO = [
     "Yildiz Temizlik", "Deniz Nakliyat", "Kervan Ticaret",
 ]
 
+# Personele atanan gerçekçi unvanlar (person.title). Doğal dil sorgusu bunları
+# `query_events(person=...)` ile aksan-duyarsız arar.
+_STAFF_TITLES = [
+    "Güvenlik Amiri", "Vardiya Amiri", "Teknik Sorumlu", "Otopark Sorumlusu",
+    "Resepsiyon Şefi", "İdari İşler Uzmanı", "Bahçe & Peyzaj Sorumlusu",
+    "Bilgi İşlem Uzmanı", "Satın Alma Uzmanı",
+]
+
 # Tam scripted ziyareti olan anomaliler - rhythm bunlari atlar.
 _SCRIPTED = frozenset({"three_day_stay", "recurring_unregistered", "night_entry"})
 
@@ -60,6 +68,7 @@ class VehicleSpec:
     plate: str
     kind: str  # "guest" | "staff" | "vendor" | "unknown"
     person_name: str | None = None
+    person_title: str | None = None  # serbest metin unvan (yalnız staff'a atanır)
     room_no: str | None = None
     is_blacklisted: bool = False
     registered: bool = False
@@ -127,6 +136,7 @@ def build_population(
         pop.vehicles.append(
             VehicleSpec(
                 plate=next(it), kind="staff", person_name=name(),
+                person_title=r.choice(_STAFF_TITLES),
                 registered=True, reg_from=period_start - timedelta(days=90), reg_to=None,
             )
         )
@@ -165,7 +175,10 @@ def persist(db: DbSession, pop: Population) -> None:
                 if spec.kind in PersonKind.__members__
                 else PersonKind.guest
             )
-            person = Person(name=spec.person_name, kind=kind, room_no=spec.room_no)
+            person = Person(
+                name=spec.person_name, kind=kind, room_no=spec.room_no,
+                title=spec.person_title,
+            )
             db.add(person)
             db.flush()
             spec.person_id = person.id

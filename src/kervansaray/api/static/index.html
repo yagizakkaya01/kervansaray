@@ -1958,7 +1958,7 @@
         const HIDDEN = new Set(['event_id', 'event_row_id', 'camera_id', 'device_id',
           'track_id', 'crop_ref', 'model_version', 'ingested_at', 'person_id', 'vehicle_id']);
         const HEAD = { ts: 'Zaman', direction: 'Yön', plaka: 'Plaka', plate: 'Plaka',
-          kisi: 'Kişi', tur: 'Tür', kayitli: 'Kayıtlı', eslesme: 'Eşleşme',
+          kisi: 'Kişi', unvan: 'Unvan', tur: 'Tür', kayitli: 'Kayıtlı', eslesme: 'Eşleşme',
           entry_ts: 'Giriş', exit_ts: 'Çıkış', hours: 'Saat', still_inside: 'İçeride',
           visits: 'Ziyaret', plate: 'Plaka', first_seen: 'İlk', last_seen: 'Son',
           match_status: 'Eşleşme', raw_plate: 'Kamera Okuması' };
@@ -1971,7 +1971,7 @@
           return v;
         };
         const ORDER = ['ts', 'entry_ts', 'exit_ts', 'direction', 'plaka', 'plate', 'raw_plate',
-          'kisi', 'tur', 'kayitli', 'registered', 'eslesme', 'match_status',
+          'kisi', 'unvan', 'tur', 'kayitli', 'registered', 'eslesme', 'match_status',
           'hours', 'visits', 'still_inside', 'first_seen', 'last_seen'];
         const cols = Object.keys(rows[0]).filter(c => !HIDDEN.has(c))
           .sort((a, b) => ((ORDER.indexOf(a) + 1 || 99) - (ORDER.indexOf(b) + 1 || 99)));

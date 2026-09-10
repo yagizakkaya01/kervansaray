@@ -103,8 +103,8 @@ DEMO_PLATES = [
 ]
 
 
-def _mk_person(sess, name, kind, room=None, contact=None):
-    p = Person(name=name, kind=kind, room_no=room, contact=contact)
+def _mk_person(sess, name, kind, room=None, contact=None, title=None):
+    p = Person(name=name, kind=kind, room_no=room, contact=contact, title=title)
     sess.add(p)
     sess.flush()
     return p
@@ -133,7 +133,8 @@ def _weekday_series(start, end, weekdays, hour, minute=0):
 
 def seed_scenarios(sess):
     # 1) 26 ABC 2626 - Guvenlik Muduru: sik giren, su an sahada
-    p = _mk_person(sess, "Tarık Akkaya", PersonKind.staff, contact="guvenlik.amiri@kervansaray.local")
+    p = _mk_person(sess, "Tarık Akkaya", PersonKind.staff, contact="guvenlik.amiri@kervansaray.local",
+                   title="Güvenlik Müdürü")
     v = _mk_vehicle(sess, "26 ABC 2626", p, "Guvenlik Muduru - Nizamiye",
                     reg_from=NOW - timedelta(days=400), reg_to=None)
     # Nisan 15 + Haziran/Temmuz seyrek + son 4 hafta Pzt/Car/Cum
@@ -153,7 +154,8 @@ def seed_scenarios(sess):
           exit_=None, vehicle_id=v.id, match_status=MatchStatus.exact)
 
     # 2) 06 AK 0052 - Kayitli Misafir: ayda ~1 ziyaret
-    p = _mk_person(sess, "Can Ozturk", PersonKind.guest, contact="(0532) 111 22 33")
+    p = _mk_person(sess, "Can Ozturk", PersonKind.guest, contact="(0532) 111 22 33",
+                   title="İş Ortağı")
     v = _mk_vehicle(sess, "06 AK 0052", p, "Kayitli Misafir - Is Ortagi",
                     reg_from=NOW - timedelta(days=200), reg_to=NOW + timedelta(days=160))
     for d in (APR15, datetime(2026, 5, 20, tzinfo=UTC), datetime(2026, 6, 18, tzinfo=UTC),
@@ -163,7 +165,8 @@ def seed_scenarios(sess):
               exit_=d.replace(hour=15, minute=30), vehicle_id=v.id, match_status=MatchStatus.exact)
 
     # 3) 34 KAY 44 - VIP Misafir: nadir, protokol
-    p = _mk_person(sess, "Sn. Kaya", PersonKind.guest, room="Baskanlik Suiti", contact="kaya@holding.com.tr")
+    p = _mk_person(sess, "Sn. Kaya", PersonKind.guest, room="Baskanlik Suiti", contact="kaya@holding.com.tr",
+                   title="VIP Protokol Misafiri")
     v = _mk_vehicle(sess, "34 KAY 44", p, "VIP Misafir - Protokol",
                     reg_from=NOW - timedelta(days=300), reg_to=None)
     for d in (APR15, datetime(2026, 7, 10, tzinfo=UTC), datetime(2026, 9, 5, tzinfo=UTC)):

@@ -29,6 +29,12 @@ TEMEL KURALLAR:
    durum sorularında `occupancy` aracını çağır.
 6. Vardiya notları, güvenlik raporları, teknik arızalar veya operasyonel prosedürler
    sorulduğunda `search_notes` aracını çağır.
+6.1. Kişi ADI/UNVANI (ör. "güvenlik müdürü", "Ahmet Yılmaz", "genel müdür") veya
+   kişi TÜRÜ ("personel araçları", "tedarikçiler", "misafirler") geçen sorular:
+   - SAYIM isteniyorsa -> `aggregate_events` (`person_kind` ile)
+   - LİSTE/DÖKÜM isteniyorsa -> `query_events` (`person` ad/unvan için, `person_kind` tür için)
+   - Belirli bir PLAKANIN toplam geliş sayısı -> `aggregate_events` (`plate` ile);
+     detay/seans dökümü -> `vehicle_history`.
 7. KAPSAM KARARI (önce bunu uygula):
    a) Soru otopark / araç / plaka / giriş-çıkış / doluluk / kişi / kayıt / güvenlik
       veya operasyonel not (prosedür, vardiya, arıza) ile UZAKTAN bile ilgiliyse
@@ -52,7 +58,8 @@ VERİTABANI ALAN SÖZLÜĞÜ (v_events):
 - match_status: 'exact' (tam eşleşme) | 'fuzzy' (yaklaşık) |
   'unmatched' (kayıtsız/tanınmayan) | 'pending' (onay bekleyen)
 - person_kind: 'guest' (misafir) | 'staff' (personel) |
-  'vendor' (tedarikçi) | 'unknown' (bilinmeyen)
+  'vendor' (tedarikçi) | 'unknown' (eşleşmeyen/kayıtsız — kişi kaydı yok)
+- person_title: serbest metin unvan (ör. "Güvenlik Müdürü"); `person` parametresiyle aranır
 - Anomali kuralları: 'unregistered_recurring' (kayıtsız sık gelen) |
   'overstay' (uzun kalan) | 'blacklist' (kara liste) | 'night_entry' (00:00-05:00 gece girişi)
 """
@@ -206,6 +213,43 @@ FEW_SHOT_EXAMPLES = [
             "name": "vehicle_history",
             "args": {
                 "plate": "34KAY44",
+            },
+        },
+    },
+    {
+        "question": "Güvenlik müdürü bu ay hangi saatlerde giriş çıkış yaptı?",
+        "tool_call": {
+            "name": "query_events",
+            "args": {
+                "person": "güvenlik müdürü",
+                "start": "2026-09-01T00:00:00+03:00",
+                "end": "2026-10-01T00:00:00+03:00",
+            },
+        },
+    },
+    {
+        "question": "Nisan ayında kaç personel aracı giriş yaptı?",
+        "tool_call": {
+            "name": "aggregate_events",
+            "args": {
+                "person_kind": "staff",
+                "metric": "count",
+                "direction": "entry",
+                "start": "2026-04-01T00:00:00+03:00",
+                "end": "2026-05-01T00:00:00+03:00",
+            },
+        },
+    },
+    {
+        "question": "26 ABC 2626 bu ay toplam kaç kez geldi?",
+        "tool_call": {
+            "name": "aggregate_events",
+            "args": {
+                "plate": "26ABC2626",
+                "metric": "count",
+                "direction": "entry",
+                "start": "2026-09-01T00:00:00+03:00",
+                "end": "2026-10-01T00:00:00+03:00",
             },
         },
     },

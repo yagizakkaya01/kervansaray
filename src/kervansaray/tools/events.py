@@ -17,6 +17,36 @@ from .types import MAX_ROWS, ToolResult, json_row
 _DIRECTIONS = {"entry", "exit"}
 _GROUP_BY = {"day", "hour", "direction", "match_status", "person_kind"}
 _METRICS = {"count", "unique_plates"}
+_PERSON_KINDS = {"guest", "staff", "vendor"}
+# LLM'in "kayıtsız / bilinmeyen" için verebileceği takma adlar -> person_kind IS NULL
+_UNKNOWN_KIND_ALIASES = {"unknown", "bilinmeyen", "kayitsiz", "kayıtsız", "yabanci", "yabancı"}
+
+
+def _person_kind_clause(where: list[str], params: dict, person_kind: str | None) -> None:
+    """person_kind filtresini WHERE'e ekler. Enum'da 'unknown' YOK -> eşleşmesiz
+    olaylarda person_kind NULL; o değer için IS NULL kullanılır."""
+    if not person_kind:
+        return
+    pk = str(person_kind).strip().lower()
+    if pk in _UNKNOWN_KIND_ALIASES:
+        where.append("person_kind IS NULL")
+        return
+    _check(pk in _PERSON_KINDS, f"person_kind {_PERSON_KINDS} veya 'unknown' olmalı: {person_kind}")
+    where.append("person_kind::text = :person_kind")
+    params["person_kind"] = pk
+
+
+def _person_clause(where: list[str], params: dict, person: str | None) -> None:
+    """Serbest kişi araması: ad + unvan + araç etiketi, aksan-duyarsız (unaccent)."""
+    term = (person or "").strip()
+    if not term:
+        return
+    where.append(
+        "(unaccent(person_name) ILIKE unaccent(:person) "
+        "OR unaccent(coalesce(person_title, '')) ILIKE unaccent(:person) "
+        "OR unaccent(coalesce(vehicle_label, '')) ILIKE unaccent(:person))"
+    )
+    params["person"] = f"%{term}%"
 
 
 def query_events(
@@ -27,6 +57,8 @@ def query_events(
     plate: str | None = None,
     direction: str | None = None,
     registered: bool | None = None,
+    person: str | None = None,
+    person_kind: str | None = None,
     limit: int = MAX_ROWS,
 ) -> ToolResult:
     """Bir zaman araligindaki olay satirlari. En fazla MAX_ROWS; ustunde
@@ -43,16 +75,18 @@ def query_events(
     if registered is not None:
         where.append("registered = :registered")
         params["registered"] = registered
+    _person_clause(where, params, person)
+    _person_kind_clause(where, params, person_kind)
 
     capped = max(1, min(int(limit), MAX_ROWS))
     params["lim"] = capped + 1
-    # v_events 23 kolonlu (S7 denormalize). Kullaniciya bir gecis dokumu icin
+    # v_events 24 kolonlu (S7 denormalize). Kullaniciya bir gecis dokumu icin
     # anlamli olan alt kume dondurulur; event_id/camera_id koken (provenance)
     # panelinde kullanildigi icin tutulur, arayuz tablodan gizler.
     sql = text(
         "SELECT event_id, camera_id, ts, direction, raw_plate AS plaka, "
-        "person_name AS kisi, person_kind AS tur, registered AS kayitli, "
-        "match_status AS eslesme "
+        "person_name AS kisi, person_title AS unvan, person_kind AS tur, "
+        "registered AS kayitli, match_status AS eslesme "
         f"FROM v_events WHERE {' AND '.join(where)} "  # noqa: S608 - sabit whitelist
         "ORDER BY ts ASC LIMIT :lim"
     )
@@ -78,6 +112,8 @@ def aggregate_events(
     group_by: str | None = None,
     direction: str | None = None,
     registered: bool | None = None,
+    plate: str | None = None,
+    person_kind: str | None = None,
 ) -> ToolResult:
     """Sayim / benzersiz plaka; opsiyonel gruplama. Sonuc DB'de hesaplanir."""
     _check(metric in _METRICS, f"metric {_METRICS} icinden olmali: {metric}")
@@ -92,6 +128,10 @@ def aggregate_events(
     if registered is not None:
         where.append("registered = :registered")
         params["registered"] = registered
+    if plate:
+        where.append("plate = :plate")
+        params["plate"] = canonicalize(plate)
+    _person_kind_clause(where, params, person_kind)
 
     agg = "count(*)" if metric == "count" else "count(DISTINCT plate)"
     grp = _group_expr(group_by)
@@ -134,6 +174,8 @@ def _as_str(v: object) -> str:
 
 def _clean_params(p: dict) -> dict:
     out = {k: v for k, v in p.items() if k != "lim"}
+    if isinstance(out.get("person"), str):
+        out["person"] = out["person"].strip("%")  # ILIKE joker'lerini künyeden gizle
     for k in ("start", "end"):
         if k in out and hasattr(out[k], "isoformat"):
             out[k] = out[k].isoformat()

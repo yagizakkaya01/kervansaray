@@ -73,6 +73,8 @@ def dispatch_tool(
                 plate=args.get("plate"),
                 direction=args.get("direction"),
                 registered=args.get("registered"),
+                person=args.get("person"),
+                person_kind=args.get("person_kind"),
                 limit=int(args.get("limit", MAX_ROWS)),
             )
 
@@ -90,6 +92,8 @@ def dispatch_tool(
                 metric=args.get("metric", "count"),
                 direction=args.get("direction"),
                 registered=args.get("registered"),
+                plate=args.get("plate"),
+                person_kind=args.get("person_kind"),
             )
 
         if name == "vehicle_history":

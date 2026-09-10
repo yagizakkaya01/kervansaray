@@ -17,7 +17,8 @@ SELECT
     e.canonical_plate AS plate, e.raw_plate AS raw_plate, e.plate_confidence AS plate_confidence,
     e.match_status AS match_status, e.match_score AS match_score, e.vehicle_id AS vehicle_id,
     v.label AS vehicle_label, COALESCE(v.is_blacklisted, FALSE) AS is_blacklisted,
-    p.id AS person_id, p.name AS person_name, p.kind AS person_kind, p.room_no AS room_no,
+    p.id AS person_id, p.name AS person_name, p.kind AS person_kind,
+    p.title AS person_title, p.room_no AS room_no,
     EXISTS (
         SELECT 1 FROM registrations r
         WHERE r.vehicle_id = e.vehicle_id AND r.valid_from <= e.ts
@@ -52,4 +53,8 @@ def rebuild_schema(engine: Engine) -> None:
     Base.metadata.drop_all(engine, checkfirst=True)
     Base.metadata.create_all(engine)
     with engine.begin() as conn:
+        # Doğal dil sorgusu unvan/ad aramasında aksan-duyarsız eşleşme için
+        # unaccent() kullanır (tools/events.py). Alembic 0003 de bunu kurar;
+        # burada test/eval yolu için tekrar garantilenir.
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS unaccent"))
         create_views(conn)
