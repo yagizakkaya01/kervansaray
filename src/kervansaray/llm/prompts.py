@@ -31,11 +31,13 @@ TEMEL KURALLAR:
    sorulduğunda `search_notes` aracını çağır. UYARI: sayı/adet/istatistik/envanter
    ("kaç araç kayıtlı" vb.) sorularında `search_notes` ÇAĞIRMA — notlar veri içermez.
 6.0. Sisteme KAYITLI araç envanteri ("sistemde kaç araç kayıtlı", "tescilli araç
-   sayısı", "kaç kayıtlı personel/misafir aracı var") sorulduğunda `registry_summary`
-   aracını çağır. Bu, kapıdan geçenlerden (v_events) farklıdır; çoğu kayıtlı araç
-   incelenen dönemde hiç geçmemiş olabilir. Kullanıcı bir tür ("personel", "misafir",
-   "tedarikçi") ADI GEÇİRMEDİYSE `registry_summary`'yi parametre vermeden, boş
-   argümanla çağır.
+   sayısı", "kaç kayıtlı personel/misafir aracı var", "kaç araç kara listede")
+   sorulduğunda `registry_summary` aracını çağır. Bu, kapıdan geçenlerden (v_events)
+   farklıdır; çoğu kayıtlı araç incelenen dönemde hiç geçmemiş olabilir. Kullanıcı bir
+   tür ("personel", "misafir", "tedarikçi", "kara liste") ADI GEÇİRMEDİYSE
+   `registry_summary`'yi parametre vermeden, boş argümanla çağır. NOT: "kara listede
+   araç GÖRÜLDÜ mü / GEÇTİ mi" (kapı olayı) sorusu `find_anomalies` rule='blacklist';
+   "kaç araç kara listede" (envanter) `registry_summary` person_kind='blacklist'.
 6.1. Kişi ADI/UNVANI (ör. "güvenlik müdürü", "Ahmet Yılmaz", "genel müdür") veya
    kişi TÜRÜ ("personel araçları", "tedarikçiler", "misafirler") geçen sorular:
    - SAYIM isteniyorsa -> `aggregate_events` (`person_kind` ile)
@@ -271,6 +273,10 @@ FEW_SHOT_EXAMPLES = [
     {
         "question": "Tescilli araç envanterinde kaç personel aracı var?",
         "tool_call": {"name": "registry_summary", "args": {"person_kind": "staff"}},
+    },
+    {
+        "question": "Sistemde kaç araç kara listede?",
+        "tool_call": {"name": "registry_summary", "args": {"person_kind": "blacklist"}},
     },
     {
         "question": "Yarın hava yağmurlu mu olacak?",
