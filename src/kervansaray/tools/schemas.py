@@ -273,14 +273,15 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
             "properties": {
                 "person_kind": {
                     "type": "string",
-                    "enum": ["guest", "staff", "vendor", "unknown"],
+                    "enum": ["guest", "staff", "vendor"],
                     "description": (
-                        "İsteğe bağlı tür filtresi. YALNIZCA kullanıcı açıkça bir "
-                        "tür belirttiyse ('kaç PERSONEL aracı', 'MİSAFİR araçları') "
-                        "doldur. Genel 'kaç araç kayıtlı / toplam envanter' "
-                        "sorusunda BU PARAMETREYİ HİÇ GÖNDERME — araç zaten tüm "
-                        "türleri sayıp dağılımı döndürür. "
-                        "Değerler: 'guest', 'staff', 'vendor', 'unknown' (sahipsiz)."
+                        "İsteğe bağlı tür filtresi: 'guest' (misafir), 'staff' "
+                        "(personel), 'vendor' (tedarikçi). "
+                        "YALNIZCA kullanıcı cümlesinde bu türlerden BİRİ açıkça "
+                        "geçiyorsa doldur ('kaç PERSONEL aracı', 'kaç TEDARİKÇİ'). "
+                        "Genel 'toplam kaç araç kayıtlı / envanter sayısı' "
+                        "sorusunda BU PARAMETREYİ GÖNDERME; araç zaten tüm türleri "
+                        "sayıp dağılımı verir."
                     ),
                 },
             },
