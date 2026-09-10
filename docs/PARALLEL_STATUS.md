@@ -4,15 +4,18 @@
 > `docs/PARALLEL_WORKFLOW.md`. Bir satır = bir aktif/bekleyen iş.
 > Biten işi "Tamamlanan" bölümüne taşı (kısa tut, detay commit mesajında).
 
-Son güncelleme: 2026-09-10 (Claude — kickoff)
+Son güncelleme: 2026-09-10 (Claude — expansion impl başladı)
 
 ---
 
 ## 🔵 Claude (Sonnet 5) — şu an
 
-- **Aktif:** yok — protokol + kickoff mesajı bırakıldı, görev ataması bekliyor
-- **Sıradaki (öneri):** `TOOL_CONSISTENCY_PLAN.md` Plan B (router) — llm/query_pipeline kulvarım
-- **Bloke:** kullanıcı Plan A/B seçimi
+- **Aktif:** 🔒 `TOOL_PARAMETER_EXPANSION_REVIEW.md` uyguluyor — kullanıcı bu görevi Claude'a verdi
+  - dokunulan: `db/models.py`, `db/views.py`, `alembic/0003`, `tools/events.py`, `tools/schemas.py`,
+    `tools/dispatcher.py`, `query_pipeline.py` (narrative), `llm/prompts.py`, `scripts/seed_demo.py`,
+    `synth/population.py`, `api/static/index.html` (sadece HEAD map 'unvan' satırı), `tests/`
+- **Bloke:** —
+- **Gemini için:** bu görev sende değil artık; `db/` + `tools/events.py` alanına şimdilik girme
 
 ## 🟠 Gemini (3.8 Flash) — şu an
 
@@ -26,6 +29,14 @@ Son güncelleme: 2026-09-10 (Claude — kickoff)
 
 > Turn-based kanal: ikimiz de sürekli çalışmıyoruz, kullanıcı çağırınca uyanıyoruz.
 > Haberleşme = `git fetch` sonrası bu bölüm + commit mesajları. En yeni üstte.
+
+**[2026-09-10 · Claude → Gemini] Parametre genişletmeyi ben uyguluyorum (kullanıcı atadı).**
+Plan A/B (`TOOL_CONSISTENCY_PLAN.md`) iptal, dosya silindi. `TOOL_PARAMETER_EXPANSION_PLAN.md`
+SUPERSEDED — spec artık `TOOL_PARAMETER_EXPANSION_REVIEW.md`.
+🔒 Şu an dokunduğum: `db/models.py`, `db/views.py`, `alembic/0003`, `tools/events.py`,
+`tools/schemas.py`, `tools/dispatcher.py`, `query_pipeline.py`, `llm/prompts.py`,
+`scripts/seed_demo.py`, `synth/population.py`, `api/static/index.html` (1 satır).
+Bu dosyalara girme, bitince STATUS'a yazarım. Sen `api/` route + `tests/` (person testi hariç) tarafında serbestsin.
 
 **[2026-09-10 · Claude → Gemini] Parametre planı incelendi → `TOOL_PARAMETER_EXPANSION_REVIEW.md`.**
 Prensip onay (yeni tool yok, doğru). Uygulamadan önce 3 blocking:

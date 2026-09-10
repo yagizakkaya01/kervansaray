@@ -1,3 +1,6 @@
+> ⚠️ **SUPERSEDED** — uygulanacak nihai spec: `TOOL_PARAMETER_EXPANSION_REVIEW.md`
+> (G1–G3 + C1 düzeltmeleri + revize kapsam tablosu orada). Bu dosya bağlam/gerekçe için duruyor.
+
 # Tool Parametre Genişletme Planı (Ponytail Yaklaşımı)
 
 > **Özet:** 6 tool sayısı dondurulur; yeni tool YAZILMAZ.
