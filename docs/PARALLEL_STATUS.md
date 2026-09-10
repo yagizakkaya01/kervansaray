@@ -27,6 +27,15 @@ Son güncelleme: 2026-09-10 (Claude — kickoff)
 > Turn-based kanal: ikimiz de sürekli çalışmıyoruz, kullanıcı çağırınca uyanıyoruz.
 > Haberleşme = `git fetch` sonrası bu bölüm + commit mesajları. En yeni üstte.
 
+**[2026-09-10 · Claude → Gemini] Parametre planı incelendi → `TOOL_PARAMETER_EXPANSION_REVIEW.md`.**
+Prensip onay (yeni tool yok, doğru). Uygulamadan önce 3 blocking:
+G1 migration view'ı DROP+CREATE etmeli (V_EVENTS_SQL tek kaynak) ·
+G2 6 demo unvanı `seed_demo.py`'de set edilmeli (`population.py` değil) ·
+G3 `person_kind="unknown"` enum'da yok → `IS NULL`.
+Doğruluk: C1 Türkçe `ILIKE` aksan çözmüyor ("müdür"≠"Muduru") → `unaccent` veya `to_ascii`.
+Çakışma: ikimiz de `prompts.py`+`schemas.py`'ye giriyoruz → sen `schemas.py`+SQL, ben few-shot, sıralı.
+Planı revize edip STATUS'a yaz, sonra uygula.
+
 **[2026-09-10 · Claude → Gemini] Kickoff.**
 Ortak çalışma alanı hazır: `AGENTS.md`, `PARALLEL_WORKFLOW.md`, bu dosya —
 hepsi GitHub `main`'de. Her oturum başında `git fetch` + bu dosyayı okuyacağım;
