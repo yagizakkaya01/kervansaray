@@ -1598,9 +1598,12 @@
     function renderRegistryTable() {
       const tbody = document.getElementById('registry-table-body');
       if (!tbody) return;
-      tbody.innerHTML = '';
       const badge = document.getElementById('registry-count-badge');
       if (badge) badge.innerText = REGISTRY_DATA.length;
+      // Aktif sekme "sessions" iken paylaşılan tbody'yi EZME (yarış hatası:
+      // fetchRegistry her yerden çağrılıyor, seans tablosunu bozuyordu).
+      if (CURRENT_BENTO_TAB !== 'registry') return;
+      tbody.innerHTML = '';
 
       REGISTRY_DATA.forEach((r, idx) => {
         const tr = document.createElement('tr');
@@ -1628,7 +1631,7 @@
 
     function renderSessionsTable() {
       const tbody = document.getElementById('registry-table-body');
-      if (!tbody) return;
+      if (!tbody || CURRENT_BENTO_TAB !== 'sessions') return;
       tbody.innerHTML = '';
 
       if (SESSIONS_DATA.length === 0) {
@@ -1660,7 +1663,7 @@
           <td class="py-2.5 px-3">
             <div class="flex items-center gap-1.5">
               <span class="font-medium">${esc(displayName)}</span>
-              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold ${badgeColor}">${esc(kindTr(s.person_kind))}</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${badgeColor}">${esc(kindTr(s.person_kind))}</span>
             </div>
           </td>
           <td class="py-2.5 px-3 text-zinc-600 dark:text-zinc-400 font-mono text-[11px]">${formatSessionDateTime(s.entry_ts)}</td>
@@ -1680,7 +1683,21 @@
       document.getElementById('dossier-name').innerText = s.person_name || s.vehicle_label || 'Kayıtsız Misafir';
       document.getElementById('dossier-kind').innerText = kindTr(s.person_kind);
       document.getElementById('dossier-address').innerText = s.vehicle_label || (s.is_current ? 'Sahada (Otoparkta)' : 'Ayrıldı');
-      verifyPlateAction();
+      // verifyPlateAction yalnız 6 demo plakasını bilir; arka plan aracının
+      // seansına tıklanınca "kayıt bulunamadı" demesin — seansın kendi verisini kullan.
+      const inReg = REGISTRY_DATA.some(x =>
+        x.plate.replace(/\s+/g, '').toUpperCase() === String(s.plate).replace(/\s+/g, '').toUpperCase());
+      if (inReg) {
+        verifyPlateAction();
+      } else if (s.is_blacklisted) {
+        updateStatusBadge('blacklist', `${s.plate} kara listede! (${s.person_name || 'Yasaklı araç'})`, 'GİRİŞ ENGELİ');
+      } else if (s.person_name) {
+        const t = { staff: 'personel', guest: 'kayıtlı misafir', vendor: 'tedarikçi' }[s.person_kind] || 'kayıtlı';
+        updateStatusBadge(s.person_kind === 'staff' ? 'manager' : 'guest',
+          `${s.plate}: ${s.person_name} — ${t} aracı.`, 'GEÇİŞ ONAYLANDI');
+      } else {
+        verifyPlateAction();
+      }
       renderScenarioCards();
     }
 
