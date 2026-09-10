@@ -151,7 +151,10 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
         plate = args.get("plate") or result.params.get("plate", "")
         cnt = len(result.rows)
         if cnt == 0:
-            who = f"'{person_q}' adına kayıtlı {plate} plakalı araca" if person_q else f"{plate} plakasına"
+            who = (
+                f"'{person_q}' adına kayıtlı {plate} plakalı araca"
+                if person_q else f"{plate} plakasına"
+            )
             return f"{who} ait sistemde herhangi bir geçiş kaydı bulunamadı."
         sessions = scalar_dict.get("sessions", [])
         is_inside = (
