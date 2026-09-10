@@ -4,15 +4,17 @@
 > `docs/PARALLEL_WORKFLOW.md`. Bir satır = bir aktif/bekleyen iş.
 > Biten işi "Tamamlanan" bölümüne taşı (kısa tut, detay commit mesajında).
 
-Son güncelleme: 2026-09-10 (Claude — 6.7/2.5/5.2 bug fix)
+Son güncelleme: 2026-09-10 (Claude — 3 bug fix tamam)
 
 ---
 
 ## 🔵 Claude (Sonnet 5) — şu an
 
-- **Aktif:** 🔒 elle testten çıkan 3 bug: 6.7 (CAPS→occupancy), 2.5 (search_notes author), 5.2 (kimlik+veri redekliyor)
-  - dokunulan: `query_pipeline.py`, `tools/dispatcher.py`, `tools/schemas.py`, `llm/prompts.py`, `tests/`
+- **Aktif:** yok — elle testten 3 bug düzeltildi (`48de03e`)
+- **Sıradaki:** kullanıcı manuel teste devam edecek
 - **Bloke:** —
+
+
 ## 🟠 Gemini (3.8 Flash) — şu an
 
 - **Aktif:** yok
@@ -186,10 +188,11 @@ kesişiyor, koordine olalım.
 
 ## 🐞 Açık bulgular (elle testten, 2026-09-10)
 
-- **6.7** `"KAÇ ARAÇ İÇERİDE?!!"` → occupancy yerine aggregate (yanıltıcı sonuç)
-- **2.5** `search_notes` uydurma `author` parametresi ekliyor → boş sonuç
-- **5.2** `"X kime ait? sen misin?"` → kapsam içi soru reddediliyor
-- **3.7** `[SYSTEM]:` enjeksiyonu → sızıntı yok ✅ ama yanlış tool
+- ✅ **6.7** `"KAÇ ARAÇ İÇERİDE?!!"` → occupancy (normalize_query + prompt) — `94f5102`
+- ✅ **2.5** `search_notes` uydurma author → schema sıkılaştırma + dispatcher fallback — `94f5102`
+- ✅ **5.2** `"X kime ait? sen misin?"` → plaka-kalıbı retry ile vehicle_history — `48de03e`
+- 🟡 **6.7b** `"SAHADA KAÇ ARAÇ VAR ACİL!!!"` → "acil" kelimesi search_notes'a çekiyor (edge, düşük öncelik)
+- **3.7** `[SYSTEM]:` enjeksiyonu → sızıntı yok ✅ ama yanlış tool (düşük öncelik)
 - (3.5 rol-değiştirme şakası → **kabul edildi**, güvenlik sorunu değil)
 
 ---
