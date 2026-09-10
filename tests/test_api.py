@@ -135,4 +135,23 @@ def test_post_query_length_limit():
     assert "çok uzun" in r.get_json()["error"]
 
 
+def test_get_sessions_endpoint():
+    from kervansaray.api import create_app
 
+    app = create_app()
+    app.config["TESTING"] = True
+    c = app.test_client()
+
+    r = c.get("/api/sessions?limit=5")
+    assert r.status_code == 200
+    data = r.get_json()
+    assert data["ok"] is True
+    assert "total" in data
+    assert "currently_inside_count" in data
+    assert isinstance(data["sessions"], list)
+    assert len(data["sessions"]) <= 5
+
+    # Geçersiz limit fallback
+    r_bad = c.get("/api/sessions?limit=gecersiz")
+    assert r_bad.status_code == 200
+    assert r_bad.get_json()["ok"] is True

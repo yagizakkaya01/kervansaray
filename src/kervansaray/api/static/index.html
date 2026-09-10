@@ -543,19 +543,27 @@
         </div>
       </div>
 
-      <!-- Tescil Tablosu (Sistemdeki Örnek Araçlar) -->
+      <!-- Tescil ve Seans Tablosu (Sistemdeki Örnek Araçlar & Giriş-Çıkış Seansları) -->
       <div id="registry-section" class="flex flex-col gap-2 pt-2 scroll-mt-24">
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-zinc-500 dark:text-zinc-400 font-semibold">
-            Kayıtlı araçlar
-          </span>
-          <span class="text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <!-- Sekme Seçici (Segmented Control) -->
+          <div class="inline-flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl border border-zinc-200/80 dark:border-zinc-700/60 text-xs">
+            <button id="tab-btn-registry" onclick="switchBentoTableTab('registry')" class="px-3 py-1.5 font-semibold rounded-lg transition-all text-zinc-900 dark:text-zinc-50 bg-white dark:bg-zinc-900 shadow-sm cursor-pointer flex items-center gap-1.5">
+              <span>🚗 Kayıtlı Araçlar</span>
+              <span id="registry-count-badge" class="px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 text-[10px] rounded-full font-mono font-semibold">6</span>
+            </button>
+            <button id="tab-btn-sessions" onclick="switchBentoTableTab('sessions')" class="px-3 py-1.5 font-medium rounded-lg transition-all text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 cursor-pointer flex items-center gap-1.5">
+              <span>⏱️ Otopark Seansları</span>
+              <span id="sessions-count-badge" class="px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 text-[10px] rounded-full font-mono font-semibold">...</span>
+            </button>
+          </div>
+          <span id="table-hint-text" class="text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
             Satıra tıklayarak aracı kameraya ve soru kutusuna alabilirsiniz.
           </span>
         </div>
         <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
           <table class="w-full text-left text-xs font-mono border-collapse">
-            <thead class="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400">
+            <thead id="bento-table-head" class="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400">
               <tr>
                 <th class="py-2.5 px-3">#</th>
                 <th class="py-2.5 px-3">Plaka Numarası</th>
@@ -1171,6 +1179,7 @@
       renderRegistryTable();
       renderScenarioCards();
       fetchRegistry();
+      fetchSessions();
       // Senaryo OTOMATIK SECILMEZ — ziyaretci yukaridan bir olay secerek baslatir.
     });
 
@@ -1485,10 +1494,114 @@
       } catch (_) {}
     }
 
+    let CURRENT_BENTO_TAB = 'registry';
+    let SESSIONS_DATA = [];
+
+    function switchBentoTableTab(tab) {
+      CURRENT_BENTO_TAB = tab;
+      const btnReg = document.getElementById('tab-btn-registry');
+      const btnSes = document.getElementById('tab-btn-sessions');
+      const thead = document.getElementById('bento-table-head');
+      const hint = document.getElementById('table-hint-text');
+
+      if (tab === 'registry') {
+        if (btnReg) btnReg.className = 'px-3 py-1.5 font-semibold rounded-lg transition-all text-zinc-900 dark:text-zinc-50 bg-white dark:bg-zinc-900 shadow-sm cursor-pointer flex items-center gap-1.5';
+        if (btnSes) btnSes.className = 'px-3 py-1.5 font-medium rounded-lg transition-all text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 cursor-pointer flex items-center gap-1.5';
+        if (hint) hint.innerText = 'Satıra tıklayarak aracı kameraya ve soru kutusuna alabilirsiniz.';
+        if (thead) {
+          thead.innerHTML = `
+            <tr>
+              <th class="py-2.5 px-3">#</th>
+              <th class="py-2.5 px-3">Plaka Numarası</th>
+              <th class="py-2.5 px-3">Ad Soyad</th>
+              <th class="py-2.5 px-3">Kayıt Türü</th>
+              <th class="py-2.5 px-3">Birim / Konum</th>
+              <th class="py-2.5 px-3">İletişim</th>
+              <th class="py-2.5 px-3 text-right">İşlem</th>
+            </tr>
+          `;
+        }
+        renderRegistryTable();
+      } else {
+        if (btnSes) btnSes.className = 'px-3 py-1.5 font-semibold rounded-lg transition-all text-zinc-900 dark:text-zinc-50 bg-white dark:bg-zinc-900 shadow-sm cursor-pointer flex items-center gap-1.5';
+        if (btnReg) btnReg.className = 'px-3 py-1.5 font-medium rounded-lg transition-all text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 cursor-pointer flex items-center gap-1.5';
+        if (hint) hint.innerText = 'Seans satırına tıklayarak aracı kameraya alabilir, [Düzenle / + Kaydet] ile tescilini güncelleyebilirsiniz.';
+        if (thead) {
+          thead.innerHTML = `
+            <tr>
+              <th class="py-2.5 px-3">#</th>
+              <th class="py-2.5 px-3">Plaka</th>
+              <th class="py-2.5 px-3">Sürücü / Araç Tanımı</th>
+              <th class="py-2.5 px-3">Giriş Zamanı</th>
+              <th class="py-2.5 px-3">Çıkış Zamanı</th>
+              <th class="py-2.5 px-3">Kalış Süresi / Durum</th>
+              <th class="py-2.5 px-3 text-right">İşlem</th>
+            </tr>
+          `;
+        }
+        if (SESSIONS_DATA.length === 0) {
+          fetchSessions();
+        } else {
+          renderSessionsTable();
+        }
+      }
+    }
+
+    async function fetchSessions() {
+      try {
+        const res = await fetch('/api/sessions?limit=50');
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.sessions)) {
+          SESSIONS_DATA = data.sessions;
+          const badge = document.getElementById('sessions-count-badge');
+          if (badge) badge.innerText = data.total ?? data.sessions.length;
+          if (CURRENT_BENTO_TAB === 'sessions') {
+            renderSessionsTable();
+          }
+        }
+      } catch (err) {
+        console.error('fetchSessions hatası:', err);
+      }
+    }
+
+    function formatSessionDateTime(isoStr) {
+      if (!isoStr) return '—';
+      try {
+        const d = new Date(isoStr);
+        return d.toLocaleDateString('tr-TR', {
+          day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+        });
+      } catch (_) {
+        return isoStr;
+      }
+    }
+
+    function formatSessionDuration(seconds, isCurrent, missingExit) {
+      if (missingExit) {
+        return '<span class="px-2 py-0.5 rounded text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10">⚠️ Eksik Çıkış</span>';
+      }
+      if (isCurrent) {
+        return '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>İçeride</span>';
+      }
+      if (seconds == null) return '—';
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      if (hrs >= 48) {
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-500/10">${hrs}s (Overstay)</span>`;
+      }
+      if (hrs > 0) {
+        return `${hrs}s ${mins > 0 ? mins + 'dk' : ''}`;
+      }
+      return `${mins} dk`;
+    }
+
     function renderRegistryTable() {
       const tbody = document.getElementById('registry-table-body');
       if (!tbody) return;
       tbody.innerHTML = '';
+      const badge = document.getElementById('registry-count-badge');
+      if (badge) badge.innerText = REGISTRY_DATA.length;
+
       REGISTRY_DATA.forEach((r, idx) => {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-zinc-50/80 dark:hover:bg-zinc-800/60 cursor-pointer transition-colors group';
@@ -1513,6 +1626,64 @@
       });
     }
 
+    function renderSessionsTable() {
+      const tbody = document.getElementById('registry-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (SESSIONS_DATA.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-zinc-500 font-mono">Otopark seansı yükleniyor veya bulunamadı.</td></tr>';
+        return;
+      }
+
+      SESSIONS_DATA.forEach((s, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-zinc-50/80 dark:hover:bg-zinc-800/60 cursor-pointer transition-colors group';
+        tr.onclick = () => selectSessionRow(s);
+
+        const KIND_BADGE = {
+          blacklist: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-500/10',
+          staff: 'text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10',
+          guest: 'text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-500/10',
+          vendor: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10',
+          unregistered: 'text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/80'
+        };
+        const badgeColor = KIND_BADGE[s.person_kind] || KIND_BADGE.unregistered;
+
+        const displayName = s.person_name || s.vehicle_label || 'Kayıtsız Araç';
+        const plateAttr = String(s.plate ?? '').replace(/[^A-Z0-9 ]/gi, '');
+        const isKnown = Boolean(s.person_name || s.is_blacklisted || (s.person_kind && s.person_kind !== 'unregistered'));
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-semibold text-zinc-500 dark:text-zinc-400">${idx + 1}</td>
+          <td class="py-2.5 px-3 font-bold text-zinc-900 dark:text-zinc-50 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">${esc(s.plate)}</td>
+          <td class="py-2.5 px-3">
+            <div class="flex items-center gap-1.5">
+              <span class="font-medium">${esc(displayName)}</span>
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold ${badgeColor}">${esc(kindTr(s.person_kind))}</span>
+            </div>
+          </td>
+          <td class="py-2.5 px-3 text-zinc-600 dark:text-zinc-400 font-mono text-[11px]">${formatSessionDateTime(s.entry_ts)}</td>
+          <td class="py-2.5 px-3 text-zinc-600 dark:text-zinc-400 font-mono text-[11px]">${formatSessionDateTime(s.exit_ts)}</td>
+          <td class="py-2.5 px-3 font-mono text-[11px]">${formatSessionDuration(s.duration_seconds, s.is_current, s.missing_exit)}</td>
+          <td class="py-2.5 px-3 text-right">
+            <button onclick="event.stopPropagation(); openRegisterModal('${plateAttr}')" class="px-2.5 py-1 text-[11px] font-mono font-semibold rounded ${isKnown ? 'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-900 dark:hover:bg-zinc-100 hover:text-white dark:hover:text-zinc-900 text-zinc-700 dark:text-zinc-300' : 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-500/30 hover:bg-red-600 hover:text-white'} transition-colors cursor-pointer">${isKnown ? 'Düzenle' : '+ Kaydet'}</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function selectSessionRow(s) {
+      document.getElementById('plate-input-val').value = s.plate;
+      document.getElementById('dossier-plate').innerText = s.plate;
+      document.getElementById('dossier-name').innerText = s.person_name || s.vehicle_label || 'Kayıtsız Misafir';
+      document.getElementById('dossier-kind').innerText = kindTr(s.person_kind);
+      document.getElementById('dossier-address').innerText = s.vehicle_label || (s.is_current ? 'Sahada (Otoparkta)' : 'Ayrıldı');
+      verifyPlateAction();
+      renderScenarioCards();
+    }
+
     function selectRegistryRow(r) {
       document.getElementById('plate-input-val').value = r.plate;
       document.getElementById('dossier-plate').innerText = r.plate;
@@ -1525,7 +1696,19 @@
 
     function openRegisterModal(defaultPlate = null) {
       const plate = (defaultPlate || document.getElementById('plate-input-val')?.value || '').trim().toUpperCase();
-      const match = REGISTRY_DATA.find(x => x.plate.replace(/\s+/g, '').toUpperCase() === plate.replace(/\s+/g, '').toUpperCase());
+      let match = REGISTRY_DATA.find(x => x.plate.replace(/\s+/g, '').toUpperCase() === plate.replace(/\s+/g, '').toUpperCase());
+      if (!match && SESSIONS_DATA.length > 0) {
+        const sm = SESSIONS_DATA.find(x => x.plate.replace(/\s+/g, '').toUpperCase() === plate.replace(/\s+/g, '').toUpperCase());
+        if (sm && (sm.person_name || sm.vehicle_label)) {
+          match = {
+            plate: sm.plate,
+            name: sm.person_name || '',
+            kind: sm.person_kind || 'guest',
+            address: sm.vehicle_label || '',
+            contact: sm.contact || ''
+          };
+        }
+      }
 
       document.getElementById('reg-input-plate').value = plate || (match ? match.plate : '');
       document.getElementById('reg-input-name').value = match ? match.name : '';
@@ -1569,6 +1752,7 @@
 
           // Yerel listeyi ve senaryoları anında güncelle
           await fetchRegistry();
+          await fetchSessions();
 
           // Eşleşen senaryo varsa güncelle
           const canon = plate.replace(/\s+/g, '').toLowerCase();
@@ -1619,6 +1803,7 @@
           }
           renderScenarioCards();
           await fetchRegistry();
+          await fetchSessions();
           loadScenario('26abc2626');
         } else {
           showToast(data.error || 'Sıfırlama yapılamadı.', res.status === 429 ? 'warning' : 'critical');

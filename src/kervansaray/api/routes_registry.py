@@ -19,7 +19,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from flask import Blueprint, jsonify, request
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import joinedload
 
 from kervansaray.db import session_scope
@@ -29,6 +29,7 @@ from kervansaray.db.models import (
     Person,
     PersonKind,
     Registration,
+    Session,
     Vehicle,
 )
 from kervansaray.query_pipeline import query_cache
@@ -177,6 +178,69 @@ def list_registry() -> Any:
 
     except Exception as exc:  # noqa: BLE001
         log.exception("Registry listeleme hatasi")
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@bp.get("/sessions")
+def list_sessions() -> Any:
+    """Otopark seanslarını (giriş-çıkış hareketleri) listeler."""
+    try:
+        limit_arg = request.args.get("limit", "50")
+        try:
+            limit = min(max(int(limit_arg), 1), 100)
+        except ValueError:
+            limit = 50
+
+        with session_scope() as sess:
+            total = sess.scalar(select(func.count()).select_from(Session)) or 0
+            inside_count = sess.scalar(
+                select(func.count())
+                .select_from(Session)
+                .where(Session.exit_event_id.is_(None), Session.missing_exit.is_(False))
+            ) or 0
+
+            query = (
+                select(Session, Vehicle, Person)
+                .outerjoin(Vehicle, Vehicle.id == Session.vehicle_id)
+                .outerjoin(Person, Person.id == Vehicle.person_id)
+                .order_by(Session.entry_ts.desc().nullslast())
+                .limit(limit)
+            )
+            rows = sess.execute(query).all()
+
+            results = []
+            for s, v, p in rows:
+                kind = "unregistered"
+                if v and v.is_blacklisted:
+                    kind = "blacklist"
+                elif p:
+                    kind = str(p.kind.value)
+
+                results.append({
+                    "id": s.id,
+                    "plate": s.canonical_plate,
+                    "entry_ts": s.entry_ts.isoformat() if s.entry_ts else None,
+                    "exit_ts": s.exit_ts.isoformat() if s.exit_ts else None,
+                    "duration_seconds": s.duration_seconds,
+                    "is_current": s.is_current,
+                    "missing_exit": bool(s.missing_exit),
+                    "missing_entry": bool(s.missing_entry),
+                    "person_name": p.name if p else None,
+                    "person_kind": kind,
+                    "vehicle_label": v.label if v else None,
+                    "is_blacklisted": bool(v.is_blacklisted) if v else False,
+                    "contact": p.contact if p else None,
+                })
+
+            return jsonify({
+                "ok": True,
+                "total": total,
+                "currently_inside_count": inside_count,
+                "sessions": results,
+            }), 200
+
+    except Exception as exc:  # noqa: BLE001
+        log.exception("Sessions listeleme hatasi")
         return jsonify({"ok": False, "error": str(exc)}), 500
 
 
