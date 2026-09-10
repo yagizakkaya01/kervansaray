@@ -7,7 +7,7 @@ from datetime import timedelta
 from kervansaray.db.models import PersonKind
 from kervansaray.ingest import ingest_event
 from kervansaray.query_pipeline import format_narrative
-from kervansaray.tools import aggregate_events, query_events
+from kervansaray.tools import aggregate_events, dispatch_tool, query_events, vehicle_history
 from tests._helpers import BASE_TS, make_event, seed_vehicle
 
 _START = BASE_TS - timedelta(days=1)
@@ -97,7 +97,6 @@ def test_aggregate_person_kind_filter(db):
 
 
 def test_query_events_flags_blacklisted_row(db):
-    from kervansaray.tools import query_events
     seed_vehicle(db, "34VIP99", person_name="Yasakli", kind=PersonKind.guest,
                  blacklisted=True, label="ÇALINTI ARAÇ")
     _ingest(db, plate="34VIP99", direction="entry", minutes=5, track_id=9)
@@ -117,3 +116,55 @@ def test_aggregate_person_kind_invalid_raises(db):
     except ValueError:
         return
     raise AssertionError("geçersiz person_kind ValueError vermeli")
+
+
+# --- vehicle_history person= (kişiden plakaya) ----------------------------
+
+def test_vehicle_history_by_person_resolves_plate(db):
+    seed_vehicle(db, "26ABC2626", person_name="Tarık Akkaya",
+                 kind=PersonKind.staff, title="Güvenlik Müdürü")
+    _ingest(db, plate="26ABC2626", direction="entry", minutes=0, track_id=1)
+    _ingest(db, plate="26ABC2626", direction="exit", minutes=60, track_id=2)
+    db.commit()
+    r = vehicle_history(db, person="tarık akkaya")
+    assert r.scalar["owner_name"] == "Tarık Akkaya"
+    assert r.scalar["event_count"] == 2
+    assert r.params["plate"] == "26ABC2626"
+
+
+def test_vehicle_history_by_title(db):
+    seed_vehicle(db, "26ABC2626", person_name="Tarık Akkaya",
+                 kind=PersonKind.staff, title="Güvenlik Müdürü")
+    _ingest(db, plate="26ABC2626", direction="entry", minutes=0, track_id=1)
+    db.commit()
+    r = vehicle_history(db, person="guvenlik muduru")  # aksansız
+    assert r.params["plate"] == "26ABC2626"
+
+
+def test_vehicle_history_by_person_not_found(db):
+    r = vehicle_history(db, person="Olmayan Kişi")
+    assert r.scalar["matches"] == 0
+    assert r.rows == []
+
+
+def test_vehicle_history_by_person_ambiguous(db):
+    seed_vehicle(db, "06AAA1", person_name="Ali Veli", kind=PersonKind.guest)
+    seed_vehicle(db, "34BBB2", person_name="Ali Veli", kind=PersonKind.staff)
+    db.commit()
+    r = vehicle_history(db, person="Ali Veli")
+    assert r.scalar["ambiguous"] is True
+    assert {row["plaka"] for row in r.rows} == {"06AAA1", "34BBB2"}
+
+
+def test_vehicle_history_requires_plate_or_person(db):
+    res = dispatch_tool(db, "vehicle_history", {})
+    assert "plate veya person" in str(res.note)
+
+
+def test_vehicle_history_dispatch_by_person(db):
+    seed_vehicle(db, "26ABC2626", person_name="Tarık Akkaya", kind=PersonKind.staff)
+    _ingest(db, plate="26ABC2626", direction="entry", minutes=0, track_id=1)
+    db.commit()
+    res = dispatch_tool(db, "vehicle_history", {"person": "Tarık Akkaya"})
+    assert res.note is None
+    assert res.scalar["owner_name"] == "Tarık Akkaya"

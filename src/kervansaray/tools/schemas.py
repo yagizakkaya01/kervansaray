@@ -151,8 +151,11 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
     {
         "name": "vehicle_history",
         "description": (
-            "Tek bir plakanın tüm geçmişini, kayıt bilgilerini, giriş/çıkış hareketlerini "
-            "ve otopark seanslarını (kalış süreleri, şu an içeride mi) detaylı olarak getirir."
+            "Tek bir aracın tüm geçmişini, tescil bilgilerini, giriş/çıkış hareketlerini "
+            "ve otopark seanslarını (kalış süreleri, şu an içeride mi) detaylı getirir. "
+            "Araç PLAKAYLA ya da SAHİBİNİN ADI/UNVANIYLA ('Tarık Akkaya', 'güvenlik "
+            "müdürü') sorgulanabilir — 'X'in aracı hangisi', 'X'in plakası ne', 'X ne "
+            "zaman geldi' soruları buraya gelir. En az biri (plate veya person) verilmeli."
         ),
         "parameters": {
             "type": "object",
@@ -161,8 +164,15 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
                     "type": "string",
                     "description": "Sorgulanacak plaka (örn: '34ABC123').",
                 },
+                "person": {
+                    "type": "string",
+                    "description": (
+                        "Araç sahibinin adı veya unvanı (örn: 'Tarık Akkaya', "
+                        "'güvenlik müdürü'). Plaka bilinmiyorsa bunu kullan; "
+                        "aksan-duyarsız aranır."
+                    ),
+                },
             },
-            "required": ["plate"],
         },
     },
     {

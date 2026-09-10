@@ -99,10 +99,18 @@ def dispatch_tool(
             )
 
         if name == "vehicle_history":
-            plate = args.get("plate", "")
-            if not plate:
-                return ToolResult(tool=name, params=args, note="plate parametresi zorunludur.")
-            return fn(db, plate=canonicalize(plate))
+            plate = args.get("plate")
+            person = args.get("person")
+            if not plate and not person:
+                return ToolResult(
+                    tool=name, params=args,
+                    note="plate veya person parametresi zorunludur.",
+                )
+            return fn(
+                db,
+                plate=canonicalize(plate) if plate else None,
+                person=person,
+            )
 
         if name == "find_anomalies":
             rule = args.get("rule", "")

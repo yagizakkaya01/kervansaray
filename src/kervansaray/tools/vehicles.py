@@ -19,8 +19,60 @@ from kervansaray.text.plates import canonicalize
 from .types import ToolResult
 
 
-def vehicle_history(db: DbSession, *, plate: str) -> ToolResult:
-    canon = canonicalize(plate)
+def _resolve_person_to_plate(db: DbSession, person: str) -> ToolResult | str:
+    """Kişi adı/unvanından plakaya çözer. Tek eşleşme -> kanonik plaka (str).
+    0 veya >1 eşleşme -> erken ToolResult (narrative bunu ele alır)."""
+    term = f"%{person.strip()}%"
+    matches = list(
+        db.execute(
+            text(
+                "SELECT v.plate, p.name, p.kind::text AS kind, "
+                "COALESCE(v.is_blacklisted, FALSE) AS is_blacklisted "
+                "FROM vehicles v JOIN persons p ON p.id = v.person_id "
+                "WHERE unaccent(p.name) ILIKE unaccent(:t) "
+                "OR unaccent(COALESCE(p.title, '')) ILIKE unaccent(:t) "
+                "ORDER BY v.plate"
+            ),
+            {"t": term},
+        ).mappings()
+    )
+    if not matches:
+        return ToolResult(
+            tool="vehicle_history",
+            params={"person": person},
+            rows=[],
+            scalar={"person_query": person, "matches": 0},
+        )
+    if len(matches) > 1:
+        return ToolResult(
+            tool="vehicle_history",
+            params={"person": person},
+            rows=[
+                {"plaka": m["plate"], "kisi": m["name"], "tur": m["kind"],
+                 "kara_liste": True if m["is_blacklisted"] else None}
+                for m in matches
+            ],
+            scalar={"person_query": person, "matches": len(matches), "ambiguous": True},
+        )
+    return canonicalize(matches[0]["plate"])
+
+
+def vehicle_history(
+    db: DbSession, *, plate: str | None = None, person: str | None = None
+) -> ToolResult:
+    if plate:
+        canon = canonicalize(plate)
+    elif person:
+        resolved = _resolve_person_to_plate(db, person)
+        if isinstance(resolved, ToolResult):
+            return resolved
+        canon = resolved
+    else:
+        return ToolResult(
+            tool="vehicle_history", params={},
+            note="plate veya person parametresi zorunludur.",
+        )
+
     vehicle = db.scalar(
         select(Vehicle).options(joinedload(Vehicle.person)).where(Vehicle.plate == canon)
     )

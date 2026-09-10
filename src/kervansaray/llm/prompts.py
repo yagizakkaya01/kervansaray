@@ -40,8 +40,11 @@ TEMEL KURALLAR:
    "kaç araç kara listede" (envanter) `registry_summary` person_kind='blacklist'.
 6.1. Kişi ADI/UNVANI (ör. "güvenlik müdürü", "Ahmet Yılmaz", "genel müdür") veya
    kişi TÜRÜ ("personel araçları", "tedarikçiler", "misafirler") geçen sorular:
+   - "X'in aracı hangisi / X'in PLAKASI ne / X ne zaman geldi / X'in geçmişi" ->
+     `vehicle_history` (`person` parametresiyle; plaka bilinmiyor).
    - SAYIM isteniyorsa -> `aggregate_events` (`person_kind` ile)
-   - LİSTE/DÖKÜM isteniyorsa -> `query_events` (`person` ad/unvan için, `person_kind` tür için)
+   - Bir kişinin GİRİŞ-ÇIKIŞ LİSTESİ isteniyorsa -> `query_events` (`person` ile)
+   - kişi TÜRÜ dökümü -> `query_events` (`person_kind` ile)
    - Belirli bir PLAKANIN toplam geliş sayısı -> `aggregate_events` (`plate` ile);
      detay/seans dökümü -> `vehicle_history`.
 7. KAPSAM KARARI (önce bunu uygula):
@@ -222,6 +225,24 @@ FEW_SHOT_EXAMPLES = [
             "name": "vehicle_history",
             "args": {
                 "plate": "34KAY44",
+            },
+        },
+    },
+    {
+        "question": "Tarık Akkaya'nın plakası nedir?",
+        "tool_call": {
+            "name": "vehicle_history",
+            "args": {
+                "person": "Tarık Akkaya",
+            },
+        },
+    },
+    {
+        "question": "Güvenlik müdürünün aracı en son ne zaman geldi?",
+        "tool_call": {
+            "name": "vehicle_history",
+            "args": {
+                "person": "güvenlik müdürü",
             },
         },
     },

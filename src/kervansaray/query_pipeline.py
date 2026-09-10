@@ -135,11 +135,24 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
         return f"Kriterlere uygun {cnt} araç geçiş kaydı bulundu{who}{trunc}."
 
     if tool_name == "vehicle_history":
-        plate = args.get("plate", "")
+        scalar_dict = result.scalar if isinstance(result.scalar, dict) else {}
+        person_q = scalar_dict.get("person_query")
+        # kişi adından çözüm: 0 veya >1 eşleşme
+        if person_q is not None and scalar_dict.get("matches", 1) == 0:
+            return f"'{person_q}' adına kayıtlı bir araç bulunamadı."
+        if scalar_dict.get("ambiguous"):
+            opts = "; ".join(
+                f"{r.get('plaka')} ({r.get('kisi')})" for r in result.rows[:6]
+            )
+            return (
+                f"'{person_q}' ile {scalar_dict.get('matches')} araç eşleşti: {opts}. "
+                "Hangisini sorguladığınızı plakayla belirtin."
+            )
+        plate = args.get("plate") or result.params.get("plate", "")
         cnt = len(result.rows)
         if cnt == 0:
-            return f"{plate} plakasına ait sistemde herhangi bir geçiş kaydı bulunamadı."
-        scalar_dict = result.scalar if isinstance(result.scalar, dict) else {}
+            who = f"'{person_q}' adına kayıtlı {plate} plakalı araca" if person_q else f"{plate} plakasına"
+            return f"{who} ait sistemde herhangi bir geçiş kaydı bulunamadı."
         sessions = scalar_dict.get("sessions", [])
         is_inside = (
             bool(scalar_dict.get("is_inside"))
