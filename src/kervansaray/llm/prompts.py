@@ -34,7 +34,8 @@ TEMEL KURALLAR:
    sayısı", "kaç kayıtlı personel/misafir aracı var") sorulduğunda `registry_summary`
    aracını çağır. Bu, kapıdan geçenlerden (v_events) farklıdır; çoğu kayıtlı araç
    incelenen dönemde hiç geçmemiş olabilir. Kullanıcı bir tür ("personel", "misafir",
-   "tedarikçi") ADI GEÇİRMEDİYSE `registry_summary`'yi PARAMETRESİZ çağır ({}).
+   "tedarikçi") ADI GEÇİRMEDİYSE `registry_summary`'yi parametre vermeden, boş
+   argümanla çağır.
 6.1. Kişi ADI/UNVANI (ör. "güvenlik müdürü", "Ahmet Yılmaz", "genel müdür") veya
    kişi TÜRÜ ("personel araçları", "tedarikçiler", "misafirler") geçen sorular:
    - SAYIM isteniyorsa -> `aggregate_events` (`person_kind` ile)
