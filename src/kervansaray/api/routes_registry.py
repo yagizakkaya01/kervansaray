@@ -15,11 +15,11 @@ from __future__ import annotations
 import logging
 import re
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from flask import Blueprint, jsonify, request
-from sqlalchemy import delete, select, text, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import joinedload
 
 from kervansaray.db import session_scope
@@ -37,7 +37,6 @@ from kervansaray.text.plates import canonicalize
 bp = Blueprint("registry", __name__, url_prefix="/api")
 log = logging.getLogger(__name__)
 
-UTC = timezone.utc
 
 _TAG_RE = re.compile(r"<[^>]*>")
 _RESET_COOLDOWN_S = 8.0
@@ -57,12 +56,48 @@ def _clean_text(val: str | None, maxlen: int) -> str:
 
 # 6 Demo Senaryo Plakası
 DEMO_SCENARIO_PLATES = [
-    {"plate": "26 ABC 2626", "default_name": "Tarık Akkaya (Güvenlik Müdürü)", "default_kind": "manager", "default_addr": "Güvenlik Amirliği", "default_contact": "guvenlik.amiri@kervansaray.local"},
-    {"plate": "06 AK 0052", "default_name": "Can Öztürk", "default_kind": "guest", "default_addr": "İş Ortağı • Doğu Otoparkı", "default_contact": "(0532) 111 22 33"},
-    {"plate": "34 KAY 44", "default_name": "Sayın Kaya", "default_kind": "vip", "default_addr": "Başkanlık Süiti", "default_contact": "kaya@holding.com.tr"},
-    {"plate": "26 XYZ 413", "default_name": "Kayıt Yok (Kargo / Tedarik)", "default_kind": "unregistered", "default_addr": "Geçici Misafir", "default_contact": "—"},
-    {"plate": "06 XYZ 01", "default_name": "Terk Araç Şüphesi", "default_kind": "warning", "default_addr": "B Blok Kapalı Otopark", "default_contact": "—"},
-    {"plate": "34 VIP 99", "default_name": "Yasaklı Araç", "default_kind": "blacklist", "default_addr": "Hukuk Birimi (Hacizli)", "default_contact": "guvenlik@kervansaray.com"},
+    {
+        "plate": "26 ABC 2626",
+        "default_name": "Tarık Akkaya (Güvenlik Müdürü)",
+        "default_kind": "manager",
+        "default_addr": "Güvenlik Amirliği",
+        "default_contact": "guvenlik.amiri@kervansaray.local",
+    },
+    {
+        "plate": "06 AK 0052",
+        "default_name": "Can Öztürk",
+        "default_kind": "guest",
+        "default_addr": "İş Ortağı • Doğu Otoparkı",
+        "default_contact": "(0532) 111 22 33",
+    },
+    {
+        "plate": "34 KAY 44",
+        "default_name": "Sayın Kaya",
+        "default_kind": "vip",
+        "default_addr": "Başkanlık Süiti",
+        "default_contact": "kaya@holding.com.tr",
+    },
+    {
+        "plate": "26 XYZ 413",
+        "default_name": "Kayıt Yok (Kargo / Tedarik)",
+        "default_kind": "unregistered",
+        "default_addr": "Geçici Misafir",
+        "default_contact": "—",
+    },
+    {
+        "plate": "06 XYZ 01",
+        "default_name": "Terk Araç Şüphesi",
+        "default_kind": "warning",
+        "default_addr": "B Blok Kapalı Otopark",
+        "default_contact": "—",
+    },
+    {
+        "plate": "34 VIP 99",
+        "default_name": "Yasaklı Araç",
+        "default_kind": "blacklist",
+        "default_addr": "Hukuk Birimi (Hacizli)",
+        "default_contact": "guvenlik@kervansaray.com",
+    },
 ]
 
 
@@ -102,7 +137,11 @@ def list_registry() -> Any:
                     elif any(w in lbl for w in ("terk", "warning", "şüphe", "suphe")):
                         kind = "warning"
 
-                    contact_val = v.person.contact if v.person.contact is not None else item["default_contact"]
+                    contact_val = (
+                        v.person.contact
+                        if v.person.contact is not None
+                        else item["default_contact"]
+                    )
                     results.append({
                         "id": idx,
                         "plate": item["plate"],
@@ -152,7 +191,11 @@ def upsert_registry() -> Any:
     canon = canonicalize(raw_plate)
     name = _clean_text(data.get("name"), 60)
     kind = (data.get("kind") or "guest").strip().lower()
-    if kind not in {"guest", "manager", "staff", "vip", "vendor", "warning", "blacklist", "unregistered"}:
+    valid_kinds = {
+        "guest", "manager", "staff", "vip", "vendor",
+        "warning", "blacklist", "unregistered",
+    }
+    if kind not in valid_kinds:
         kind = "guest"
     address = _clean_text(data.get("address"), 80)
     contact = _clean_text(data.get("contact"), 60)
@@ -167,7 +210,11 @@ def upsert_registry() -> Any:
                 # Kayıtsız yap: vehicle varsa sil veya person bağını kaldır
                 if vehicle:
                     sess.execute(delete(Registration).where(Registration.vehicle_id == vehicle.id))
-                    sess.execute(update(Event).where(Event.vehicle_id == vehicle.id).values(vehicle_id=None, match_status=MatchStatus.unmatched))
+                    sess.execute(
+                        update(Event)
+                        .where(Event.vehicle_id == vehicle.id)
+                        .values(vehicle_id=None, match_status=MatchStatus.unmatched)
+                    )
                     p_id = vehicle.person_id
                     sess.delete(vehicle)
                     if p_id:
@@ -287,10 +334,16 @@ def reset_demo() -> Any:
     _last_reset_at = now
 
     try:
-        from scripts.seed_demo import reset, seed_background, seed_notes, seed_scenarios
-        from kervansaray.demo_cache import warm as warm_cache
+        from scripts.seed_demo import (
+            reset,
+            seed_background,
+            seed_notes,
+            seed_scenarios,
+        )
 
         from kervansaray.api.rate_limit import limiter
+        from kervansaray.demo_cache import warm as warm_cache
+
         query_cache.clear()
         limiter.clear()
 

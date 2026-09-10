@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import argparse
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from sqlalchemy import delete, func, select, text
@@ -36,7 +36,7 @@ from kervansaray.db.models import (
 )
 from kervansaray.text.plates import canonicalize
 
-UTC = timezone.utc
+UTC = UTC
 NOW = datetime.now(UTC)
 APR15 = datetime(2026, 4, 15, tzinfo=UTC)
 
@@ -133,8 +133,11 @@ def _weekday_series(start, end, weekdays, hour, minute=0):
 
 def seed_scenarios(sess):
     # 1) 26 ABC 2626 - Guvenlik Muduru: sik giren, su an sahada
-    p = _mk_person(sess, "Tarık Akkaya", PersonKind.staff, contact="guvenlik.amiri@kervansaray.local",
-                   title="Güvenlik Müdürü")
+    p = _mk_person(
+        sess, "Tarık Akkaya", PersonKind.staff,
+        contact="guvenlik.amiri@kervansaray.local",
+        title="Güvenlik Müdürü",
+    )
     v = _mk_vehicle(sess, "26 ABC 2626", p, "Guvenlik Muduru - Nizamiye",
                     reg_from=NOW - timedelta(days=400), reg_to=None)
     # Nisan 15 + Haziran/Temmuz seyrek + son 4 hafta Pzt/Car/Cum
@@ -145,7 +148,7 @@ def seed_scenarios(sess):
         visit(sess, plate="26 ABC 2626", entry=d.replace(hour=9, minute=5),
               exit_=d.replace(hour=17, minute=50), vehicle_id=v.id, match_status=MatchStatus.exact)
     for day in _weekday_series(NOW - timedelta(days=26), NOW - timedelta(days=1),
-                               {0, 2, 4}, 8, 30):
+                                {0, 2, 4}, 8, 30):
         visit(sess, plate="26 ABC 2626", entry=day,
               exit_=day.replace(hour=18, minute=random.randint(0, 55)),
               vehicle_id=v.id, match_status=MatchStatus.exact)
@@ -165,8 +168,11 @@ def seed_scenarios(sess):
               exit_=d.replace(hour=15, minute=30), vehicle_id=v.id, match_status=MatchStatus.exact)
 
     # 3) 34 KAY 44 - VIP Misafir: nadir, protokol
-    p = _mk_person(sess, "Sn. Kaya", PersonKind.guest, room="Baskanlik Suiti", contact="kaya@holding.com.tr",
-                   title="VIP Protokol Misafiri")
+    p = _mk_person(
+        sess, "Sn. Kaya", PersonKind.guest, room="Baskanlik Suiti",
+        contact="kaya@holding.com.tr",
+        title="VIP Protokol Misafiri",
+    )
     v = _mk_vehicle(sess, "34 KAY 44", p, "VIP Misafir - Protokol",
                     reg_from=NOW - timedelta(days=300), reg_to=None)
     for d in (APR15, datetime(2026, 7, 10, tzinfo=UTC), datetime(2026, 9, 5, tzinfo=UTC)):

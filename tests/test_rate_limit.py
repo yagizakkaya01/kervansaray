@@ -27,6 +27,7 @@ def test_rate_limiter_sliding_window():
 
 
 def test_query_route_enforces_rate_limit(monkeypatch):
+    monkeypatch.setattr(limiter, "per_minute", 5)
     limiter.clear()
     app = create_app()
     app.config["TESTING"] = True
@@ -64,7 +65,8 @@ def test_query_route_enforces_rate_limit(monkeypatch):
         assert "Dakikalık soru limitine" in r_blocked.get_json()["error"]
 
 
-def test_cached_query_bypasses_rate_limit():
+def test_cached_query_bypasses_rate_limit(monkeypatch):
+    monkeypatch.setattr(limiter, "per_minute", 5)
     limiter.clear()
     query_cache.clear()
 
@@ -111,8 +113,9 @@ def test_cached_query_bypasses_rate_limit():
     assert r_cached.get_json()["narrative"] == "Hazir yanit"
 
 
-def test_spoofed_x_forwarded_for_cannot_bypass_rate_limit():
+def test_spoofed_x_forwarded_for_cannot_bypass_rate_limit(monkeypatch):
     """ProxyFix(x_for=1) sayesinde saldirganin sol tarafa sahte IP eklemesi engellenir."""
+    monkeypatch.setattr(limiter, "per_minute", 5)
     limiter.clear()
     app = create_app()
     app.config["TESTING"] = True

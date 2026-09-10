@@ -11,7 +11,7 @@ konteyneri yeniden baslatmak yeter.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session as DbSession
 
@@ -26,7 +26,7 @@ TZ = "+03:00"
 
 def _canned() -> list[tuple[list[str], str, dict]]:
     """(sorular, tool, args). Ayni cevaba giden farkli ifadeler birlikte."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     year_start = "2026-01-01T00:00:00" + TZ
     end = (now + timedelta(days=1)).strftime("%Y-%m-%dT00:00:00") + TZ
     p90 = (now - timedelta(days=100)).strftime("%Y-%m-%dT00:00:00") + TZ
@@ -35,7 +35,11 @@ def _canned() -> list[tuple[list[str], str, dict]]:
     return [
         (["15 Nisan 2026'da toplam kaç araç hareketi oldu?"],
          "aggregate_events",
-         {"start": "2026-04-15T00:00:00" + TZ, "end": "2026-04-16T00:00:00" + TZ, "metric": "count"}),
+         {
+             "start": "2026-04-15T00:00:00" + TZ,
+             "end": "2026-04-16T00:00:00" + TZ,
+             "metric": "count",
+         }),
 
         (["Şu an sahada kaç araç var?", "Otopark doluluğu nedir?"],
          "occupancy", {}),

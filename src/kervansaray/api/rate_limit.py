@@ -20,7 +20,9 @@ def _env_int(name: str, default: int) -> int:
 
 class RateLimiter:
     def __init__(self, per_minute: int | None = None, per_day: int | None = None):
-        self.per_minute = per_minute if per_minute is not None else _env_int("RATE_LIMIT_PER_MINUTE", 10)
+        self.per_minute = (
+            per_minute if per_minute is not None else _env_int("RATE_LIMIT_PER_MINUTE", 10)
+        )
         self.per_day = per_day if per_day is not None else _env_int("RATE_LIMIT_PER_DAY", 500)
         self._requests: dict[str, list[float]] = defaultdict(list)
         self._lock = threading.Lock()
@@ -47,13 +49,15 @@ class RateLimiter:
             if minute_count >= self.per_minute:
                 return (
                     False,
-                    f"Dakikalık soru limitine ({self.per_minute} soru/dk) ulaştınız. Lütfen 1 dakika bekleyin veya kotayı sıfırlayın.",
+                    f"Dakikalık soru limitine ({self.per_minute} soru/dk) ulaştınız. "
+                    "Lütfen 1 dakika bekleyin veya kotayı sıfırlayın.",
                 )
 
             if len(recent) >= self.per_day:
                 return (
                     False,
-                    f"Günlük soru limitine ({self.per_day} soru/gün) ulaştınız. Test modunda kotayı sıfırlayabilirsiniz.",
+                    f"Günlük soru limitine ({self.per_day} soru/gün) ulaştınız. "
+                    "Test modunda kotayı sıfırlayabilirsiniz.",
                 )
 
             recent.append(now)

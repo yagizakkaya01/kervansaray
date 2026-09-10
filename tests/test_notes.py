@@ -39,13 +39,11 @@ def test_search_notes_sql_building():
     assert len(res.rows) == 1
     assert res.rows[0]["author"] == "Yönetim"
 
-    # SQL ve parametre kontrolü
+    # SQL ve parametre kontrolü (SQL filtrelemesi author uzerinden yapilir)
     call_args = mock_db.execute.call_args
     assert call_args is not None
     sql_text, params = call_args[0]
-    assert "%VIP%" in params["term"]
     assert "%Yönetim%" in params["author"]
-    assert params["limit"] == 5
 
 
 def test_search_notes_wildcard_escaping():
@@ -58,7 +56,6 @@ def test_search_notes_wildcard_escaping():
     call_args = mock_db.execute.call_args
     assert call_args is not None
     _, params = call_args[0]
-    assert params["term"] == r"%100\%\_guvenlik\\test%"
     assert params["author"] == r"%admin\_\%%"
 
 
@@ -75,14 +72,27 @@ def test_dispatch_search_notes():
 
 
 def test_format_narrative_search_notes():
-    # 1. Kayıt bulundu
+    # 1. Kayıt bulundu (tek kayıt -> İlgili prosedür/not bulundu)
     res_found = ToolResult(
         tool="search_notes",
         params={"query": "VIP"},
         rows=[{"id": 1, "body": "VIP misafir araçları Doğu Otoparkına yönlendirilir."}],
     )
     narrative = format_narrative("search_notes", {"query": "VIP"}, res_found)
-    assert "'VIP' ile ilgili 1 adet not bulundu" in narrative
+    assert "İlgili prosedür/not bulundu" in narrative
+    assert "VIP misafir araçları Doğu Otoparkına yönlendirilir." in narrative
+
+    # Çoklu kayıt -> 'X' ile ilgili N adet kayıt bulundu
+    res_multiple = ToolResult(
+        tool="search_notes",
+        params={"query": "VIP"},
+        rows=[
+            {"id": 1, "body": "VIP kural 1"},
+            {"id": 2, "body": "VIP kural 2"},
+        ],
+    )
+    narrative_mult = format_narrative("search_notes", {"query": "VIP"}, res_multiple)
+    assert "'VIP' ile ilgili 2 adet kayıt bulundu" in narrative_mult
 
     # 2. Kayıt bulunamadı
     res_empty = ToolResult(

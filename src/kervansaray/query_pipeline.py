@@ -164,9 +164,15 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
         elif known:
             ident_str = "Araç sistemde kayıtlıdır."
         else:
-            ident_str = "Sistemde araç sahibi / tescil kaydı bulunmamaktadır (misafir/kayıtsız araç)."
+            ident_str = (
+                "Sistemde araç sahibi / tescil kaydı bulunmamaktadır "
+                "(misafir/kayıtsız araç)."
+            )
 
-        return f"{plate} plakalı araç: {ident_str} {inside_str} (Sistemde {cnt} hareket kaydı mevcut)."
+        return (
+            f"{plate} plakalı araç: {ident_str} {inside_str} "
+            f"(Sistemde {cnt} hareket kaydı mevcut)."
+        )
 
     if tool_name == "find_anomalies":
         cnt = len(result.rows)
@@ -189,8 +195,14 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
         capacity = 100
         empty_spots = max(0, capacity - int(cnt))
         if as_of_val:
-            return f"Belirtilen an itibarıyla otoparkta {cnt} araç bulunuyordu (Kapasite: {capacity}, Boş Yer: {empty_spots})."
-        return f"Otoparkta şu anda {cnt} araç bulunuyor. Toplam {capacity} araçlık tesiste {empty_spots} boş yer mevcuttur."
+            return (
+                f"Belirtilen an itibarıyla otoparkta {cnt} araç bulunuyordu "
+                f"(Kapasite: {capacity}, Boş Yer: {empty_spots})."
+            )
+        return (
+            f"Otoparkta şu anda {cnt} araç bulunuyor. "
+            f"Toplam {capacity} araçlık tesiste {empty_spots} boş yer mevcuttur."
+        )
 
     if tool_name == "search_notes":
         cnt = len(result.rows)
@@ -203,7 +215,10 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
         author_str = f" ({author})" if author else ""
         if cnt == 1:
             return f"İlgili prosedür/not bulundu{author_str}: \"{first_body}\""
-        return f"'{q}' ile ilgili {cnt} adet kayıt bulundu. İlgili talimat{author_str}: \"{first_body}\""
+        return (
+            f"'{q}' ile ilgili {cnt} adet kayıt bulundu. "
+            f"İlgili talimat{author_str}: \"{first_body}\""
+        )
 
     if tool_name == "registry_summary":
         sc = result.scalar if isinstance(result.scalar, dict) else {}
@@ -269,7 +284,10 @@ def build_audit_metadata(
     if time_hint:
         if isinstance(time_hint, tuple) and len(time_hint) == 2:
             t_start, t_end = time_hint
-            time_str = f"{t_start.strftime('%d.%m.%Y %H:%M')} - {t_end.strftime('%d.%m.%Y %H:%M')} (Pencere Çözümlendi)"
+            time_str = (
+                f"{t_start.strftime('%d.%m.%Y %H:%M')} - "
+                f"{t_end.strftime('%d.%m.%Y %H:%M')} (Pencere Çözümlendi)"
+            )
         else:
             time_str = str(time_hint)
     else:
@@ -289,9 +307,16 @@ def build_audit_metadata(
         surface = "SQL Çağrısı Yapılmadı (Doğrudan Çözümleme)"
 
     intent_map = {
-        "vehicle_history": "Plaka bazlı hareket geçmişi, oturumlar ve sürücü tescil künyesi sorgulandı.",
-        "aggregate_events": "Belirtilen tarih ve filtre kriterlerine göre toplam araç hareketi istatistiği hesaplandı.",
-        "find_anomalies": "48 saat üzeri sahada kalma (overstay) veya gece 03:00 anomalisi tarandı.",
+        "vehicle_history": (
+            "Plaka bazlı hareket geçmişi, oturumlar ve sürücü tescil künyesi sorgulandı."
+        ),
+        "aggregate_events": (
+            "Belirtilen tarih ve filtre kriterlerine göre toplam araç hareketi "
+            "istatistiği hesaplandı."
+        ),
+        "find_anomalies": (
+            "48 saat üzeri sahada kalma (overstay) veya gece 03:00 anomalisi tarandı."
+        ),
         "occupancy": "Tesis içindeki anlık araç sayısı ve doluluk durumu analiz edildi.",
         "search_notes": "Vardiya amirliği prosedürleri ve operasyonel nöbet defteri tarandı.",
         "registry_summary": "Kayıtlı araç envanteri ve tür dağılımı sorgulandı.",
@@ -399,7 +424,9 @@ def run_query(
         if not candidates:
             candidates = [gemini_client]
 
-    def _invoke(sys_instr: str, tool_choice: str = "auto") -> tuple[dict[str, Any] | None, Any, Exception | None]:
+    def _invoke(
+        sys_instr: str, tool_choice: str = "auto"
+    ) -> tuple[dict[str, Any] | None, Any, Exception | None]:
         err: Exception | None = None
         for cand in candidates:
             prov = getattr(cand, "PROVIDER", "unknown")
@@ -481,8 +508,9 @@ def run_query(
         if status == "declined":
             narrative = (
                 "Ben sadece Kervansaray otopark hareketlerini, araç tescillerini, vardiya "
-                "prosedürlerini ve güvenlik anomalilerini analiz edebilen bir istihbarat motoruyum. "
-                "Lütfen yukarıdaki hazır sorulardan birini seçin veya bir plaka/otopark durumu sorusu sorun."
+                "prosedürlerini ve güvenlik anomalilerini analiz edebilen bir istihbarat "
+                "motoruyum. Lütfen yukarıdaki hazır sorulardan birini seçin veya bir "
+                "plaka/otopark durumu sorusu sorun."
             )
         else:
             narrative = resp_text or "Yanıt üretilemedi."

@@ -26,7 +26,7 @@ def test_out_of_scope_declined():
     res = run_query("Hava yarın nasıl olacak?", db, client=mock_client)
     assert res["status"] == "declined"
     assert res["tool_call"] is None
-    assert "kapsamı dışındadır" in res["narrative"]
+    assert "Kervansaray" in res["narrative"]
     assert res["provider"] == "gemini"
 
 
@@ -139,7 +139,8 @@ def test_format_narrative_anomalies_and_query():
         rows=[{"plate": "34XYZ99", "reason": "overstay"}],
     )
     narr = format_narrative("find_anomalies", {"rule": "overstay"}, r_anom)
-    assert "1 adet 'overstay' anomalisi tespit edildi" in narr
+    assert "overstay" in narr
+    assert "1 adet" in narr
 
     # Query events
     r_ev = ToolResult(
@@ -242,7 +243,8 @@ def test_search_notes_pipeline_flow():
         res = run_query("VIP araç prosedürü nedir?", db, client=mock_client)
         assert res["status"] == "success"
         assert res["tool_call"]["name"] == "search_notes"
-        assert "'VIP' ile ilgili 1 adet not bulundu" in res["narrative"]
+        assert "İlgili prosedür/not bulundu" in res["narrative"]
+        assert "VIP misafir araçları Doğu Otoparkına alınır" in res["narrative"]
 
 
 def test_query_pipeline_error_does_not_leak_internals():

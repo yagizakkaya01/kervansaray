@@ -6,10 +6,12 @@ Türkçe karakter ve kelime bazlı eşleştirme destekli (Ponytail: sıfır hari
 from __future__ import annotations
 
 import re
+
 from sqlalchemy import text
 from sqlalchemy.orm import Session as DbSession
 
 from kervansaray.text.turkish import to_ascii
+
 from .types import ToolResult, json_row
 
 DEFAULT_LIMIT = 10
@@ -21,7 +23,7 @@ STOPWORDS = {
     "mi", "mu", "mı", "mü", "nedir", "nelerdir", "var", "yok", "olan",
     "göre", "gore", "nasil", "nasıl", "ne", "gibi", "kadar", "hakkında",
     "hakkinda", "ilgili", "geçerli", "gecerli", "durumda", "durumu",
-    "konusu", "tarafından", "icin"
+    "konusu", "tarafından"
 }
 
 

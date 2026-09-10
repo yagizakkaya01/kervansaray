@@ -10,7 +10,8 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy import select, text
-from sqlalchemy.orm import Session as DbSession, joinedload
+from sqlalchemy.orm import Session as DbSession
+from sqlalchemy.orm import joinedload
 
 from kervansaray.db.models import Event, Session, Vehicle
 from kervansaray.text.plates import canonicalize
