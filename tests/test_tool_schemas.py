@@ -15,11 +15,11 @@ def test_function_declarations_complete():
     names = {f["name"] for f in FUNCTION_DECLARATIONS}
     expected = {
         "query_events", "aggregate_events", "vehicle_history",
-        "find_anomalies", "occupancy", "search_notes",
+        "find_anomalies", "occupancy", "search_notes", "registry_summary",
     }
     assert names == expected
-    assert len(GEMINI_FUNCTION_DECLARATIONS) == 6
-    assert len(OPENAI_TOOLS) == 6
+    assert len(GEMINI_FUNCTION_DECLARATIONS) == 7
+    assert len(OPENAI_TOOLS) == 7
     assert OPENAI_TOOLS[0]["type"] == "function"
 
     # search_notes schema query icermeli

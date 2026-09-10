@@ -205,6 +205,26 @@ def format_narrative(tool_name: str, args: dict[str, Any], result: ToolResult) -
             return f"İlgili prosedür/not bulundu{author_str}: \"{first_body}\""
         return f"'{q}' ile ilgili {cnt} adet kayıt bulundu. İlgili talimat{author_str}: \"{first_body}\""
 
+    if tool_name == "registry_summary":
+        sc = result.scalar if isinstance(result.scalar, dict) else {}
+        total = sc.get("kayitli_arac", 0)
+        active = sc.get("aktif_tescil", 0)
+        bl = sc.get("kara_liste", 0)
+        seen = sc.get("kapidan_gecmis", 0)
+        pk = (args.get("person_kind") or "").strip()
+        if pk:
+            return (
+                f"Sistemde '{pk}' türünde {total} kayıtlı araç var; "
+                f"{active}'inin geçerli tescili aktif."
+            )
+        parts = ", ".join(f"{r['adet']} {r['tur']}" for r in result.rows[:4])
+        dagilim = f" ({parts})" if parts else ""
+        return (
+            f"Sistemde kişiye bağlı {total} araç kayıtlı{dagilim}. Bunların "
+            f"{active}'inin geçerli otopark tescili aktif, {bl}'si kara listede. "
+            f"İncelenen dönemde bu araçlardan {seen}'i kapıdan geçti."
+        )
+
     return f"{tool_name} başarıyla çalıştırıldı ({len(result.rows)} kayıt)."
 
 
@@ -261,6 +281,8 @@ def build_audit_metadata(
 
     if tool_name == "search_notes":
         surface = "notes (Güvenlik Vardiya & Prosedür Notları)"
+    elif tool_name == "registry_summary":
+        surface = "vehicles + persons + registrations (Tescil Envanteri • Read-Only)"
     elif tool_name in ("vehicle_history", "aggregate_events", "find_anomalies", "occupancy"):
         surface = "v_events (Denormalize Olay View'ı • Read-Only)"
     else:
@@ -272,6 +294,7 @@ def build_audit_metadata(
         "find_anomalies": "48 saat üzeri sahada kalma (overstay) veya gece 03:00 anomalisi tarandı.",
         "occupancy": "Tesis içindeki anlık araç sayısı ve doluluk durumu analiz edildi.",
         "search_notes": "Vardiya amirliği prosedürleri ve operasyonel nöbet defteri tarandı.",
+        "registry_summary": "Kayıtlı araç envanteri ve tür dağılımı sorgulandı.",
     }
     justification = intent_map.get(
         tool_name,

@@ -232,7 +232,10 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
         "name": "search_notes",
         "description": (
             "Vardiya notları, güvenlik raporları, teknik arızalar, VIP protokolleri "
-            "ve operasyonel prosedür metinlerinde serbest metin araması yapar."
+            "ve operasyonel PROSEDÜR metinlerinde serbest metin araması yapar. "
+            "DİKKAT: Sayı / adet / istatistik / envanter / 'kaç araç' sorularında "
+            "ASLA bu aracı çağırma — notlar yalnızca prosedür ve vardiya devir "
+            "metinleridir, veri içermez."
         ),
         "parameters": {
             "type": "object",
@@ -254,6 +257,30 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
                 },
             },
             "required": ["query"],
+        },
+    },
+    {
+        "name": "registry_summary",
+        "description": (
+            "Sisteme KAYITLI araç envanterinin anlık sayımını verir (kapıdan geçen "
+            "araçlar değil, tescil defterindeki tüm araçlar). "
+            "'Sistemde kaç araç kayıtlı', 'tescilli araç envanteri', 'kaç kayıtlı "
+            "personel/misafir/tedarikçi aracı var' gibi ENVANTER sorularında bu "
+            "aracı çağır. Zamandan bağımsızdır; tarih parametresi almaz."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "person_kind": {
+                    "type": "string",
+                    "enum": ["guest", "staff", "vendor", "unknown"],
+                    "description": (
+                        "İsteğe bağlı tür filtresi: 'guest' (misafir), 'staff' "
+                        "(personel), 'vendor' (tedarikçi), 'unknown' (sahipsiz). "
+                        "Boş bırakılırsa tüm türler sayılır ve dağılım döner."
+                    ),
+                },
+            },
         },
     },
 ]

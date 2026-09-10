@@ -15,6 +15,7 @@ from .anomalies import RULES, find_anomalies
 from .dispatcher import TOOLS, dispatch_tool
 from .events import aggregate_events, query_events
 from .notes import search_notes
+from .registry import registry_summary
 from .schemas import (
     FUNCTION_DECLARATIONS,
     GEMINI_FUNCTION_DECLARATIONS,
@@ -34,6 +35,7 @@ __all__ = [
     "find_anomalies",
     "occupancy",
     "search_notes",
+    "registry_summary",
     "dispatch_tool",
     "FUNCTION_DECLARATIONS",
     "GEMINI_FUNCTION_DECLARATIONS",

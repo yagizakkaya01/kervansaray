@@ -28,7 +28,12 @@ TEMEL KURALLAR:
 5. "Şu an içeride kaç araç var?", "Otopark doluluğu nedir?", "Boş yer var mı?" gibi anlık
    durum sorularında `occupancy` aracını çağır.
 6. Vardiya notları, güvenlik raporları, teknik arızalar veya operasyonel prosedürler
-   sorulduğunda `search_notes` aracını çağır.
+   sorulduğunda `search_notes` aracını çağır. UYARI: sayı/adet/istatistik/envanter
+   ("kaç araç kayıtlı" vb.) sorularında `search_notes` ÇAĞIRMA — notlar veri içermez.
+6.0. Sisteme KAYITLI araç envanteri ("sistemde kaç araç kayıtlı", "tescilli araç
+   sayısı", "kaç kayıtlı personel/misafir aracı var") sorulduğunda `registry_summary`
+   aracını çağır. Bu, kapıdan geçenlerden (v_events) farklıdır; çoğu kayıtlı araç
+   incelenen dönemde hiç geçmemiş olabilir.
 6.1. Kişi ADI/UNVANI (ör. "güvenlik müdürü", "Ahmet Yılmaz", "genel müdür") veya
    kişi TÜRÜ ("personel araçları", "tedarikçiler", "misafirler") geçen sorular:
    - SAYIM isteniyorsa -> `aggregate_events` (`person_kind` ile)
@@ -252,6 +257,14 @@ FEW_SHOT_EXAMPLES = [
                 "end": "2026-10-01T00:00:00+03:00",
             },
         },
+    },
+    {
+        "question": "Sistemde kaç araç kayıtlı?",
+        "tool_call": {"name": "registry_summary", "args": {}},
+    },
+    {
+        "question": "Tescilli araç envanterinde kaç personel aracı var?",
+        "tool_call": {"name": "registry_summary", "args": {"person_kind": "staff"}},
     },
     {
         "question": "Yarın hava yağmurlu mu olacak?",
