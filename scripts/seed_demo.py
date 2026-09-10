@@ -287,6 +287,13 @@ def reset(sess):
         sess.execute(delete(Vehicle).where(Vehicle.id.in_(vids)))
         if pids:
             sess.execute(delete(Person).where(Person.id.in_(pids)))
+    # Sequence boşluklarını önle: silinen demo id'leri sonrası sequence'ı max(id)'ye çek
+    sess.execute(text(
+        "SELECT setval('vehicles_id_seq', COALESCE((SELECT max(id) FROM vehicles), 1))"
+    ))
+    sess.execute(text(
+        "SELECT setval('persons_id_seq', COALESCE((SELECT max(id) FROM persons), 1))"
+    ))
 
 
 def main():
