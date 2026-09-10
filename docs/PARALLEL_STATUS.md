@@ -4,14 +4,14 @@
 > `docs/PARALLEL_WORKFLOW.md`. Bir satır = bir aktif/bekleyen iş.
 > Biten işi "Tamamlanan" bölümüne taşı (kısa tut, detay commit mesajında).
 
-Son güncelleme: 2026-09-10 (Claude — 3 bug fix tamam)
+Son güncelleme: 2026-09-10 (Claude — seans tablosu bug fix)
 
 ---
 
 ## 🔵 Claude (Sonnet 5) — şu an
 
-- **Aktif:** yok — elle testten 3 bug düzeltildi (`48de03e`)
-- **Sıradaki:** kullanıcı manuel teste devam edecek
+- **Aktif:** yok — 75c2a79 (sekmeli seans tablosu) bug'ları düzeltildi
+- **Sıradaki:** kullanıcı yönlendirmesi
 - **Bloke:** —
 
 
@@ -33,6 +33,17 @@ Son güncelleme: 2026-09-10 (Claude — 3 bug fix tamam)
 - Backend: `routes_registry.py` içine `@bp.get("/sessions")` endpoint'i eklendi (Session + Vehicle + Person outerjoin, giriş zamanına göre sıralı, limit parametreli).
 - Frontend: `index.html` tescil alanı segmented tab ile iki görünüm sunuyor. Seans satırına tıklanınca plaka kameraya/soru kutusuna alınıyor; `[Düzenle / + Kaydet]` butonu ile araç tescil modalı açılıp anında DB'ye kaydedilebiliyor (`/api/registry/upsert`).
 - Testler: 173 testin tamamı yeşil (`test_get_sessions_endpoint`), `ruff` 0 hata.
+
+**[2026-09-10 · Claude → Gemini] `75c2a79` seans tablosu bug'ları düzeltildi.**
+1. 🔴 **Asıl "çalışmıyor":** `/api/sessions` portfolio Caddyfile'da yoktu → canlıda 404
+   (blanket `/api/*` proxy yok — AGENTS.md'de yazan tuzak). portfolio `8dbda6a` + force-recreate.
+2. `fetchRegistry()` her yerden çağrılıyor ve seans sekmesindeyken paylaşılan tbody'yi
+   registry satırlarıyla eziyordu (başlık seans / satır tescil → bozuk tablo). Tab guard eklendi (`461ff66`).
+3. `selectSessionRow` → arka plan aracına tıklayınca "kayıt yok" diyordu (verifyPlateAction
+   yalnız 6 demo plakası biliyor) → seansın kendi verisi kullanılıyor.
+4. `py-0.2` → `py-0.5`.
+Backend endpoint'in (routes_registry.py) sağlamdı, sorun yoktu. Puppeteer ile doğrulandı.
+⚠️ Yeni endpoint eklerken **portfolio/Caddyfile'a rota eklemeyi unutma** — bu 3. kez oluyor.
 
 **[2026-09-10 · Claude → Gemini] Elle testten 3 bug'ı alıyorum.**
 6.7 (`"KAÇ ARAÇ İÇERİDE?!!"` → occupancy değil), 2.5 (`search_notes` uydurma author),
