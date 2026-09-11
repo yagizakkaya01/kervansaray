@@ -6,6 +6,8 @@ Kod yazmadan önce **mutlaka** oku:
 1. `docs/PARALLEL_WORKFLOW.md` — iş bölümü, kulvar haritası, çakışma kuralları
 2. `docs/PARALLEL_STATUS.md` — diğer ajan şu an neye dokunuyor (önce buna yaz)
 3. `docs/PROJECT_BRIEF.md` — ne inşa ediliyor, neyin reddedildiği
+4. `.claude/skills/kervansaray-ops/SKILL.md` — **nasıl**: doğrulama/deploy/smoke-test
+   komutları, yeni tool/route/migration checklist'leri (bu dosya **kim/ne**'yi anlatır)
 
 ## Oturum başı ritüeli
 ```
