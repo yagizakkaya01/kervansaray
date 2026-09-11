@@ -4,16 +4,15 @@
 > `docs/PARALLEL_WORKFLOW.md`. Bir satır = bir aktif/bekleyen iş.
 > Biten işi "Tamamlanan" bölümüne taşı (kısa tut, detay commit mesajında).
 
-Son güncelleme: 2026-09-11 (Claude, local oturum — cnt-02/04/05 prompt fix'i doğrulandı, cnt-14/ph-01 açık kaldı)
+Son güncelleme: 2026-09-11 (Claude, local oturum — 6/6 gold-set açık bug'ı kapandı, cnt-14/ph-01 deterministik post-hoc düzeltmeyle çözüldü)
 
 ---
 
 ## 🔵 Claude (Sonnet 5) — şu an
 
-- **Aktif:** yok — local oturumda `rs-01`/`cnt-02`/`cnt-04`/`cnt-05`/`cnt-14`/`ph-01` teşhis edildi,
-  3'ü prompt/schema fix'iyle düzeltildi ve canlı NVIDIA'ya karşı doğrulandı
-- **Sıradaki:** kullanıcı yönlendirmesi (cnt-14/ph-01 için ikinci tur mu, yoksa mevcut kazanımla
-  commit mi)
+- **Aktif:** yok — `rs-01`/`cnt-02`/`cnt-04`/`cnt-05`/`cnt-14`/`ph-01` hepsi canlı NVIDIA'ya karşı
+  doğrulandı, 183/183 test + ruff temiz
+- **Sıradaki:** kullanıcı yönlendirmesi
 - **Bloke:** —
 
 ⚠️ **Bu oturumda iki Claude (Sonnet 5) aynı anda aktifti** (admin dashboard işi + bu mesajın
@@ -34,6 +33,27 @@ yazarı). `PARALLEL_WORKFLOW.md`'nin "Claude / Gemini" ayrımı iki eşzamanlı 
 
 > Turn-based kanal: ikimiz de sürekli çalışmıyoruz, kullanıcı çağırınca uyanıyoruz.
 > Haberleşme = `git fetch` sonrası bu bölüm + commit mesajları. En yeni üstte.
+
+**[2026-09-11 · Claude (local) → Gemini/Claude] `cnt-14`/`ph-01` ikinci tur: prompt whack-a-mole
+duvara çarptı, deterministik post-hoc düzeltmeye geçildi — 6/6 gold-set açık bug kapandı.**
+Önceki mesajın bıraktığı `cnt-14` (uydurma `registered`/`person_kind`) ve `ph-01` (plaka
+halüsinasyonu) için üç prompt-seviyesi deneme yaptım, üçü de başarısız/etkisiz kaldı:
+1. Şema/prompt uyarısı zaten vardı (önceki mesaj) — yetersiz.
+2. Few-shot'ları yeniden sıraladım (plaka örnekleri ile isim örnekleri arası mesafe hipotezi) —
+   test etmeden vazgeçtim, doğrudan 3'e geçtim.
+3. Soruya özel runtime sistem-prompt uyarısı (`query_pipeline.py`, sorguya en yakın konumda)
+   eklendim — **`ph-01` 3/3 hâlâ farklı uydurma plakalar üretti** (`34KER44`, `34ABC123`,
+   `34KER4SIN` — sonuncusu "Şahin"den harf harf türetilmiş, modelin bir plaka üretmeye
+   kararlı olduğunu gösteriyor), **`cnt-14` 2/3'ten 3/3'e KÖTÜLEŞTİ**. Runtime hint'i geri aldım.
+
+Sonuç: bu iki bug prompt/talimat sorunu değil, Nemotron 3.5 Lightning'in bu tetikleyicilerde
+(("X plakalı" + X bir isim) ve (yön belirtilmiş ama başka filtre yok)) açık talimata rağmen
+uydurma değer üretme eğilimi — modele güvenmek yerine **deterministik post-hoc düzeltme**
+(`query_pipeline.py` adım 5, `dispatch_tool`'dan hemen önce, `find_anomalies`'in zaten yaptığı
+gibi): `plate` argümanı var ama sorguda gerçek plaka kalıbı yoksa `"X plaka"`dan önceki metni
+`person`'a çevir; `aggregate_events`/`query_events` çağrısında sorguda kayıt durumu/kişi türü
+kelimesi hiç geçmiyorsa `registered`/`person_kind`'ı at. 3'er tekrarlı canlı NVIDIA koşumuyla
+doğrulandı (ikisi de 3/3 doğru), sonra tam 6 soruluk gold-set + `ruff`/`pytest` (183/183) temiz.
 
 **[2026-09-11 · Claude (local) → Gemini/Claude] `rs-01`/`cnt-02`/`cnt-04`/`cnt-05`/`cnt-14`/`ph-01`
 teşhisi + 3 fix.** Bu mesajın devraldığı 5 açık bug'ı `run_query(soru, db, use_cache=False)` ile

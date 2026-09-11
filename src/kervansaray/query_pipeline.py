@@ -460,6 +460,17 @@ def run_query(
     time_hint = extract_time_hint(clean_query, as_of=as_of)
     system_instruction = build_system_prompt(as_of=as_of, time_hint=time_hint)
 
+    # ph-01/cnt-14 bug'lari: kucuk model "X plakali..." (X bir isim oldugunda)
+    # veya sorulmayan registered/person_kind filtresi icin ek sistem-prompt
+    # uyarisina/few-shot'a ragmen (3 ayri deneme) inandirici ama uydurma deger
+    # uretmeye devam ediyor - bu iki isaret asagida (adim 5) tool_args uzerinde
+    # DETERMINISTIK olarak duzeltilir; LLM'e guvenmek yerine.
+    _clean_lower = to_ascii(clean_query.lower())
+    _has_plate = re.search(r"\b\d{2}\s?[a-z]{1,4}\s?\d{1,5}\b", _clean_lower) is not None
+    _TYPE_FILTER_WORDS = (
+        "kayitli", "kayitsiz", "tescilli", "personel", "misafir", "tedarikci", "kara liste",
+    )
+
     # 3. LLM cagir (aktif saglayicilar sirasiyla denenir; fallback destekli)
     if client:
         candidates = [client]
@@ -502,8 +513,6 @@ def run_query(
     # talimat ve zorunlu tool_choice="required" ile dene (kucuk model hatasi telafisi).
     # Plaka kalibi iceren sorular (ör. "34 KAY 44 kime ait, sen misin?" -> bug 5.2)
     # da domain-ici sayilir; kimlik cumlesi modeli yanlislikla reddettiriyor.
-    _clean_lower = to_ascii(clean_query.lower())
-    _has_plate = re.search(r"\b\d{2}\s?[a-z]{1,4}\s?\d{1,5}\b", _clean_lower) is not None
     if (
         llm_out is not None
         and not llm_out.get("function_call")
@@ -589,7 +598,27 @@ def run_query(
 
     # 5. Tool calistir
     tool_name = fc.get("name", "")
-    tool_args = fc.get("args", {})
+    tool_args = dict(fc.get("args", {}))
+
+    # ph-01: sorguda gercek plaka kalibi yokken model "plate" uydurdu ise
+    # (bkz. yukaridaki not), soruda "plaka" kelimesinden ONCEKI metni isim
+    # sayip person'a cevir; isim cikaramazsak plate'i yine de at (uydurma
+    # plakayla yanlis/bos sonuc donmesindense duzgun bir "kisi bulunamadi"
+    # hatasi tercih edilir).
+    if tool_args.get("plate") and not _has_plate:
+        m = re.match(r"^(.*?)\s+plaka", _clean_lower)
+        guessed_person = m.group(1).strip() if m else None
+        del tool_args["plate"]
+        if guessed_person and "person" not in tool_args:
+            tool_args["person"] = guessed_person
+
+    # cnt-14: sorguda kayit durumu/kisi turu hic gecmiyorsa, modelin uydurdugu
+    # registered/person_kind filtrelerini at.
+    if tool_name in ("aggregate_events", "query_events") and not any(
+        w in _clean_lower for w in _TYPE_FILTER_WORDS
+    ):
+        tool_args.pop("registered", None)
+        tool_args.pop("person_kind", None)
 
     if tool_name == "find_anomalies":
         q_low = clean_query.lower()
