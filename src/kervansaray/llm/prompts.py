@@ -22,6 +22,11 @@ Kervansaray Asistanıyım" de.
 TEMEL KURALLAR:
 1. Sen ham veri üzerinde "gözle sayı saymazsın". Toplam araç sayısı, geçiş adedi,
    dağılım veya istatistik sorulduğunda daima `aggregate_events` aracını çağır.
+   ZORUNLU: soruda "giriş/giren" veya "çıkış/çıkan" geçiyorsa `direction` parametresini
+   MUTLAKA doldur (boş bırakırsan giriş+çıkış karışık sayılır, yanlış/şişirilmiş sonuç
+   çıkar). Tersi de geçerli: soru SADECE toplam sayıyı/tarihi/plakayı belirtiyorsa
+   `registered`, `person_kind` gibi başka filtreleri UYDURMA — sadece kullanıcının
+   AÇIKÇA belirttiği filtreleri ekle, gerisini boş bırak.
 2. Belirli bir aracın tüm detayları ve hareket dökümü sorulduğunda `vehicle_history` aracını çağır.
 3. Bir zaman aralığındaki belirli olayların listesi (en fazla 50 satır) sorulduğunda
    `query_events` aracını çağır.
@@ -72,6 +77,11 @@ TEMEL KURALLAR:
       "[DECLINED] Bu soru otopark ve araç hareketleri kapsamı dışındadır."
 8. Tarih ve saat parametrelerini DAİMA geçerli ISO 8601 formatında
    (Türkiye saati UTC+3, örn: '2026-04-15T00:00:00+03:00') ver.
+   "X-Y <Ay> [yılı]" biçimindeki aralıklarda (ör. "6-12 Nisan 2026 haftası") X ve Y
+   İKİSİ DE O AYIN GÜNLERİDİR, ay TEK bir kez yazılır ve DEĞİŞMEZ — X'i ayrı bir ay
+   sanma. `start` = X. günün başlangıcı, `end` = (Y+1). günün başlangıcı (üstten açık
+   aralık, Y'nin tamamını kapsar). Örnek: "6-12 Nisan 2026" -> start='2026-04-06T00:00:00+03:00',
+   end='2026-04-13T00:00:00+03:00'.
 
 SİSTEM REFERANS BİLGİSİ:
 - Referans Zamanı: {reference_time}
@@ -113,6 +123,30 @@ FEW_SHOT_EXAMPLES = [
         },
     },
     {
+        "question": "6-12 Nisan 2026 haftasında kaç giriş oldu?",
+        "tool_call": {
+            "name": "aggregate_events",
+            "args": {
+                "start": "2026-04-06T00:00:00+03:00",
+                "end": "2026-04-13T00:00:00+03:00",
+                "direction": "entry",
+                "metric": "count",
+            },
+        },
+    },
+    {
+        "question": "11 Mayıs 2026'da kaç çıkış yapıldı?",
+        "tool_call": {
+            "name": "aggregate_events",
+            "args": {
+                "start": "2026-05-11T00:00:00+03:00",
+                "end": "2026-05-12T00:00:00+03:00",
+                "direction": "exit",
+                "metric": "count",
+            },
+        },
+    },
+    {
         "question": "4 Mayıs 2026 günü giriş ve çıkışların sayıları nedir?",
         "tool_call": {
             "name": "aggregate_events",
@@ -139,6 +173,15 @@ FEW_SHOT_EXAMPLES = [
             "name": "vehicle_history",
             "args": {
                 "person": "Kerem Yılmaz",
+            },
+        },
+    },
+    {
+        "question": "Kerem Şahin plakalı aracın geçmişini getir.",
+        "tool_call": {
+            "name": "vehicle_history",
+            "args": {
+                "person": "Kerem Şahin",
             },
         },
     },

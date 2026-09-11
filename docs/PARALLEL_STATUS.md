@@ -4,14 +4,16 @@
 > `docs/PARALLEL_WORKFLOW.md`. Bir satır = bir aktif/bekleyen iş.
 > Biten işi "Tamamlanan" bölümüne taşı (kısa tut, detay commit mesajında).
 
-Son güncelleme: 2026-09-11 (Claude — gold-set canlı LLM doğruluk raporu + 2 açık bug, testler local'e taşındı)
+Son güncelleme: 2026-09-11 (Claude, local oturum — cnt-02/04/05 prompt fix'i doğrulandı, cnt-14/ph-01 açık kaldı)
 
 ---
 
 ## 🔵 Claude (Sonnet 5) — şu an
 
-- **Aktif:** yok — gold-set canlı LLM raporu + prompt fix tamamlandı, kalan teşhis local'e bırakıldı
-- **Sıradaki:** kullanıcı yönlendirmesi (local oturumda `rs-01`/`cnt-02` teşhisi)
+- **Aktif:** yok — local oturumda `rs-01`/`cnt-02`/`cnt-04`/`cnt-05`/`cnt-14`/`ph-01` teşhis edildi,
+  3'ü prompt/schema fix'iyle düzeltildi ve canlı NVIDIA'ya karşı doğrulandı
+- **Sıradaki:** kullanıcı yönlendirmesi (cnt-14/ph-01 için ikinci tur mu, yoksa mevcut kazanımla
+  commit mi)
 - **Bloke:** —
 
 ⚠️ **Bu oturumda iki Claude (Sonnet 5) aynı anda aktifti** (admin dashboard işi + bu mesajın
@@ -32,6 +34,33 @@ yazarı). `PARALLEL_WORKFLOW.md`'nin "Claude / Gemini" ayrımı iki eşzamanlı 
 
 > Turn-based kanal: ikimiz de sürekli çalışmıyoruz, kullanıcı çağırınca uyanıyoruz.
 > Haberleşme = `git fetch` sonrası bu bölüm + commit mesajları. En yeni üstte.
+
+**[2026-09-11 · Claude (local) → Gemini/Claude] `rs-01`/`cnt-02`/`cnt-04`/`cnt-05`/`cnt-14`/`ph-01`
+teşhisi + 3 fix.** Bu mesajın devraldığı 5 açık bug'ı `run_query(soru, db, use_cache=False)` ile
+tek tek (local Docker Desktop + VPS'ten senkronlanmış `.env`, `kervansaray_test` DB) canlı
+NVIDIA'ya karşı koşturdum.
+
+Kök sebepler:
+- `cnt-02`: model `direction` parametresini boş bırakıyordu → giriş+çıkış karışık sayılıyordu.
+- `cnt-04`/`cnt-05`: "6-12 Nisan 2026 haftası" gibi `X-Y <Ay>` aralıkları yanlış parse ediliyordu
+  (ay değişip aralık tek güne düşüyordu — "6-12 Nisan" → `2026-06-12..06-13` çıkmıştı).
+- `cnt-14`: sorulmayan `registered`/`person_kind` filtreleri uyduruluyordu.
+- `ph-01`: "X plakalı" ifadesindeki X bir isim olsa da model plaka uyduruyordu (`a9c2c3b`'nin
+  fix'i yetmemiş).
+- `rs-01`: reprodüklenmedi, `registry_summary()` parametresiz + doğru sayılarla çalışıyor.
+
+Fix (`src/kervansaray/llm/prompts.py` + `src/kervansaray/tools/schemas.py`): `direction` alanına
+zorunlu-doldur uyarısı, `registered`/`person_kind` için "sadece belirtilmişse doldur" uyarısı
+şemaya taşındı, `X-Y <Ay>` aralık parse kuralı + 2 few-shot (`cnt-04` tarzı hafta, `cnt-14` tarzı
+tek gün çıkış), `ph-01` için ikinci `person` few-shot'u eklendi.
+
+**Doğrulama (aynı 6 soru, fix sonrası tekrar koşum):** `cnt-02` (37 ✅), `cnt-04` (188 ✅), `cnt-05`
+(368 ✅) düzeldi. **`cnt-14` ve `ph-01` hâlâ açık** — ikisi de prompt/schema seviyesinde açık kural
++ eşleşen few-shot olmasına rağmen düzelmedi (`ph-01` en yakın örneğe rağmen hâlâ `34KAY44`
+uyduruyor; `cnt-14` hâlâ `registered`/`person_kind` ekliyor) — bunlar muhtemelen ek few-shot'la
+whack-a-mole yerine daha derin bir inceleme (nerden geldiği - başka bir örnekle bulaşma mı,
+model'in kendi önyargısı mı) gerektiriyor. `ruff check .` + `pytest -q` (183/183) temiz, regresyon
+yok.
 
 **[2026-09-11 · Claude → Gemini/Claude] Gold-set canlı LLM doğruluk raporu + `.env` iki canlı düzeltme.**
 Kullanıcı isteği: "ERROR.md E1" testlerinden sonra gold-set'i (49→55 soru, `registry_summary`

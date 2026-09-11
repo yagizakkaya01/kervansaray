@@ -121,12 +121,20 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
                 "direction": {
                     "type": "string",
                     "enum": ["entry", "exit"],
-                    "description": "Geçiş yönü filtresi: 'entry' (giriş) veya 'exit' (çıkış).",
+                    "description": (
+                        "Geçiş yönü filtresi: 'entry' (giriş) veya 'exit' (çıkış). "
+                        "ZORUNLU HATIRLATMA: soruda 'giriş'/'giren'/'çıkış'/'çıkan' "
+                        "kelimelerinden biri geçiyorsa bu alanı MUTLAKA doldur — "
+                        "boş bırakırsan hem giriş hem çıkış birlikte sayılır ve "
+                        "yanlış (şişirilmiş) sonuç döner."
+                    ),
                 },
                 "registered": {
                     "type": "boolean",
                     "description": (
-                        "True: yalnızca kayıtlı araçlar. False: kayıtsız/bilinmeyen araçlar."
+                        "True: yalnızca kayıtlı araçlar. False: kayıtsız/bilinmeyen araçlar. "
+                        "SADECE kullanıcı 'kayıtlı'/'kayıtsız' dediyse doldur — aksi halde "
+                        "bu alanı HİÇ EKLEME (uydurma filtre yanlış/eksik sonuç döndürür)."
                     ),
                 },
                 "plate": {
@@ -141,7 +149,7 @@ FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
                     "enum": ["guest", "staff", "vendor", "unknown"],
                     "description": (
                         "Kişi türüne göre say ('kaç personel aracı girdi'). SADECE "
-                        "kullanıcı tür belirttiyse doldur."
+                        "kullanıcı tür belirttiyse doldur — aksi halde HİÇ EKLEME."
                     ),
                 },
             },
