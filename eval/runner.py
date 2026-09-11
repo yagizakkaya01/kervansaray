@@ -69,13 +69,13 @@ def _normalise(category: str, expected: dict, result) -> tuple:
         exp = {row["group"]: row["value"] for row in expected["rows"]}
         act = {row["group"]: row["value"] for row in r.rows}
         return exp, act
-    if category == "list_events":
+    if category in ("list_events", "list_events_person"):
         act = {"count": len(r.event_ids), "event_ids": sorted(r.event_ids),
                "truncated": r.truncated}
         exp = {"count": expected["count"], "event_ids": sorted(expected["event_ids"]),
                "truncated": expected["truncated"]}
         return exp, act
-    if category == "history":
+    if category in ("history", "person_history"):
         s = r.scalar
         act = {"known": s["known"], "is_blacklisted": s["is_blacklisted"],
                "event_count": s["event_count"]}

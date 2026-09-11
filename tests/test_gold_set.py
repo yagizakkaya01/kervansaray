@@ -22,6 +22,7 @@ def test_gold_set_is_wellformed():
     assert tools == {
         "aggregate_events", "query_events", "vehicle_history",
         "find_anomalies", "occupancy", "decline", "search_notes",
+        "registry_summary",
     }
     cats = categories()
     assert cats["decline"] >= 3  # guardrail sorulari

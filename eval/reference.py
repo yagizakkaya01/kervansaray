@@ -9,7 +9,7 @@ soru icin DB'ye bakilir (ikinci SQL formulasyonu - "cross-check").
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from kervansaray.synth import TR, Scenario
@@ -46,6 +46,8 @@ def build_expected(scenario: Scenario, q: dict) -> Any:
 
 def _count(scenario, p):
     start, end = _parse(p["start"]), _parse(p["end"])
+    pop = scenario.population
+    pk_filter = p.get("person_kind")
     n = 0
     for g in _dedupe(scenario):
         e = g.payload
@@ -53,6 +55,15 @@ def _count(scenario, p):
             continue
         if p.get("direction") and e.direction != p["direction"]:
             continue
+        if pk_filter:
+            spec = pop.find(g.true_plate)
+            matched = (
+                spec is not None and spec.known and not spec.synthetic
+                and g.dirt.count("ocr_error") == 0
+            )
+            key = spec.kind if (matched and spec.kind != "unknown") else "unknown"
+            if key != pk_filter:
+                continue
         n += 1
     return {"scalar": n}
 
@@ -216,6 +227,77 @@ def _replay_occupancy(scenario: Scenario, *, as_of: datetime | None) -> int:
     return len(inside)
 
 
+def _resolve_person(scenario: Scenario, name: str):
+    """Tam ad ile TEK bir persisted (known, non-synthetic) VehicleSpec'e cozer.
+
+    Gercek `_resolve_person_to_plate` SQL'i unaccent ILIKE alt-dize eslesmesi
+    yapar; buradaki sorular bilinerek COLLISION-FREE tam adlar kullanir (bkz.
+    eval/gold.py TOOL_PARAMETER_EXPANSION notu), o yuzden esitlik yeterli."""
+    return next(
+        (
+            v for v in scenario.population.vehicles
+            if v.person_name == name and v.known and not v.synthetic
+        ),
+        None,
+    )
+
+
+def _person_history(scenario, p):
+    spec = _resolve_person(scenario, p["person"])
+    if spec is None:
+        return {"known": False, "is_blacklisted": False, "event_count": 0}
+    events = [g for g in _dedupe(scenario) if g.payload.plate == spec.plate]
+    return {
+        "known": True,
+        "is_blacklisted": bool(spec.is_blacklisted),
+        "event_count": len(events),
+    }
+
+
+def _list_events_person(scenario, p):
+    spec = _resolve_person(scenario, p["person"])
+    if spec is None:
+        return {"count": 0, "event_ids": [], "truncated": False}
+    return _list_events(scenario, {**p, "plate": spec.plate})
+
+
+def _registry_summary(scenario, p):
+    """`tools/registry.py::registry_summary` ile ayni mantigin saf Python
+    yeniden formulasyonu - populasyon spec'lerinden, DB'ye bakmadan hesaplar.
+
+    `aktif_tescil` gercek zamanli `now()`'a bagli (bkz. tools/registry.py):
+    misafir kayitlarinin `reg_to`'su sabit senaryonun donem sonuna yakin
+    (~2026-06-01), yani bu tarihten sonraki HER eval kosusunda misafirler
+    hep 'suresi dolmus' sayilir - personel/tedarikcinin reg_to'su None
+    (hic dolmuyor). Bu yuzden sonuc, "simdi"nin o sabit tarihten sonra
+    olmasi disinda zamana duyarsizdir.
+    """
+    now = datetime.now(UTC)
+    pk = (p.get("person_kind") or "").strip().lower() or None
+
+    named = [
+        v for v in scenario.population.vehicles
+        if v.known and not v.synthetic and v.person_name is not None
+    ]
+    specs = [v for v in named if v.kind == pk and not v.is_blacklisted] if pk else named
+
+    total = len(specs)
+    active = sum(
+        1 for v in specs if v.registered and (v.reg_to is None or v.reg_to >= now)
+    )
+    blacklisted = sum(1 for v in specs if v.is_blacklisted)
+    seen_plates = {g.true_plate for g in _dedupe(scenario)}
+    seen = sum(1 for v in specs if v.plate in seen_plates)
+    return {
+        "scalar": {
+            "kayitli_arac": total,
+            "aktif_tescil": active,
+            "kara_liste": blacklisted,
+            "kapidan_gecmis": seen,
+        }
+    }
+
+
 def _search_notes(scenario, p):
     from kervansaray.synth.notes import get_synthetic_notes
 
@@ -244,4 +326,7 @@ _DISPATCH = {
     "occupancy_asof": _occupancy_asof,
     "decline": _decline,
     "search_notes": _search_notes,
+    "person_history": _person_history,
+    "list_events_person": _list_events_person,
+    "registry_summary": _registry_summary,
 }

@@ -193,6 +193,32 @@ _q("note-01", "search_notes", "VIP misafir araclari icin gecerli prosedur nedir?
 _q("note-02", "search_notes", "Bariyer arizasi veya bakim hakkinda herhangi bir not var mi?",
    "search_notes", {"query": "bariyer"})
 
+# --- Kisiden plakaya (vehicle_history person=, TOOL_PARAMETER_EXPANSION) ---
+# Sabit senaryoda (seed=777) tam adi COLLISION-FREE dogrulanmis iki kisi -
+# degistirilirse `python -m eval.build` yeniden calistirilmali (bkz. reference.py
+# _resolve_person notu).
+_q("ph-01", "person_history", "Kerem Sahin plakali aracin gecmisini getir.",
+   "vehicle_history", {"person": "Kerem Sahin"})
+_q("ph-02", "person_history", "Omer Aslan sistemde kayitli mi, kac hareketi var?",
+   "vehicle_history", {"person": "Omer Aslan"})
+
+# --- Kisiden filtreli olay listesi (query_events person=) ------------------
+_s, _e = _range(f"{_APR}-01", f"{_MAY}-01")
+_q("qep-01", "list_events_person",
+   "Kerem Sahin'in Nisan 2026'daki tum hareketlerini listele.",
+   "query_events", {"start": _s, "end": _e, "person": "Kerem Sahin"})
+
+# --- Kisi turune gore filtreli sayim (aggregate_events person_kind=) -------
+_s, _e = _range(f"{_APR}-01", f"{_JUN}-01")
+_q("pk-01", "count", "Nisan-Mayis 2026 doneminde personelin kac gecisi oldu?",
+   "aggregate_events", {"metric": "count", "start": _s, "end": _e, "person_kind": "staff"})
+
+# --- Tescil envanteri (registry_summary, 7. tool) --------------------------
+_q("rs-01", "registry_summary", "Sisteme kayitli toplam kac arac var?",
+   "registry_summary", {})
+_q("rs-02", "registry_summary", "Personel olarak kayitli kac arac var?",
+   "registry_summary", {"person_kind": "staff"})
+
 
 def categories() -> dict[str, int]:
     out: dict[str, int] = {}
