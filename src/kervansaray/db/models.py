@@ -216,3 +216,18 @@ class Note(Base, TimestampMixin):
     author: Mapped[str] = mapped_column(String(120), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
 
+
+class QueryLog(Base, TimestampMixin):
+    """'Ürettiklerim' doğal dil sorgu ucuna gelen her soru (admin audit).
+
+    `created_at` (TimestampMixin) soru zamanı; cevap/IP tutulmaz — sadece
+    admin dashboard'da "sorulan sorular" listesi için soru metni + zaman.
+    """
+
+    __tablename__ = "query_log"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    query_text: Mapped[str] = mapped_column(String(500), nullable=False)
+
+    __table_args__ = (Index("ix_query_log_created_at", "created_at"),)
+

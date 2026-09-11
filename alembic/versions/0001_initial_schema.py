@@ -26,6 +26,10 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     bind = op.get_bind()
+    # checkfirst=False kasitli: sifirdan bir upgrade'de bir tablo zaten varsa
+    # (ör. iki migration ayni tabloyu olusturmaya calisirsa) bunu sessizce
+    # yutmak yerine gurultuyle patlasin (kervansaray-ops/SKILL.md "Migration
+    # checklist").
     Base.metadata.create_all(bind=bind, checkfirst=False)
     op.execute(V_EVENTS_SQL)
 
@@ -33,4 +37,10 @@ def upgrade() -> None:
 def downgrade() -> None:
     bind = op.get_bind()
     op.execute("DROP VIEW IF EXISTS v_events")
-    Base.metadata.drop_all(bind=bind, checkfirst=False)
+    # checkfirst=True (upgrade() kasitli False kalir, yukarida): sonraki bir
+    # migration (ör. 0004) Base.metadata'ya eklenmis bir tabloyu kendi
+    # downgrade()'inde onceden DROP etmis olabilir (idempotent IF EXISTS) -
+    # burasi checkfirst=False olsaydi o tabloyu tekrar DROP etmeye calisip
+    # UndefinedTable ile patlardi. Var olmayan bir tabloyu sessizce atlamak
+    # burada guvenli: create_all zaten sifirdan calisirken hepsini olusturuyor.
+    Base.metadata.drop_all(bind=bind, checkfirst=True)
