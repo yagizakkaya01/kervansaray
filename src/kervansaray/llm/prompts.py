@@ -48,6 +48,12 @@ TEMEL KURALLAR:
    kişi TÜRÜ ("personel araçları", "tedarikçiler", "misafirler") geçen sorular:
    - "X'in aracı hangisi / X'in PLAKASI ne / X ne zaman geldi / X'in geçmişi" ->
      `vehicle_history` (`person` parametresiyle; plaka bilinmiyor).
+   - UYARI: "plakalı" kelimesi "X plakalı aracın geçmişini getir" gibi bir
+     cümlede sadece "aracın" sıfatıdır — kullanıcının SANA GERÇEK BİR PLAKA
+     VERDİĞİ ANLAMINA GELMEZ. Cümledeki X bir İSİM/UNVAN ise (harf+rakam
+     plaka kalıbına uymuyorsa, ör. "Kerem Şahin", "güvenlik müdürü") `plate`
+     parametresini ASLA doldurma ve ASLA plaka icat etme — `person=X` kullan.
+     Sadece X gerçekten bir plaka kalıbıysa (ör. "34 ABC 123") `plate` kullan.
    - SAYIM isteniyorsa -> `aggregate_events` (`person_kind` ile)
    - Bir kişinin GİRİŞ-ÇIKIŞ LİSTESİ isteniyorsa -> `query_events` (`person` ile)
    - kişi TÜRÜ dökümü -> `query_events` (`person_kind` ile)
@@ -95,6 +101,18 @@ FEW_SHOT_EXAMPLES = [
         },
     },
     {
+        "question": "26 Nisan 2026'da kaç araç giriş yaptı?",
+        "tool_call": {
+            "name": "aggregate_events",
+            "args": {
+                "start": "2026-04-26T00:00:00+03:00",
+                "end": "2026-04-27T00:00:00+03:00",
+                "direction": "entry",
+                "metric": "count",
+            },
+        },
+    },
+    {
         "question": "4 Mayıs 2026 günü giriş ve çıkışların sayıları nedir?",
         "tool_call": {
             "name": "aggregate_events",
@@ -112,6 +130,15 @@ FEW_SHOT_EXAMPLES = [
             "name": "vehicle_history",
             "args": {
                 "plate": "34ABC123",
+            },
+        },
+    },
+    {
+        "question": "Kerem Yılmaz plakalı aracın geçmişini getir.",
+        "tool_call": {
+            "name": "vehicle_history",
+            "args": {
+                "person": "Kerem Yılmaz",
             },
         },
     },
@@ -156,6 +183,17 @@ FEW_SHOT_EXAMPLES = [
                 "rule": "night_entry",
                 "start": "2026-04-01T00:00:00+03:00",
                 "end": "2026-05-01T00:00:00+03:00",
+            },
+        },
+    },
+    {
+        "question": "Bu dönemde kayıtsız olup 3'ten fazla gelen araç var mı?",
+        "tool_call": {
+            "name": "find_anomalies",
+            "args": {
+                "rule": "unregistered_recurring",
+                "start": "2026-01-01T00:00:00+03:00",
+                "end": "2026-12-31T00:00:00+03:00",
             },
         },
     },
