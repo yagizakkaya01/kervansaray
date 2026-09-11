@@ -39,6 +39,17 @@ pressure — the container-test step is what catches ruff/pytest regressions
    Full suite is ~170 tests / ~5 min. For a fast inner loop, point `pytest -q`
    at the specific `tests/test_*.py` files your change touches; run the full
    suite before the final commit.
+
+   **VPS RAM is tight (3.8GB total) — this has actually OOM-killed the live
+   `app` container.** Each throwaway container does its own `pip install`
+   plus a full pytest/eval run; stacking several of these at once (e.g. the
+   full suite + a migration test + a live LLM eval run, launched back to
+   back) starved the host and the kernel picked `kervansaray_app` as the
+   victim (`docker compose ps` showed `Exited (137)`, 2 hours of silent
+   502s on the live site before anyone noticed). Run one heavy throwaway
+   container at a time, and after anything long-running, check
+   `docker compose ps` for `Exited` and `free -h` for tight memory —
+   don't assume the live container survived.
 4. **Commit.** Message body in Turkish, imperative, explains *why* not just
    *what*. If the message contains a `"` or spans multiple lines with
    apostrophes, **don't** put it in `-m "..."` — a stray quote breaks the
@@ -48,10 +59,21 @@ pressure — the container-test step is what catches ruff/pytest regressions
    Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
    ```
 5. **`git push origin main`.**
-6. **Deploy — bind mount, so restart is enough:**
+6. **Deploy — bind mount, so restart is enough for CODE changes:**
    ```bash
    docker compose restart app && until curl -sf localhost:8000/healthz >/dev/null 2>&1; do sleep 2; done
    ```
+   **If you changed `.env`, `restart` is not enough** — the container keeps
+   the environment it was *created* with; edits to `.env` are only picked up
+   by a fresh container:
+   ```bash
+   docker compose up -d --force-recreate app
+   ```
+   (Confirmed live: bumping `LLM_REQUEST_TIMEOUT` in `.env` and running
+   `restart` left the old value inside the container — `docker compose exec
+   app python -c "import os; print(os.environ['LLM_REQUEST_TIMEOUT'])"` is
+   the way to check what a running container actually has, don't trust the
+   file on disk.)
 7. **Live smoke-test** (see below) against `localhost:8000` directly — skips
    Caddy, so it won't catch a missing proxy route (see "New Flask route").
 8. **`curl -s -XPOST localhost:8000/api/rate-limit/reset`** after testing —
