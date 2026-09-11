@@ -2492,6 +2492,12 @@
       initReviewQueueCount();
     });
 
+    // Admin dashboard ziyaret sayaci: /urettiklerim.html Caddy uzerinden bu
+    // konteynere proxy'lendigi icin sayfa yuklendiginde portfolio'nun ziyaret
+    // logu ucuna bir "beacon" atilir (ayni domain, Caddy eslesen bir demo
+    // yolu bulamazsa varsayilan olarak portfolio'ya duser). Sonucu onemsemez.
+    fetch('/api/stats?page=urettiklerim', { method: 'GET', keepalive: true }).catch(() => {});
+
     // --- 8. Tema (açık / koyu) ---
     // Ilk boyama <head>'deki inline script ile yapilir; burasi yalnizca
     // dugme tiklamasini isler ve tercihi localStorage'a yazar.
