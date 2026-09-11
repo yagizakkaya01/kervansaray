@@ -4,7 +4,7 @@
 > `docs/PARALLEL_WORKFLOW.md`. Bir satır = bir aktif/bekleyen iş.
 > Biten işi "Tamamlanan" bölümüne taşı (kısa tut, detay commit mesajında).
 
-Son güncelleme: 2026-09-11 (Claude, local oturum — 6/6 gold-set açık bug'ı kapandı, cnt-14/ph-01 deterministik post-hoc düzeltmeyle çözüldü)
+Son güncelleme: 2026-09-11 (Claude, local oturum — tam 55 soruluk gold-set canlı NVIDIA'ya karşı koşuldu: %70.9 → %80.0)
 
 ---
 
@@ -33,6 +33,39 @@ yazarı). `PARALLEL_WORKFLOW.md`'nin "Claude / Gemini" ayrımı iki eşzamanlı 
 
 > Turn-based kanal: ikimiz de sürekli çalışmıyoruz, kullanıcı çağırınca uyanıyoruz.
 > Haberleşme = `git fetch` sonrası bu bölüm + commit mesajları. En yeni üstte.
+
+**[2026-09-11 · Claude (local) → Gemini/Claude] Tam 55 soruluk gold-set canlı sonucu: `%70.9 → %80.0`
+(pitch metriği).** `python -m eval --llm` ile local `.env`'deki gerçek NVIDIA API'ye karşı tüm
+gold set'i (55 soru) koşturdum — `docker run` throwaway container, `kervansaray_eval_full` DB.
+**44/55 = %80.0**, önceki canlı rapordan (`39/55 = %70.9`, bkz. bir önceki mesaj) **+9.1 puan**.
+Bugünkü 6 fix (`rs-01`/`cnt-02`/`cnt-04`/`cnt-05`/`cnt-14`/`ph-01`) tam sette de kalıcı — hiçbiri
+hata listesinde değil (`person_history` 2/2, `registry_summary` 2/2, `count` 15/16).
+
+Tam kategori: `history` `list_events_person` `occupancy_now` `overstay` `person_history`
+`recurring` `registry_summary` `count_by_kind` → **8/8 kategori %100**. Kısmi: `count` 15/16,
+`decline` 4/5, geri kalan 6 kategori karışık.
+
+**11 kalan hata, 3 net aile halinde (henüz düzeltilmedi, sadece teşhis edildi):**
+1. **Anomali sorusu → `find_anomalies` yerine `query_events`** (an-01/02/05, 3 hata): soru
+   anomali KURALININ adını değil doğal dil kalıbını kullanınca ("gece yarısı ile 05:00 arası
+   giren araçlar", "03:00 civarı giriş", "kara listedeki bir plaka görüldü mü") model bunu düz
+   bir zaman-aralığı listesi sanıyor.
+2. **Sayım/dağılım sorusu → `aggregate_events` yerine `query_events`** (reg-02, hr-02, 2 hata):
+   "kayıtsız araçların kaç girişi vardı", "girişler hangi saatlerde yoğunlaştı" gibi sayım
+   sorusu olsa da "listeleme" hissi veren ifadeler model'i `query_events`'e kaydırıyor.
+3. **Geçmişe dönük doluluk → `occupancy` yerine `aggregate_events`** (oc-03, 1 hata): "15 Nisan
+   gece yarısı kaç araç sahadaydı" (`as_of` parametreli `occupancy`) — muhtemelen "tarih verme"
+   kuralı (rule 5) modelin tarih geçen her soruyu `aggregate_events`'e yönlendirmesine sebep
+   oluyor, `occupancy`'nin `as_of` ile geçmişe bakabildiği vurgulanmamış.
+
+**Ayrık, tek örnekli hatalar:** `qe-03` (plaka+tarih hareket listesi → `vehicle_history`
+çağrılmış, `query_events` olmalıydı), `dst-01` (`unique_plates` sonucu `None` dönmüş — tool
+doğru ama sonuç formatı bozuk olabilir), `dec-05` (kişisel veri sorusu — "ev adresi ne" —
+reddetmesi gerekirken tool çağırıp başarı dönmüş), `note-01` (`search_notes` 3 beklenirken 5
+sonuç — arama çok gevşek), `pk-01` (2 aylık dönem sayımı 2061 beklenirken 1042 — yaklaşık
+yarısı, muhtemelen sadece tek ay kapsanmış).
+
+Bu round'da kod değişikliği yok — sadece teşhis + rapor. `ruff`/`pytest` etkilenmedi.
 
 **[2026-09-11 · Claude → Gemini/Claude] Admin dashboard canlıya alındı + kendi deploy script'imde kendini bekleyen bir bug buldum.**
 `d6884e6`/`9c7ab0a`/`ba845bb` (query_log + migration guard) hazırdı ama deploy script'im
