@@ -4,15 +4,20 @@
 > `docs/PARALLEL_WORKFLOW.md`. Bir satır = bir aktif/bekleyen iş.
 > Biten işi "Tamamlanan" bölümüne taşı (kısa tut, detay commit mesajında).
 
-Son güncelleme: 2026-09-11 (Claude — admin dashboard: soru logu + ziyaret logu)
+Son güncelleme: 2026-09-11 (Claude — gold-set canlı LLM doğruluk raporu + 2 açık bug, testler local'e taşındı)
 
 ---
 
 ## 🔵 Claude (Sonnet 5) — şu an
 
-- **Aktif:** yok — admin dashboard (soru logu + ziyaret logu) tamamlandı, bkz. mesaj
-- **Sıradaki:** kullanıcı yönlendirmesi
+- **Aktif:** yok — gold-set canlı LLM raporu + prompt fix tamamlandı, kalan teşhis local'e bırakıldı
+- **Sıradaki:** kullanıcı yönlendirmesi (local oturumda `rs-01`/`cnt-02` teşhisi)
 - **Bloke:** —
+
+⚠️ **Bu oturumda iki Claude (Sonnet 5) aynı anda aktifti** (admin dashboard işi + bu mesajın
+yazarı). `PARALLEL_WORKFLOW.md`'nin "Claude / Gemini" ayrımı iki eşzamanlı Claude oturumunu
+öngörmüyor — aynı `🔵 Claude` bölümüne yazıyoruz, çakışma git commit sırasında değil, **aynı
+`kervansaray_test` scratch DB'sine paralel `docker run` ile** oldu (aşağıdaki not).
 
 
 ## 🟠 Gemini (3.8 Flash) — şu an
@@ -27,6 +32,51 @@ Son güncelleme: 2026-09-11 (Claude — admin dashboard: soru logu + ziyaret log
 
 > Turn-based kanal: ikimiz de sürekli çalışmıyoruz, kullanıcı çağırınca uyanıyoruz.
 > Haberleşme = `git fetch` sonrası bu bölüm + commit mesajları. En yeni üstte.
+
+**[2026-09-11 · Claude → Gemini/Claude] Gold-set canlı LLM doğruluk raporu + `.env` iki canlı düzeltme.**
+Kullanıcı isteği: "ERROR.md E1" testlerinden sonra gold-set'i (49→55 soru, `registry_summary`
++ `person=` kapsamı genişletildi, `9bd867c`) **gerçek NVIDIA API'ye karşı** koşturup pitch için
+doğruluk raporu çıkarmak. Süreçte iki gerçek canlı sorun bulundu ve düzeltildi:
+1. 🔴 **Canlı site 2 saat 502 verdi** — bu oturumdaki ardışık ağır throwaway test/eval
+   container'ları VPS'in 3.8GB RAM'ini zorlayıp `kervansaray_app`'i OOM-kill etti (exit 137).
+   Fark ettim, `docker compose up -d app` ile kurtardım. **Ders:** VPS'te ağır container'ı
+   ARDIŞIK çalıştır, asla paralel; `docker compose ps` + `free -h` kontrolü rutine girmeli.
+2. 🔴 `.env`'de `LLM_REQUEST_TIMEOUT=30` — NVIDIA'nın gerçek worst-case latency'sinin (60-90s,
+   kervansaray-ops SKILL.md'de zaten belgeli) altında, fallback da yok (`LLM_PROVIDER_ORDER=nvidia`
+   kasıtlı — Gemini günlük 20 soru kotalı). Sonuç: NVIDIA yavaşladığında sessizce "servis hatası."
+   `75`'e çektim (`docker compose up -d --force-recreate app` — **düz `restart` yeterli değil,
+   `.env` değişikliği için `--force-recreate` gerekiyor**, SKILL.md'ye eklendi).
+İkisi de `.env`'de (gitignore'lu, bu commit'e dahil değil) — canlıda uygulandı, kodda değil.
+
+**Gerçek rapor (timeout fix sonrası, temiz koşum):** `39/55 = %70.9`. Dispatcher-seviyesi
+(tool doğru verilince hesaplama) `50/50 = %100` — açık tamamen LLM'in tool/parametre seçiminde.
+`LLM_TEMPERATURE` 0.2→0.0 (aynı zamanda uygulandı) rakamı değiştirmedi ama hataları rastgele
+değil **deterministik** yaptı — `rs-01`/`cnt-02` iki ayrı koşumda birebir aynı yanlış çıktıyı
+verdi, yani artık gerçek, tekrarlanabilir bug (şans değil).
+
+Bir prompt fix yaptım ve commit'ledim (`a9c2c3b`, `llm/prompts.py`): "plakalı" kelimesi
+plaka VERİLDİĞİ anlamına gelmiyor (model isim sorularında hayali plaka icat ediyordu,
+kanıtlı: "Kerem Sahin plakalı..." → `plate: "34ABC123"` hallucination) + direction/
+find_anomalies için 2 takviye few-shot.
+
+⚠️ **Kalan açık, henüz düzeltilmedi — VPS kaynak baskısı nedeniyle local'e bırakıldı:**
+- `rs-01`: "Sisteme kayıtlı toplam kaç araç var?" → model muhtemelen yanlışlıkla
+  `registry_summary(person_kind="blacklist")` çağırıyor (çıktı tam o filtrenin sayılarıyla
+  eşleşiyor: 1/0/1/1). Filtresiz soruda neden filtre eklediği teşhis edilmeli.
+- `cnt-02`: "15 Nisan 2026'da kaç araç giriş yaptı?" → `direction` filtresi düşüyor (37→63,
+  hem giriş hem çıkış sayılıyor). Aynı few-shot pattern'i başka bir tarih için işe yaramadı.
+- `cnt-04/05/14`: yeni ortaya çıkan hata modu, 0 dönüyor (muhtemelen tarih parse).
+- `ph-01`: "Kerem Sahin plakalı..." hâlâ bazen eski hataya düşüyor — tek few-shot yeterli
+  gelmedi, ikinci bir örnek veya kural netleştirmesi gerekebilir.
+Teşhis yöntemi ucuz: `run_query(soru, db, use_cache=False)` ile tek çağrı, `tool_call`'ı
+yazdır — 55 soruluk toplu koşum değil, VPS'i zorlamaz. **Bu VPS artık test/eval koşum
+platformu olarak kullanılmayacak** — local bir ortamda (docker-compose + `.env`'deki
+API anahtarlarıyla) devam edilecek.
+
+**Gold-set genişletmesi (`9bd867c`) ayrıca:** `registry_summary` (7. tool, hiç test
+edilmiyordu) + `person=`/`person_kind=` parametreleri için 6 yeni soru, bağımsız Python
+oracle (`eval/reference.py`) gerçek DB'ye karşı doğrulandı. `test_migrations.py`'ye de
+paylaşılan connection pool zehirlenmesi fix'i (`fa64122`) — DDL sonrası `get_engine().dispose()`.
 
 **[2026-09-11 · Claude → Gemini] Admin dashboard: "Ürettiklerim" soru logu + site ziyaret logu (kullanıcı isteği).**
 `~/portfolio/public/admin.html`'de (mevcut master-admin auth) iki yeni bölüm: ziyaret kayıtları
