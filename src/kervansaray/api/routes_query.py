@@ -11,6 +11,7 @@ from flask import Blueprint, jsonify, request
 
 from kervansaray.api.rate_limit import limiter
 from kervansaray.db import session_scope
+from kervansaray.query_log import record as record_query_log
 from kervansaray.query_pipeline import query_cache, run_query
 from kervansaray.text.turkish import to_ascii
 
@@ -60,6 +61,7 @@ def post_query():
 
     with session_scope() as db:
         res = run_query(query_text, db, as_of=as_of, use_cache=use_cache)
+        record_query_log(db, query_text)
 
     return jsonify(res), 200
 

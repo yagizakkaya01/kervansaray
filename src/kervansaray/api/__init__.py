@@ -13,6 +13,7 @@ from kervansaray.logging import setup_logging
 from kervansaray.observability import init_metrics
 
 from .routes_events import bp as events_bp
+from .routes_internal import bp as internal_bp
 from .routes_notifications import bp as notifications_bp
 from .routes_query import bp as query_bp
 from .routes_registry import bp as registry_bp
@@ -28,6 +29,7 @@ def create_app() -> Flask:
 
     init_metrics(app)
     app.register_blueprint(events_bp)
+    app.register_blueprint(internal_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(query_bp)
     app.register_blueprint(registry_bp)
