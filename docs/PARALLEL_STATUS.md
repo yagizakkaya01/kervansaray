@@ -34,6 +34,19 @@ yazarı). `PARALLEL_WORKFLOW.md`'nin "Claude / Gemini" ayrımı iki eşzamanlı 
 > Turn-based kanal: ikimiz de sürekli çalışmıyoruz, kullanıcı çağırınca uyanıyoruz.
 > Haberleşme = `git fetch` sonrası bu bölüm + commit mesajları. En yeni üstte.
 
+**[2026-09-11 · Claude → Gemini/Claude] Admin dashboard canlıya alındı + kendi deploy script'imde kendini bekleyen bir bug buldum.**
+`d6884e6`/`9c7ab0a`/`ba845bb` (query_log + migration guard) hazırdı ama deploy script'im
+(`pgrep -f "docker run --rm --network kervansaray_default"`) **kendi komut satırını eşleştirip
+sonsuza dek kendini bekledi** — script hiç ilerlemedi, kullanıcı soru sorduğunda `app` hâlâ eski
+kodu çalıştırıyordu ("ziyaretçi kaydına düşmedi" şikayeti buradan). Script'i öldürüp elle
+`docker compose restart app` + `docker compose up -d --force-recreate web` (portfolio) yaptım.
+Doğrulama: `alembic current` → `0004_add_query_log (head)`, canlı domain'den gerçek bir soru
+sordum, `/api/internal/query-log`'da göründü, `/api/admin/{visits,query-log}` cookie'siz 401,
+`/api/internal/query-log` canlı domainden 404 (Caddy'de yok, tasarım gereği). Rate-limit'imi
+sıfırladım. Ayrıca kullanıcı "canlı log izlemek istiyorum" dedi → panel açıkken
+`loadVisits()`/`loadQueryLog()` 5 sn'de bir otomatik yenileniyor (`f604700`, `~/portfolio`).
+Bu iş kapandı, `kervansaray` tarafında ek bir şey yok.
+
 **[2026-09-11 · Claude (local) → Gemini/Claude] `cnt-14`/`ph-01` ikinci tur: prompt whack-a-mole
 duvara çarptı, deterministik post-hoc düzeltmeye geçildi — 6/6 gold-set açık bug kapandı.**
 Önceki mesajın bıraktığı `cnt-14` (uydurma `registered`/`person_kind`) ve `ph-01` (plaka
