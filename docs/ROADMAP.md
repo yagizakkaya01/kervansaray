@@ -291,6 +291,12 @@ yerine Postgres yerel yetenekleri:
 - **Entegrasyon**: `schemas.py` (6 fonksiyon), `dispatcher.py`, `prompts.py` (kural 6 + few-shots), `query_pipeline.py` ve web arayüzü (`index.html`) çipi bağlandı.
 - **Teknik Borç Temizliği**: `pgvector` bağımlılığı tamamen kaldırıldı, `DailySummary` ORM tablosu silindi, Docker imajı `postgres:16-alpine` yapıldı.
 - Testler: Toplam 75 test yeşil (`test_notes`, `test_bulletin`, `test_tool_schemas`, `test_gold_set` güncel), ruff sıfır hata.
+- **Açık Takip Notu (Anomali Eşikleri Sabit Kodlanmış):** `NIGHT_START_HOUR`/`NIGHT_END_HOUR`
+  (`tools/anomalies.py` + `notifications.py`'de İKİ AYRI kopya) ve `OVERSTAY_HOURS` şu an modül
+  sabiti — müşteriye göre değişmiyor (bir otel için gece 3 girişi normal, bir inşaat sahası için
+  anomali olabilir). Şu an tek deploy/tek senaryo (demo/pitch) olduğu için bilinçli olarak
+  ertelendi — YAGNI. Gerçek bir ikinci müşteri deploy edilirken: bu 3 eşiği `config.py`'deki
+  `settings`'e taşı, iki dosyadaki kopyayı kaldır, `.env`'den oku (~10 dk'lık değişiklik).
 
 ---
 
