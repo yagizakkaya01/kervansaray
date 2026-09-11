@@ -194,6 +194,21 @@ docker compose exec -T app python -m alembic upgrade head
 ```
 and re-seed if the migration touches demo data (`docker compose exec -T app python scripts/seed_demo.py`, then step 6 of the ship loop).
 
+**Restart `app` after any migration that touches `v_events` (`DROP VIEW` +
+`CREATE VIEW`) — not optional.** The running gunicorn workers hold a
+connection pool with statement plans already prepared against the *old*
+view/table shape (psycopg auto-prepares after a few identical-shaped
+queries). A `DROP`+`CREATE` changes the relation's OID even when the
+resulting columns are identical, and the next query on a poisoned pooled
+connection throws `psycopg.errors.FeatureNotSupported: cached plan must not
+change result type` — a live 500 on `/api/query` that persists until the
+process restarts and gets fresh connections. `docker compose restart app`
+(step 6 of the ship loop) clears this; running the migration without it does
+not. Found via `tests/test_migrations.py` poisoning the *test* suite's
+shared connection pool the same way — fixed there with `get_engine().dispose()`
+in the migration fixture's teardown, which is the test-side analogue of the
+container restart.
+
 ## Puppeteer live-verification
 
 For a UI change, curl isn't enough — verify against the **live domain**
