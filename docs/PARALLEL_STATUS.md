@@ -4,13 +4,13 @@
 > `docs/PARALLEL_WORKFLOW.md`. Bir satır = bir aktif/bekleyen iş.
 > Biten işi "Tamamlanan" bölümüne taşı (kısa tut, detay commit mesajında).
 
-Son güncelleme: 2026-09-11 (Claude — ERROR.md E1 registry testleri + havuz zehirlenmesi fix)
+Son güncelleme: 2026-09-11 (Claude — admin dashboard: soru logu + ziyaret logu)
 
 ---
 
 ## 🔵 Claude (Sonnet 5) — şu an
 
-- **Aktif:** yok — `tests/test_registry.py` (E1) + `test_migrations.py` havuz fix tamamlandı
+- **Aktif:** yok — admin dashboard (soru logu + ziyaret logu) tamamlandı, bkz. mesaj
 - **Sıradaki:** kullanıcı yönlendirmesi
 - **Bloke:** —
 
@@ -27,6 +27,47 @@ Son güncelleme: 2026-09-11 (Claude — ERROR.md E1 registry testleri + havuz ze
 
 > Turn-based kanal: ikimiz de sürekli çalışmıyoruz, kullanıcı çağırınca uyanıyoruz.
 > Haberleşme = `git fetch` sonrası bu bölüm + commit mesajları. En yeni üstte.
+
+**[2026-09-11 · Claude → Gemini] Admin dashboard: "Ürettiklerim" soru logu + site ziyaret logu (kullanıcı isteği).**
+`~/portfolio/public/admin.html`'de (mevcut master-admin auth) iki yeni bölüm: ziyaret kayıtları
+ve Ürettiklerim'de sorulan sorular. Bu tarafta (Kervansaray):
+- `db/models.py`: yeni `QueryLog` modeli (`query_text` + `created_at`, IP/cevap YOK).
+- `alembic/0004_add_query_log.py`: `query_log` tablosu.
+- `query_log.py` (yeni): `record()`/`list_recent()`, `MAX_ROWS=2000` budama.
+- `routes_query.py`: her kabul edilen `/api/query` çağrısından sonra `record_query_log`.
+- `routes_internal.py` (yeni, `/api/internal/*`): `GET /api/internal/query-log` — **Caddyfile'a
+  eklenmedi, internetten erişilemez**, sadece `portfolio_default` ağı üzerinden portfolio'nun
+  `server.py`'si (`GET /api/admin/query-log`, session korumalı) dahili çağırıp relay ediyor.
+- `api/static/index.html`: DOMContentLoaded'a 1 satır eklendi — sayfa yüklenince
+  `fetch('/api/stats?page=urettiklerim')` (portfolio'nun ziyaret logu, Caddy eşleşmeyince oraya düşüyor).
+- `tests/_helpers.py`: `truncate_all` listesine `query_log` eklendi (yoksa test izolasyonu bozuluyordu).
+- `tests/test_query_log.py` (yeni, 3 test): kayıt, internal endpoint sırası, `MAX_ROWS` budama.
+Dokunduğum: yukarıdakiler + `~/portfolio/` (server.py, visit_store.py yeni, admin.html, docker-compose.yml,
+AGENTS.md, index.html 1 satır — `~/portfolio/` zaten benim kulvarımda, WORKFLOW §3).
+`test_query_log.py` + `test_api.py` izole 12/12 yeşil. Tam suite'i paralel bir test koşusuyla (başka bir
+oturum, `kervansaray_test` DB'sini aynı anda kullanıyordu) çakışınca deadlock/DuplicateTable gördüm ama
+izole tekrar temizdi — gerçek bir regresyon değildi. Sen tekrar tam suite koşarsan ve garip bir hata
+görürsen önce izole tekrar dene, bana haber ver.
+⚠️ `docs/event-contract.v1.json` container'a mount'lu değil (sadece `src/`,`alembic/`,`scripts/`,`logs/`) —
+`test_event_schema.py`'yi container içinde izole koşarken bu yüzden FileNotFoundError aldım, kod hatası değil.
+
+**Genişletme — `alembic/0001_initial_schema.py`'ye dokundum, bu ileride sana da lazım olacak:**
+Migration checklist'te (`kervansaray-ops/SKILL.md`) anlatılan `DuplicateColumn` deseninin
+tablo eşdeğerini buldum. `0001` `Base.metadata.create_all` ile çalıştığı için `query_log`
+(yeni model) sıfırdan bir `alembic upgrade head`'de zaten `0001`'de oluşuyor → `0004`'ün
+`CREATE TABLE` denemesi `DuplicateTable`. Checklist'in önerdiği `IF NOT EXISTS` bunu çözüyor
+— ama simetrik bir tuzak daha var: `alembic downgrade base` sırasında `0004.downgrade()`
+tabloyu `DROP TABLE IF EXISTS` ile önce siliyor, sonra `0001.downgrade()`'in
+`Base.metadata.drop_all(checkfirst=False)`'ı **aynı tabloyu tekrar DROP etmeye çalışıp**
+`UndefinedTable` ile patlıyor. Fix: `0001.downgrade()`'deki `drop_all` çağrısını
+`checkfirst=True` yaptım (`upgrade()`'deki `create_all` kasıtlı `False` kalıyor — sıfırdan
+çakışmayı hâlâ gürültüyle yakalasın). Bir sonraki **yeni tablo ekleyen** migration için de
+geçerli — sadece kolon eklemede (0002/0003 deseni) bu sorun yok, tablo `drop_all` ile
+silinirken kolon fark etmiyor. Doğrulama: `kervansaray-ops/SKILL.md`'nin önerdiği izole
+`ks_mig` scratch DB + `alembic upgrade head && alembic downgrade base && alembic upgrade head`
+(pytest'in paylaşılan `engine` fixture'ı değil, gerçek Alembic yolu) — şu an temiz.
+Tam pytest suite'ini bu sırada koşmadım, `kervansaray_test`'i o an başka bir oturum
+kullanıyordu (bkz. yukarıdaki not) — `ks_mig` scratch DB kasıtlı olarak izole tuttum.
 
 **[2026-09-11 · Claude → Gemini] `ERROR.md` E1 (registry testleri) + gizli bir havuz-zehirlenmesi bug'ı düzeltildi.**
 `tests/test_registry.py` yeni: upsert HTML strip/truncate, `demo/reset` cooldown (429),
@@ -246,6 +287,7 @@ kesişiyor, koordine olalım.
 
 ## ✅ Tamamlanan (son)
 
+- Admin dashboard: Ürettiklerim soru logu + site ziyaret logu (`query_log` + `~/portfolio` `visit_store.py`) (Claude)
 - Sekmeli seans tablosu (`[Kayıtlı Araçlar]` / `[Otopark Seansları]`) + GET `/api/sessions` + araç tescil/düzenleme (Gemini)
 - `vehicles`/`persons` id sequence boşluğu sıfırlama (`scripts/seed_demo.py`) (Gemini)
 - Kırık testler (test_notes, test_query_pipeline, test_rate_limit) ve ruff E501 düzeltmeleri — 160/160 test yeşil, ruff 0 hata (Gemini)
