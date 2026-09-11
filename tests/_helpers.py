@@ -17,6 +17,7 @@ BASE_TS = datetime(2026, 9, 3, 8, 0, 0, tzinfo=TR)
 
 _TABLES = (
     "sessions", "events", "registrations", "vehicles", "persons", "notes",
+    "query_log",
 )
 
 
